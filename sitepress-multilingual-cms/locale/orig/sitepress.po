@@ -1520,24 +1520,17 @@ msgid "To learn more, please visit our documentation page about %s."
 msgstr ""
 
 # return '<p class="missing-extension-message">'
-# . esc_html__( 'It looks like the {extension_name} extension, which is required by WPML, is not installed. Please refer to this link to know how to install this extension: {link_to_libxml_documentation}.', 'sitepress' )
+# . esc_html__( 'It looks like the %1$s extension, which is required by WPML, is not installed. Please refer to this link to know how to install this extension: %2$s.', 'sitepress' )
 # . '</p>';
 
-msgid "It looks like the {extension_name} extension, which is required by WPML, is not installed. Please refer to this link to know how to install this extension: {link_to_libxml_documentation}."
-msgstr ""
-
-# return '<p class="outdated-extension-message">'
-# . esc_html__( 'It looks like the {extension_name} extension, which is required by WPML, is outdated. Please refer to this link to know why a more recent version of the module is required: {link_to_outdated_libxml}.', 'sitepress' )
-# . '</p>';
-
-msgid "It looks like the {extension_name} extension, which is required by WPML, is outdated. Please refer to this link to know why a more recent version of the module is required: {link_to_outdated_libxml}."
+msgid "It looks like the %1$s extension, which is required by WPML, is not installed. Please refer to this link to know how to install this extension: %2$s."
 msgstr ""
 
 # private function missing_extension_message_for_php7() {
-# return '<p class="missing-extension-message-for-php7">' . esc_html__( 'You are using PHP 7: in some cases, the extension might have been removed during a system update. In this case, please see {link_to_php7_simple_xml_issues}.', 'sitepress' ) . '</p>';
+# return '<p class="missing-extension-message-for-php7">' . esc_html__( 'You are using PHP 7: in some cases, the extension might have been removed during a system update. In this case, please see %3$s.', 'sitepress' ) . '</p>';
 # }
 
-msgid "You are using PHP 7: in some cases, the extension might have been removed during a system update. In this case, please see {link_to_php7_simple_xml_issues}."
+msgid "You are using PHP 7: in some cases, the extension might have been removed during a system update. In this case, please see %3$s."
 msgstr ""
 
 # private function contact_the_admin() {
@@ -3083,7 +3076,7 @@ msgstr ""
 msgid "Choose language:"
 msgstr ""
 
-# 'strings'     => array(
+# return [
 # 'listNavigation' => __( 'Navigation', 'sitepress' ),
 # 'firstPage'      => __( 'First page', 'sitepress' ),
 
@@ -3091,15 +3084,15 @@ msgid "Navigation"
 msgstr ""
 
 # 'totalItemsText' => sprintf(
-# _n( '%s item', '%s items', $this->pagination->get_total_items(), 'sitepress' ),
-# $this->pagination->get_total_items()
+# _n( '%s item', '%s items', $totalItems, 'sitepress' ),
+# $totalItems
 
 msgid "%s item"
 msgstr ""
 
 # 'totalItemsText' => sprintf(
-# _n( '%s item', '%s items', $this->pagination->get_total_items(), 'sitepress' ),
-# $this->pagination->get_total_items()
+# _n( '%s item', '%s items', $totalItems, 'sitepress' ),
+# $totalItems
 
 msgid "%s items"
 msgstr ""
@@ -7687,39 +7680,67 @@ msgstr ""
 msgid "Slides: link URL"
 msgstr ""
 
-# case 'field_label':
-# return esc_html__( 'Form: Field label', 'sitepress' );
-# 
+# return wpml_collect( [
+# 'field_label'            => esc_html__( 'Form: Field label', 'sitepress' ),
+# 'placeholder'            => esc_html__( 'Form: Field placeholder', 'sitepress' ),
 
 msgid "Form: Field label"
 msgstr ""
 
-# case 'placeholder':
-# return esc_html__( 'Form: Field placeholder', 'sitepress' );
-# 
+# 'field_label'            => esc_html__( 'Form: Field label', 'sitepress' ),
+# 'placeholder'            => esc_html__( 'Form: Field placeholder', 'sitepress' ),
+# 'field_html'             => esc_html__( 'Form: Field HTML', 'sitepress' ),
 
 msgid "Form: Field placeholder"
 msgstr ""
 
-# case 'field_html':
-# return esc_html__( 'Form: Field HTML', 'sitepress' );
-# 
+# 'placeholder'            => esc_html__( 'Form: Field placeholder', 'sitepress' ),
+# 'field_html'             => esc_html__( 'Form: Field HTML', 'sitepress' ),
+# 'acceptance_text'        => esc_html__( 'Form: Acceptance Text', 'sitepress' ),
 
 msgid "Form: Field HTML"
 msgstr ""
 
-# case 'acceptance_text':
-# return esc_html__( 'Form: Acceptance Text', 'sitepress' );
-# 
+# 'field_html'             => esc_html__( 'Form: Field HTML', 'sitepress' ),
+# 'acceptance_text'        => esc_html__( 'Form: Acceptance Text', 'sitepress' ),
+# 'field_options'          => esc_html__( 'Form: Checkbox Options', 'sitepress' ),
 
 msgid "Form: Acceptance Text"
 msgstr ""
 
-# case 'field_options':
-# return esc_html__( 'Form: Checkbox Options', 'sitepress' );
-# 
+# 'acceptance_text'        => esc_html__( 'Form: Acceptance Text', 'sitepress' ),
+# 'field_options'          => esc_html__( 'Form: Checkbox Options', 'sitepress' ),
+# 'step_next_label'        => esc_html__( 'Form: Step Next Label', 'sitepress' ),
 
 msgid "Form: Checkbox Options"
+msgstr ""
+
+# 'field_options'          => esc_html__( 'Form: Checkbox Options', 'sitepress' ),
+# 'step_next_label'        => esc_html__( 'Form: Step Next Label', 'sitepress' ),
+# 'step_previous_label'    => esc_html__( 'Form: Step Previous Label', 'sitepress' ),
+
+msgid "Form: Step Next Label"
+msgstr ""
+
+# 'step_next_label'        => esc_html__( 'Form: Step Next Label', 'sitepress' ),
+# 'step_previous_label'    => esc_html__( 'Form: Step Previous Label', 'sitepress' ),
+# 'previous_button'        => esc_html__( 'Form: Previous Button', 'sitepress' ),
+
+msgid "Form: Step Previous Label"
+msgstr ""
+
+# 'step_previous_label'    => esc_html__( 'Form: Step Previous Label', 'sitepress' ),
+# 'previous_button'        => esc_html__( 'Form: Previous Button', 'sitepress' ),
+# 'next_button'            => esc_html__( 'Form: Next Button', 'sitepress' ),
+
+msgid "Form: Previous Button"
+msgstr ""
+
+# 'previous_button'        => esc_html__( 'Form: Previous Button', 'sitepress' ),
+# 'next_button'            => esc_html__( 'Form: Next Button', 'sitepress' ),
+# ] )->get( $field, '' );
+
+msgid "Form: Next Button"
 msgstr ""
 
 # if ( 'item_text' === $field ) {
@@ -7913,7 +7934,7 @@ msgstr ""
 
 # 'field'       => 'blockquote_content',
 # 'type'        => __( 'Blockquote: Content', 'sitepress' ),
-# 'editor_type' => 'VISUAL'
+# 'editor_type' => 'AREA',
 
 msgid "Blockquote: Content"
 msgstr ""
@@ -8378,6 +8399,48 @@ msgstr ""
 # 'editor_type' => 'LINE',
 
 msgid "Table of Contents - Title"
+msgstr ""
+
+# 'field'       => 'url',
+# 'type'        => __( 'Lottie: Link URL', 'sitepress' ),
+# 'editor_type' => 'LINK'
+
+msgid "Lottie: Link URL"
+msgstr ""
+
+# 'field'       => 'author_name',
+# 'type'        => __( 'Author Name', 'sitepress' ),
+# 'editor_type' => 'LINE',
+
+msgid "Author Name"
+msgstr ""
+
+# 'field'       => 'author_bio',
+# 'type'        => __( 'Author Bio', 'sitepress' ),
+# 'editor_type' => 'AREA',
+
+msgid "Author Bio"
+msgstr ""
+
+# 'field_id'    => 'author_website',
+# 'type'        => __( 'Author Link', 'sitepress' ),
+# 'editor_type' => 'LINK',
+
+msgid "Author Link"
+msgstr ""
+
+# 'field'       => 'link_text',
+# 'type'        => __( 'Archive Text', 'sitepress' ),
+# 'editor_type' => 'LINE',
+
+msgid "Archive Text"
+msgstr ""
+
+# 'field_id'    => 'posts_url',
+# 'type'        => __( 'Archive Button URL', 'sitepress' ),
+# 'editor_type' => 'LINK',
+
+msgid "Archive Button URL"
 msgstr ""
 
 # 

@@ -26,59 +26,32 @@ class Register {
 				</div>
 			</div>
 		</div>
+        <?php
+        echo self::getRegistrationForm($model);
+	}
 
-		<form class="otgsi_site_key_form" method="post">
+	private static function getRegistrationForm( $model ) {
+		$registrationText = sprintf(
+			__( 'Enter the site key, from your %1$s account, to receive automatic updates for %2$s.', 'installer' ),
+			self::removeScheme( $model->productUrl ),
+			$model->productName
+		);
+
+		return '<form class="otgsi_site_key_form" method="post">
 			<input type="hidden" name="action" value="save_site_key"/>
-			<input type="hidden" name="nonce" value="<?php echo $model->saveSiteKeyNonce ?>"/>
-			<input type="hidden" name="repository_id" value="<?php echo $model->repoId ?>">
-
-			<?php
-			$steps = [
-				1 => sprintf(
-					__( 'Get your site-key for %1$s. If you already have a key, get it from %2$s. Otherwise, %3$s', 'installer' ),
-					self::removeScheme( $model->siteUrl ),
-					self::getAccountLink( $model ),
-					self::getRegisterLink( $model ) ),
-				2 => __( 'Insert your key and activate automatic updates:', 'installer' )
-				     . '<span class="otgs-installer-register-inputs">'
-				     . '<input type="text" size="20" name="site_key_'
-				     . $model->repoId
-				     . '" placeholder="'
-				     . esc_attr( 'site key' )
-				     . '" />'
-				     . '<input class="button-primary" type="submit" value="'
-				     . esc_attr__( 'OK', 'installer' )
-				     . '" />'
-				     . '<input class="button-secondary cancel_site_key_js" type="button" value="'
-				     . esc_attr__( 'Cancel registration', 'installer' )
-				     . '" />'
-				     . '</span>'
-
-			];
-
-			$required_items_count = count( $steps );
-
-			$filtered_items = apply_filters( 'otgs_installer_repository_registration_steps', $steps, $model->repoId );
-			if ( ! $filtered_items || ! is_array( $filtered_items ) || $required_items_count < 2 ) {
-				$filtered_items = $steps;
-			}
-
-			$steps = $filtered_items;
-			ksort( $steps );
-			?>
-			<ol>
-				<?php
-				foreach ( $steps as $item ) {
-					?>
-					<li>
-						<?php echo $item; ?>
-					</li>
-					<?php
-				}
-				?>
-			</ol>
-		</form>
-		<?php
+			<input type="hidden" name="nonce" value="' . esc_attr( $model->saveSiteKeyNonce ) . '"/>
+			<input type="hidden" name="repository_id" value="' . esc_attr( $model->repoId ) . '">
+            <h3 class="otgs-installer-register-title">Register ' . esc_html( $model->productName ) . '</h3>
+            <p class="otgs-installer-register-info">' . esc_html( $registrationText ) . '</p>
+            <div class="otgs-installer-register-inputs">
+                <label for="site_key_' . esc_attr( $model->repoId ) . '">' . esc_html( __( 'Site key', 'installer' ) ) . '</label>
+                <input type="text" size="20" name="site_key_' . esc_attr( $model->repoId ) . '" id="site_key_' . esc_attr( $model->repoId ) . '"/>
+                <input class="button-primary" type="submit" value="' . esc_attr__( 'Register', 'installer' ) . '" />
+            </div>
+            <p class="otgs-installer-register-link"><a target="_blank" rel="nofollow" href="' . esc_url( self::getAccountUrl( $model ) ) . '">' . esc_html( __( 'Get a key for this site', 'installer' ) ) . '</a></p>
+                                   
+            <div class="installer-error-box hidden"></div>
+		</form>';
 	}
 
 	private static function removeScheme( $str ) {
@@ -90,14 +63,8 @@ class Register {
 	 *
 	 * @return string
 	 */
-	private static function getAccountLink( $model ) {
-		$url = $model->siteKeysManagementUrl . '?add=' . urlencode( $model->siteUrl );
-		ob_start();
-		?>
-		<a target="_blank" rel="nofollow"
-		   href="<?php echo esc_url( $url ); ?>"><?php esc_html_e( 'your account', 'installer' ); ?></a>
-		<?php
-		return trim( ob_get_clean() );
+	private static function getAccountUrl( $model ) {
+		return $model->siteKeysManagementUrl . '?add=' . urlencode( $model->siteUrl );
 	}
 
 	/**

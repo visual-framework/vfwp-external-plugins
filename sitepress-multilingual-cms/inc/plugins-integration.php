@@ -1,5 +1,7 @@
 <?php
 
+use function WPML\Container\make;
+
 $action_filter_loader = new WPML_Action_Filter_Loader();
 $action_filter_loader->load(
 	array(
@@ -70,6 +72,8 @@ function wpml_plugins_integration_setup() {
 			new WPML_Translation_Element_Factory( $sitepress )
 		);
 		$wpml_visual_composer_grid->add_hooks();
+
+		make( WPML\Compatibility\WPBakery\Styles::class )->add_hooks();
 	}
 
 	if ( class_exists( 'GoogleSitemapGeneratorLoader' ) ) {
@@ -97,6 +101,10 @@ function wpml_plugins_integration_setup() {
 
 	if ( defined( 'ELEMENTOR_VERSION' ) ) {
 		$factories_to_load[] = WPML_PB_Fix_Maintenance_Query::class;
+	}
+
+	if ( defined( 'GOOGLESITEKIT_VERSION' ) ) {
+		$factories_to_load[] = \WPML\Compatibility\GoogleSiteKit\Hooks::class;
 	}
 
 	$action_filter_loader = new WPML_Action_Filter_Loader();
@@ -132,6 +140,7 @@ function wpml_themes_integration_setup() {
 		$actions[] = WPML\Compatibility\Divi\DiviOptionsEncoding::class;
 		$actions[] = WPML\Compatibility\Divi\ThemeBuilderFactory::class;
 		$actions[] = WPML\Compatibility\Divi\Builder::class;
+		$actions[] = WPML\Compatibility\Divi\TinyMCE::class;
 	}
 
 	if ( defined( 'FUSION_BUILDER_VERSION' ) ) {

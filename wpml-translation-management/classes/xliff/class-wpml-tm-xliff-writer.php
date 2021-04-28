@@ -4,9 +4,10 @@
  */
 
 use WPML\FP\Obj;
+use WPML\TM\Jobs\FieldId;
 
 class WPML_TM_Xliff_Writer {
-	const TAB                        = "\t";
+	const TAB = "\t";
 
 	protected $job_factory;
 	private $xliff_version;
@@ -21,8 +22,8 @@ class WPML_TM_Xliff_Writer {
 	 * @param \WPML_TM_XLIFF_Shortcodes|null $xliff_shortcodes
 	 */
 	public function __construct( WPML_Translation_Job_Factory $job_factory, $xliff_version = TRANSLATION_PROXY_XLIFF_VERSION, WPML_TM_XLIFF_Shortcodes $xliff_shortcodes = null ) {
-		$this->job_factory      = $job_factory;
-		$this->xliff_version    = $xliff_version;
+		$this->job_factory   = $job_factory;
+		$this->xliff_version = $xliff_version;
 
 		if ( ! $xliff_shortcodes ) {
 			$xliff_shortcodes = wpml_tm_xliff_shortcodes();
@@ -89,10 +90,11 @@ class WPML_TM_Xliff_Writer {
 
 		return $this->generate_xliff_file(
 			$this->generate_xliff(
-				uniqid('string-', true),
+				uniqid( 'string-', true ),
 				$source_language,
 				$target_language,
-				$this->generate_strings_translation_units_data( $strings ) )
+				$this->generate_strings_translation_units_data( $strings )
+			)
 		);
 	}
 
@@ -182,7 +184,7 @@ class WPML_TM_Xliff_Writer {
 			$string->translation            = $string->value;
 
 			if ( array_key_exists( $string->value, $original_translated_map ) ) {
-				$string->translation = $original_translated_map[ $string->value ];
+				$string->translation            = $original_translated_map[ $string->value ];
 				$string->translated_from_memory = true;
 			}
 		}
@@ -244,12 +246,16 @@ class WPML_TM_Xliff_Writer {
 					$field_data = apply_filters( 'wpml_tm_xliff_unit_field_data', $field_data );
 
 					if ( 0 === strpos( $element->field_type, 'field-' ) ) {
-						$field_data_translated = apply_filters( 'wpml_tm_xliff_export_translated_cf',
-						                                        $field_data_translated,
-						                                        $element );
-						$field_data            = apply_filters( 'wpml_tm_xliff_export_original_cf',
-						                                        $field_data,
-						                                        $element );
+						$field_data_translated = apply_filters(
+							'wpml_tm_xliff_export_translated_cf',
+							$field_data_translated,
+							$element
+						);
+						$field_data            = apply_filters(
+							'wpml_tm_xliff_export_original_cf',
+							$field_data,
+							$element
+						);
 					}
 					// check for untranslated fields and copy the original if required.
 					if ( ! null === $field_data_translated || '' === $field_data_translated ) {
@@ -263,7 +269,7 @@ class WPML_TM_Xliff_Writer {
 							$field_data_translated,
 							$element->translated_from_memory,
 							$element->field_wrap_tag,
-							$this->get_field_title( $element )
+							$this->get_field_title( $element, $job )
 						);
 					}
 				}
@@ -274,11 +280,12 @@ class WPML_TM_Xliff_Writer {
 
 	/**
 	 * @param \stdClass $field
+	 * @param \stdClass $job
 	 *
 	 * @return string
 	 */
-	private function get_field_title( $field ) {
-		$result = apply_filters( 'wpml_tm_adjust_translation_fields', [ (array) $field ], null );
+	private function get_field_title( $field, $job ) {
+		$result = apply_filters( 'wpml_tm_adjust_translation_fields', [ (array) $field ], $job, null );
 
 		return Obj::pathOr( '', [ 0, 'title' ], $result );
 	}
@@ -294,11 +301,14 @@ class WPML_TM_Xliff_Writer {
 		$strings_to_translate = array();
 
 		foreach ( $elements as &$element ) {
-			$element->translated_from_memory = false;
 
 			if ( preg_match( '/^package-string/', $element->field_type ) ) {
 				$strings_to_translate[ $element->tid ] = base64_decode( $element->field_data );
 			}
+
+			$element->translated_from_memory = FieldId::is_any_term_field( $element->field_type )
+				&& $element->field_data_translated
+				&& $element->field_data != $element->field_data_translated;
 		}
 
 		$original_translated_map = $this->get_original_translated_map_from_translation_memory( $strings_to_translate, $source_lang, $target_lang );
@@ -308,7 +318,7 @@ class WPML_TM_Xliff_Writer {
 			foreach ( $elements as &$element ) {
 
 				if ( array_key_exists( $element->tid, $strings_to_translate )
-				     && array_key_exists( $strings_to_translate[ $element->tid ], $original_translated_map )
+					 && array_key_exists( $strings_to_translate[ $element->tid ], $original_translated_map )
 				) {
 					$element->field_data_translated  = base64_encode( $original_translated_map[ $strings_to_translate[ $element->tid ] ] );
 					$element->translated_from_memory = true;

@@ -85,7 +85,8 @@ abstract class WPML_Element_Translation_Job extends WPML_Translation_Job {
 				'job_id'   => $this->get_id(),
 				'complete' => $complete,
 				'fields'   => array(),
-			), $wpml_tm_records
+			),
+			$wpml_tm_records
 		);
 		$save_data_action->save_translation();
 	}
@@ -141,7 +142,8 @@ abstract class WPML_Element_Translation_Job extends WPML_Translation_Job {
 			$wpdb->delete( $wpdb->prefix . 'icl_translations', array( 'translation_id' => $translation_id ) );
 			if ( $rid ) {
 				$wpdb->delete(
-					$wpdb->prefix . 'icl_translation_status', array(
+					$wpdb->prefix . 'icl_translation_status',
+					array(
 						'translation_id' => $translation_id,
 						'rid'            => $rid,
 					)

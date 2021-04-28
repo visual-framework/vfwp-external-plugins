@@ -21,7 +21,7 @@ class Consumer {
 	}
 
 	/**
-	 * @param  Job  $job
+	 * @param  Job $job
 	 *
 	 * @return Job|false
 	 * @throws Exception

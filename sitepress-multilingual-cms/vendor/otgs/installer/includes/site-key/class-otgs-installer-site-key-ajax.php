@@ -33,8 +33,13 @@ class OTGS_Installer_Site_Key_Ajax {
 		$site_key   = preg_replace( '/[^A-Za-z0-9]/', '', $site_key );
 		$error      = '';
 
-		if ( ! $repository || ! $nonce || ! $site_key || ! wp_verify_nonce( $nonce, 'save_site_key_' . $repository ) ) {
-			wp_send_json_error( esc_html__( 'Invalid request!', 'installer' ) );
+		if ( ! $site_key ) {
+			wp_send_json_success( [ 'error' => esc_html__( 'Empty site key!', 'installer' ) ] );
+			return;
+		}
+		if ( ! $repository || ! $nonce || ! wp_verify_nonce( $nonce, 'save_site_key_' . $repository ) ) {
+			wp_send_json_success( [ 'error' => esc_html__( 'Invalid request!', 'installer' ) ] );
+			return;
 		}
 
 		try {

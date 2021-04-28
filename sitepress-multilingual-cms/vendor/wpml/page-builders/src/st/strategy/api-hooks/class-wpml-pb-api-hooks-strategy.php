@@ -19,13 +19,13 @@ class WPML_PB_API_Hooks_Strategy implements IWPML_PB_Strategy {
 	}
 
 	/**
-	 * @param bool $registered
 	 * @param string|int $post_id
 	 * @param string $content
+	 * @param WPML\PB\Shortcode\StringCleanUp $stringCleanUp
 	 *
 	 * @return bool
 	 */
-	public function register_strings_in_content( $post_id, $content, $do_cleanup ) {}
+	public function register_strings_in_content( $post_id, $content, WPML\PB\Shortcode\StringCleanUp $stringCleanUp ) {}
 
 	public function set_factory( $factory ) {
 		$this->factory = $factory;

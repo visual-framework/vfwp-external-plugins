@@ -56,7 +56,7 @@ class WPML_TM_ATE_Jobs {
 	}
 
 	/**
-	 * @param int $wpml_job_id
+	 * @param int   $wpml_job_id
 	 * @param array $ate_job_data
 	 */
 	public function store( $wpml_job_id, $ate_job_data ) {
@@ -110,7 +110,7 @@ class WPML_TM_ATE_Jobs {
 		}
 
 		kses_remove_filters();
-		$job_data = $this->filterJobData( $job_data );
+		$job_data    = $this->filterJobData( $job_data );
 		$wpml_job_id = $job_data['job_id'];
 
 		try {
@@ -141,7 +141,7 @@ class WPML_TM_ATE_Jobs {
 		 *       @type string $format
 		 *    }
 		 *    @type int $complete
- 		 * }
+		 * }
 		 * @param  callable $getJobTargetLanguage The callback which expects $jobId as parameter
 		 *
 		 * @since 2.10.0
@@ -161,6 +161,7 @@ class WPML_TM_ATE_Jobs {
 
 	/**
 	 * getJobTargetLanguage :: void → ( object → string|null )
+	 *
 	 * @return callback
 	 */
 	private function getJobTargetLanguage() {
@@ -169,7 +170,7 @@ class WPML_TM_ATE_Jobs {
 		// $getTargetLangIfEntityExists :: \WPML_TM_Job_Entity|false -> string|null
 		$getTargetLangIfEntityExists = Logic::ifElse( Fns::identity(), invoke( 'get_target_language' ), Fns::always( null ) );
 
-		return pipe( Obj::prop( 'job_id' ), $getJobEntityById, $getTargetLangIfEntityExists );
+		return pipe( Obj::prop( 'rid' ), $getJobEntityById, $getTargetLangIfEntityExists );
 	}
 
 	/**

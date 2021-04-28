@@ -2,20 +2,23 @@
 /**
  * Plugin Name: WPML Translation Management
  * Plugin URI: https://wpml.org/
- * Description: Add a complete translation process for WPML | <a href="https://wpml.org">Documentation</a> | <a href="https://wpml.org/version/translation-management-2-9-9/">WPML Translation Management 2.9.9 release notes</a>
+ * Description: Add a complete translation process for WPML | <a href="https://wpml.org">Documentation</a> | <a href="https://wpml.org/version/translation-management-2-10-6/">WPML Translation Management 2.10.6 release notes</a>
  * Author: OnTheGoSystems
  * Author URI: http://www.onthegosystems.com/
- * Version: 2.9.9
+ * Version: 2.10.6
  * Plugin Slug: wpml-translation-management
  *
  * @package WPML\TM
  */
 
+use WPML\TM\Notices\AteLockNotice;
+use WPML\TM\ATE\ClonedSites\ReportAjax;
+
 if ( defined( 'WPML_TM_VERSION' ) || get_option( '_wpml_inactive' ) ) {
 	return;
 }
 
-define( 'WPML_TM_VERSION', '2.9.9' );
+define( 'WPML_TM_VERSION', '2.10.6' );
 
 // Do not uncomment the following line!
 // If you need to use this constant, use it in the wp-config.php file
@@ -146,10 +149,10 @@ function wpml_tm_load( $sitepress = null ) {
 			'WPML_TM_Jobs_Deadline_Cron_Hooks_Factory',
 			'WPML_TM_Emails_Settings_Factory',
 			'WPML_TM_Jobs_Summary_Report_Hooks_Factory',
-			'WPML_TM_Translation_Services_Admin_Section_Resources_Factory',
-			'WPML_TM_Translation_Services_Admin_Section_Ajax_Factory',
-			'WPML_TM_Translation_Service_Authentication_Ajax_Factory',
-			'WPML_TM_Translation_Services_Refresh_Services_Factory',
+			\WPML\TM\Menu\TranslationServices\ResourcesFactory::class,
+			\WPML\TM\Menu\TranslationServices\ActivationAjaxFactory::class,
+			\WPML\TM\Menu\TranslationServices\AuthenticationAjaxFactory::class,
+			\WPML\TM\Menu\TranslationServices\Troubleshooting\RefreshServicesFactory::class,
 			'WPML_TP_Lock_Notice_Factory',
 			'WPML_TM_Parent_Filter_Ajax_Factory',
 			'WPML_TM_Upgrade_Loader_Factory',
@@ -168,7 +171,10 @@ function wpml_tm_load( $sitepress = null ) {
 			'WPML_TM_Translation_Jobs_Fix_Summary_Factory',
 			'WPML_TM_Troubleshooting_Fix_Translation_Jobs_TP_ID_Factory',
 			\WPML\TM\Troubleshooting\SynchronizeSourceIdOfATEJobs\TriggerSynchronization::class,
+			\WPML\TM\Troubleshooting\ResetPreferredTranslationService::class,
 			'WPML_TM_Reset_Options_Filter_Factory',
+			\WPML\TM\User\Hooks::class,
+			\WPML\TM\Jobs\ExtraFieldDataInEditorFactory::class,
 		];
 		$action_filter_loader->load( $actions );
 
@@ -200,11 +206,14 @@ function wpml_tm_load( $sitepress = null ) {
 			'WPML_TM_AMS_Check_Website_ID_Factory',
 			\WPML\TM\ATE\Log\Hooks::class,
 			\WPML\TM\ATE\Hooks\ReturnedJobActionsFactory::class,
+			ReportAjax::class,
+			AteLockNotice::class,
 		];
 		$action_filter_loader->load( $ams_ate_actions );
 
 		$after_ate_actions = [
 			'WPML_TM_All_Admins_To_Translation_Managers',
+			\WPML\TranslateLinkTargets\Hooks::class,
 		];
 		$action_filter_loader->load( $after_ate_actions );
 	}

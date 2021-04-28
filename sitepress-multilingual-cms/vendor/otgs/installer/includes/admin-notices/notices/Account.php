@@ -35,6 +35,7 @@ class Account {
 		                 ->entities()
 		                 ->reduce( Notice::addNoticesForType($installer, $config), Collection::of( $initialNotices ) )
 		                 ->get();
+
 	}
 
 	/**
@@ -129,6 +130,17 @@ class Account {
 				],
 			],
 		] );
+	}
+
+	public static function dismissions( array $initialDismissions ) {
+		return array_merge_recursive(
+			$initialDismissions,
+			[
+				Account::NOT_REGISTERED => Dismissions::class . '::dismissAccountNotice',
+				Account::EXPIRED        => Dismissions::class . '::dismissAccountNotice',
+				Account::REFUNDED       => Dismissions::class . '::dismissAccountNotice',
+			]
+		);
 	}
 
 	private static function isDevelopmentSite( $url ) {

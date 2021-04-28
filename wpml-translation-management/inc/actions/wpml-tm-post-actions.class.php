@@ -32,12 +32,10 @@ class WPML_TM_Post_Actions extends WPML_Translation_Job_Helper {
 
 		// set trid and lang code if front-end translation creating
 		$trid = apply_filters( 'wpml_tm_save_post_trid_value', isset( $trid ) ? $trid : '', $post_id );
-		$lang = apply_filters( 'wpml_tm_save_post_lang_value', isset( $lang ) ? $lang : '', $post_id );
+		$lang = apply_filters( 'wpml_tm_save_post_lang_value', '', $post_id );
 
 		$trid = $this->maybe_retrive_trid_again( $trid, $post );
 		$needs_second_update = array_key_exists( 'needs_second_update', $_POST ) ? (bool) $_POST['needs_second_update'] : false;
-
-
 
 		// is this the original document?
 		$is_original = empty( $trid )

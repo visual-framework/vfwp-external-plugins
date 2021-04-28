@@ -65,11 +65,11 @@ abstract class WPML_Translation_Roles_Ajax extends WPML_TM_AJAX implements IWPML
 				$this->on_user_created( $user );
 
 				$user->data->edit_link = esc_url( "user-edit.php?user_id={$user->ID}" );
-				$user->data->avatar = get_avatar( $user->ID );
+				$user->data->avatar    = get_avatar( $user->ID );
 
 				$new_row = $this->view->show(
 					array(
-						'user' => (array) $user->data
+						'user' => (array) $user->data,
 					),
 					$this->get_user_row_template()
 				);
@@ -117,7 +117,7 @@ abstract class WPML_Translation_Roles_Ajax extends WPML_TM_AJAX implements IWPML
 		$last_name  = $this->post_vars->post( 'last' );
 		$email      = $this->post_vars->post( 'email', FILTER_SANITIZE_EMAIL );
 		$user_name  = $this->post_vars->post( 'user' );
-		$role = \WPML\TM\Menu\TranslationRoles\RoleValidator::getTheHighestPossibleIfNotValid(
+		$role       = \WPML\TM\Menu\TranslationRoles\RoleValidator::getTheHighestPossibleIfNotValid(
 			$this->post_vars->post( 'role' )
 		);
 

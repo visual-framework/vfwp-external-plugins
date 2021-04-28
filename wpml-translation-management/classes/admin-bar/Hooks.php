@@ -12,8 +12,10 @@ class Hooks implements \IWPML_Frontend_Action, \IWPML_DIC_Action {
 	}
 
 	public function add_hooks() {
-		add_action( 'admin_bar_menu', [ $this, 'addTranslateMenuItem' ], 80 );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueueScripts' ] );
+		if ( is_user_logged_in() ) {
+			add_action( 'admin_bar_menu', [ $this, 'addTranslateMenuItem' ], 80 );
+			add_action( 'wp_enqueue_scripts', [ $this, 'enqueueScripts' ] );
+		}
 	}
 
 	public function addTranslateMenuItem( \WP_Admin_Bar $wpAdminMenu ) {

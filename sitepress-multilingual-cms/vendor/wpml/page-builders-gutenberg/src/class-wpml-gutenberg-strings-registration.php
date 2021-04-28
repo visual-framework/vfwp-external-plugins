@@ -48,6 +48,7 @@ class WPML_Gutenberg_Strings_Registration {
 	 */
 	public function register_strings( WP_Post $post, $package_data ) {
 		do_action( 'wpml_start_string_package_registration', $package_data );
+		do_action( 'wpml_start_GB_register_strings', $post, $package_data );
 
 		$this->leftover_strings = $original_strings = $this->string_translation->get_package_strings( $package_data );
 		$this->string_location  = 1;
@@ -62,6 +63,7 @@ class WPML_Gutenberg_Strings_Registration {
 
 		$this->reuse_translations->find_and_reuse_translations( $original_strings, $current_strings, $this->leftover_strings );
 
+		do_action( 'wpml_end_GB_register_strings', $post, $package_data );
 		do_action( 'wpml_delete_unused_package_strings', $package_data );
 	}
 
@@ -76,41 +78,45 @@ class WPML_Gutenberg_Strings_Registration {
 			$block   = WPML_Gutenberg_Integration::sanitize_block( $block );
 			$strings = $this->strings_in_blocks->find( $block );
 
-			foreach ( $strings as $string ) {
+			if ( empty( $strings ) ) {
+				apply_filters( 'wpml_pb_register_strings_in_content', false, $post_id, $block->innerHTML );
+			} else {
+				foreach ( $strings as $string ) {
 
-				if( apply_filters( 'wpml_pb_register_strings_in_content', false, $post_id, $string->value ) ) {
-					continue;
+					if( apply_filters( 'wpml_pb_register_strings_in_content', false, $post_id, $string->value ) ) {
+						continue;
+					}
+
+					if ( 'LINK' === $string->type && ! $this->translate_link_targets->is_internal_url( $string->value ) ) {
+						$string->type = 'LINE';
+					}
+
+					do_action(
+						'wpml_register_string',
+						$string->value,
+						$string->id,
+						$package_data,
+						$string->name,
+						$string->type
+					);
+
+					$this->update_string_location( $package_data, $string );
+
+					// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					if ( 'core/heading' === $block->blockName ) {
+						// phpcs:enable
+						$wrap_tag = (string) isset( $block->attrs['level'] ) ? $block->attrs['level'] : 2;
+						$wrap_tag = 'h' . $wrap_tag;
+						$this->update_wrap_tag( $package_data, $string, $wrap_tag );
+					}
+
+					if ( 'LINK' === $string->type ) {
+						$string_id = apply_filters( 'wpml_string_id_from_package', 0, $package_data, $string->id, $string->value );
+						call_user_func( $this->set_link_translations, $string_id );
+					}
+
+					$this->remove_string_from_leftovers( $string->value );
 				}
-
-				if ( 'LINK' === $string->type && ! $this->translate_link_targets->is_internal_url( $string->value ) ) {
-					$string->type = 'LINE';
-				}
-
-				do_action(
-					'wpml_register_string',
-					$string->value,
-					$string->id,
-					$package_data,
-					$string->name,
-					$string->type
-				);
-
-				$this->update_string_location( $package_data, $string );
-
-				// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				if ( 'core/heading' === $block->blockName ) {
-					// phpcs:enable
-					$wrap_tag = (string) isset( $block->attrs['level'] ) ? $block->attrs['level'] : 2;
-					$wrap_tag = 'h' . $wrap_tag;
-					$this->update_wrap_tag( $package_data, $string, $wrap_tag );
-				}
-
-				if ( 'LINK' === $string->type ) {
-					$string_id = apply_filters( 'wpml_string_id_from_package', 0, $package_data, $string->id, $string->value );
-					call_user_func( $this->set_link_translations, $string_id );
-				}
-
-				$this->remove_string_from_leftovers( $string->value );
 			}
 
 			if ( isset( $block->innerBlocks ) ) {

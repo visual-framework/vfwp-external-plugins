@@ -35,7 +35,7 @@ class SitePress_EditLanguages {
 	private $wpml_flags;
 
 	/**
-	 * @var array
+	 * @var array<string>
 	 */
 	private $wpml_flag_files;
 
@@ -43,8 +43,8 @@ class SitePress_EditLanguages {
 	private $update_language_packs_if_needed;
 
 	/**
-	 * @param WPML_Flags $wpml_flags
-	 * @param bool       $update_language_packs_if_needed
+	 * @param \WPML_Flags $wpml_flags
+	 * @param bool        $update_language_packs_if_needed
 	 */
 	public function __construct( WPML_Flags $wpml_flags, $update_language_packs_if_needed = true ) {
 		$this->wpml_flags = $wpml_flags;
@@ -493,7 +493,8 @@ class SitePress_EditLanguages {
 		global $wpdb;
 
 		return $wpdb->insert(
-			$wpdb->prefix . 'icl_languages', [
+			$wpdb->prefix . 'icl_languages',
+			[
 				'code'           => $code,
 				'english_name'   => $english_name,
 				'default_locale' => $default_locale,
@@ -508,12 +509,14 @@ class SitePress_EditLanguages {
 	function update_main_table( $id, $code, $default_locale, $encode_url, $tag ) {
 		global $wpdb;
 		$wpdb->update(
-			$wpdb->prefix . 'icl_languages', [
+			$wpdb->prefix . 'icl_languages',
+			[
 				'code'           => $code,
 				'default_locale' => $default_locale,
 				'encode_url'     => $encode_url,
 				'tag'            => $tag,
-			], [ 'ID' => $id ]
+			],
+			[ 'ID' => $id ]
 		);
 	}
 
@@ -574,6 +577,8 @@ class SitePress_EditLanguages {
 				continue;
 			}
 
+			$data = filter_var_array( $data, FILTER_SANITIZE_STRING );
+
 			// Validate and sanitize data.
 			if ( ! $this->validate_one( $id, $data ) ) {
 				continue;
@@ -591,7 +596,8 @@ class SitePress_EditLanguages {
 				$wpdb->update( $wpdb->prefix . 'icl_locale_map', [ 'locale' => $data['default_locale'] ], [ 'code' => $data['code'] ] );
 			} else {
 				$wpdb->insert(
-					$wpdb->prefix . 'icl_locale_map', [
+					$wpdb->prefix . 'icl_locale_map',
+					[
 						'code'   => $data['code'],
 						'locale' => $data['default_locale'],
 					]
@@ -609,7 +615,7 @@ class SitePress_EditLanguages {
 					if ( empty( $translation_value ) ) {
 						$translation_value = $data['english_name'];
 					}
-					$translation_code = $_POST['icl_edit_languages']['add']['code'];
+					$translation_code = filter_var( $_POST['icl_edit_languages']['add']['code'], FILTER_SANITIZE_STRING );
 				}
 
 				// Check if update.
@@ -653,8 +659,8 @@ class SitePress_EditLanguages {
 	}
 
 	/**
-	 * @param array $data
-	 * @param int   $id
+	 * @param array<string,string|array<string,string>> $data
+	 * @param int                                       $id
 	 *
 	 * @return int
 	 */
@@ -669,7 +675,7 @@ class SitePress_EditLanguages {
 				$this->set_errors( __( 'Error uploading flag file.', 'sitepress' ) );
 			}
 			$this->wpml_flags->clear();
-		} elseif ( empty( $data['flag'] ) || 'false' === $data['flag_upload'] ) {
+		} elseif ( empty( $data['flag'] ) || \WPML\FP\Relation::propEq( 'flag_upload', 'false', $data ) ) {
 			$data['flag'] = $data['code'] . '.png';
 		} else {
 			$from_template = 1;
@@ -679,8 +685,8 @@ class SitePress_EditLanguages {
 	}
 
 	/**
-	 * @param array $data
-	 * @param       $id
+	 * @param array<string,string|array<string,string>> $data
+	 * @param int                                       $id
 	 *
 	 * @return bool
 	 */
@@ -704,14 +710,16 @@ class SitePress_EditLanguages {
 			$wpdb->prepare(
 				"SELECT code
                                                         FROM {$wpdb->prefix}icl_locale_map
-                                                        WHERE code=%s", $data['code']
+                                                        WHERE code=%s",
+				$data['code']
 			)
 		);
 		if ( $locale_exists ) {
 			$wpdb->update( $wpdb->prefix . 'icl_locale_map', [ 'locale' => $data['default_locale'] ], [ 'code' => $data['code'] ] );
 		} else {
 			$wpdb->insert(
-				$wpdb->prefix . 'icl_locale_map', [
+				$wpdb->prefix . 'icl_locale_map',
+				[
 					'code'   => $data['code'],
 					'locale' => $data['default_locale'],
 				]
@@ -947,7 +955,7 @@ class SitePress_EditLanguages {
 				add_action( 'delete_post', [ $sitepress, 'delete_post_actions' ] );
 
 				// delete terms
-				remove_action( 'delete_term', [ $sitepress, 'delete_term' ], 1, 3 );
+				remove_action( 'delete_term', [ $sitepress, 'delete_term' ], 1 );
 				$tax_ids = $wpdb->get_col(
 					$wpdb->prepare(
 						"SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE element_type LIKE %s AND language_code=%s",
@@ -1065,16 +1073,9 @@ class SitePress_EditLanguages {
 
 			$wpml_wp_api = new WPML_WP_API();
 
-			add_filter(
-				'upload_mimes', function () {
-					return self::ACCEPTED_MIME_TYPES;
-				}
-			);
+			add_filter( 'upload_mimes', \WPML\FP\Fns::always( self::ACCEPTED_MIME_TYPES ) );
 
-			$mime = $wpml_wp_api->get_file_mime_type(
-				$_FILES['icl_edit_languages']['tmp_name'][ $id ]['flag_file'],
-				$_FILES['icl_edit_languages']['name'][ $id ]['flag_file']
-			);
+			$mime = $wpml_wp_api->get_file_mime_type( $uploaded_file, $original_file );
 
 			$allowed_mime_types = array_values( self::ACCEPTED_MIME_TYPES );
 			$validated          = in_array( $mime, $allowed_mime_types, true );
@@ -1094,7 +1095,7 @@ class SitePress_EditLanguages {
 		} else {
 			$error_message = __( 'There was an error uploading the file, please try again!', 'sitepress' );
 			if ( ! empty( $_FILES['icl_edit_languages']['error'][ $id ]['flag_file'] ) ) {
-				switch ( $_FILES['icl_edit_languages']['error'][ $id ]['flag_file'] ) {
+				switch ( filter_var( $_FILES['icl_edit_languages']['error'][ $id ]['flag_file'], FILTER_SANITIZE_FULL_SPECIAL_CHARS ) ) {
 					case UPLOAD_ERR_INI_SIZE;
 						$error_message = __( 'The uploaded file exceeds the upload_max_filesize directive in php.ini.', 'sitepress' );
 						break;
@@ -1135,7 +1136,7 @@ class SitePress_EditLanguages {
 	}
 
 	/**
-	 * @param $sitepress
+	 * @param \SitePress $sitepress
 	 */
 	private function update_language_packs( SitePress $sitepress ) {
 		if ( $this->update_language_packs_if_needed ) {
@@ -1147,7 +1148,7 @@ class SitePress_EditLanguages {
 	}
 
 	/**
-	 * @param $id
+	 * @param int $id
 	 *
 	 * @return string
 	 */
@@ -1159,8 +1160,8 @@ class SitePress_EditLanguages {
 	}
 
 	/**
-	 * @param $lang
-	 * @param $translation
+	 * @param array<string,string|array<string,string>> $lang
+	 * @param array<string,string>                      $translation
 	 *
 	 * @return string
 	 */

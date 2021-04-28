@@ -78,9 +78,9 @@ class Process {
 		$entry->description = $e->getMessage();
 
 		if ( $job ) {
-			$entry->ateJobId    = $job->ateJobId;
-			$entry->wpmlJobId   = $job->wpmlJobId;
-			$entry->extraData   = [ 'downloadUrl' => $job->url ];
+			$entry->ateJobId  = $job->ateJobId;
+			$entry->wpmlJobId = $job->wpmlJobId;
+			$entry->extraData = [ 'downloadUrl' => $job->url ];
 		}
 
 		if ( $e instanceof \Requests_Exception ) {

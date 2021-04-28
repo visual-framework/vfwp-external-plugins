@@ -5,6 +5,7 @@ abstract class WPML_Translation_Roles_Records {
 	const USERS_WITH_CAPABILITY    = 'LIKE';
 	const USERS_WITHOUT_CAPABILITY = 'NOT LIKE';
 	const MIN_SEARCH_LENGTH        = 3;
+	const CACHE_GROUP              = __CLASS__;
 
 	/** @var wpdb */
 	protected $wpdb;
@@ -111,6 +112,14 @@ abstract class WPML_Translation_Roles_Records {
 	private function get_records( $compare, $search = '', $limit = -1 ) {
 		$search = trim( $search );
 
+		$cache_key = md5( wp_json_encode( [ get_class( $this ), $compare, $search, $limit ] ) );
+		$cache     = wpml_get_cache( self::CACHE_GROUP );
+		$found     = false;
+		$results   = $cache->get( $cache_key, $found );
+		if ( $found ) {
+			return $results;
+		}
+
 		$query_args = array(
 			'fields'     => 'ID',
 			'meta_query' => array(
@@ -162,6 +171,8 @@ abstract class WPML_Translation_Roles_Records {
 				$results[] = $result;
 			}
 		}
+
+		$cache->set( $cache_key, $results );
 
 		return $results;
 	}

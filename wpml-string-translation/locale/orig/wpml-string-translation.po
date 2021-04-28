@@ -293,34 +293,6 @@ msgstr ""
 msgid "No records found"
 msgstr ""
 
-# if ( ! $can_translate ) {
-# $form_disabled_reason = __( "You can't translate this string because it hasn't been sent for translation in this language", 'wpml-string-translation' );
-# }
-
-msgid "You can't translate this string because it hasn't been sent for translation in this language"
-msgstr ""
-
-# $can_translate        = false;
-# $form_disabled_reason = __( "You can't translate this string because it's assigned to another translator", 'wpml-string-translation' );
-# }
-
-msgid "You can't translate this string because it's assigned to another translator"
-msgstr ""
-
-# <?php if ( isset( $icl_string['translations'][ $lang['code'] ]['mo_string'] ) && $icl_string['translations'][ $lang['code'] ]['mo_string'] ) { ?>
-# <span class="wpml-st-mo-translation" title="<?php esc_attr_e( 'Imported translation', 'wpml-string-translation' ); ?>">
-# <?php echo esc_html( $icl_string['translations'][ $lang['code'] ]['mo_string'] ); ?>
-
-msgid "Imported translation"
-msgstr ""
-
-# data-lang="<?php echo $lang['code']; ?>"
-# value="<?php esc_attr_e( 'Save', 'wpml-string-translation' ) ?>"/>
-# <?php if ( $form_disabled_reason ): ?>
-
-msgid "Save"
-msgstr ""
-
 # ?>
 # <a class="thickbox" title="<?php esc_attr_e( 'view in source', 'wpml-string-translation' ) ?>"
 # href="<?php echo esc_url( $thickbox_url ); ?>">
@@ -344,65 +316,37 @@ msgstr ""
 
 # <td scope="col" class="manage-column column-cb check-column"><input type="checkbox"/></td>
 # <th scope="col"><?php esc_html_e( 'Domain', 'wpml-string-translation' ) ?></th>
-# <th scope="col"><?php esc_html_e( 'Context', 'wpml-string-translation' ) ?></th>
+# <?php if ( $this->additional_columns_to_render->contains( 'context' ) ) : ?>
 
 msgid "Domain"
 msgstr ""
 
-# <th scope="col"><?php esc_html_e( 'Domain', 'wpml-string-translation' ) ?></th>
+# <?php if ( $this->additional_columns_to_render->contains( 'context' ) ) : ?>
 # <th scope="col"><?php esc_html_e( 'Context', 'wpml-string-translation' ) ?></th>
-# <th scope="col"><?php esc_html_e( 'Name', 'wpml-string-translation' ) ?></th>
+# <?php endif; ?>
 
 msgid "Context"
 msgstr ""
 
-# <th scope="col"><?php esc_html_e( 'Context', 'wpml-string-translation' ) ?></th>
+# <?php if ( $this->additional_columns_to_render->contains( 'name' ) ) : ?>
 # <th scope="col"><?php esc_html_e( 'Name', 'wpml-string-translation' ) ?></th>
-# <th scope="col"><?php esc_html_e( 'View', 'wpml-string-translation' ) ?></th>
+# <?php endif; ?>
 
 msgid "Name"
 msgstr ""
 
-# <th scope="col"><?php esc_html_e( 'Name', 'wpml-string-translation' ) ?></th>
+# <?php if ( $this->additional_columns_to_render->contains( 'view' ) ) : ?>
 # <th scope="col"><?php esc_html_e( 'View', 'wpml-string-translation' ) ?></th>
-# <th scope="col"><?php esc_html_e( 'String', 'wpml-string-translation' ) ?></th>
+# <?php endif; ?>
 
 msgid "View"
 msgstr ""
 
-# <th scope="col"><?php esc_html_e( 'View', 'wpml-string-translation' ) ?></th>
+# <?php endif; ?>
 # <th scope="col"><?php esc_html_e( 'String', 'wpml-string-translation' ) ?></th>
-# <th scope="col"><?php esc_html_e( 'Status', 'wpml-string-translation' ) ?></th>
+# <th scope="col" class="wpml-col-languages"
 
 msgid "String"
-msgstr ""
-
-# <th scope="col"><?php esc_html_e( 'String', 'wpml-string-translation' ) ?></th>
-# <th scope="col"><?php esc_html_e( 'Status', 'wpml-string-translation' ) ?></th>
-# </tr>
-
-msgid "Status"
-msgstr ""
-
-# <div style="float:right;">
-# <a href="#icl-st-toggle-translations" class="js-wpml-st-toggle-translations"><?php esc_html_e( 'translations', 'wpml-string-translation' ) ?></a>
-# </div>
-
-msgid "translations"
-msgstr ""
-
-# if ( isset( $icl_string['translations'][ $lang['code'] ]['mo_string'] ) && $icl_string['translations'][ $lang['code'] ]['mo_string'] ) {
-# esc_html_e( 'Use my translation', 'wpml-string-translation' );
-# } else {
-
-msgid "Use my translation"
-msgstr ""
-
-# } else {
-# esc_html_e( 'Translation is complete', 'wpml-string-translation' );
-# }
-
-msgid "Translation is complete"
 msgstr ""
 
 # class="wpml-change-language-dialog"
@@ -550,27 +494,6 @@ msgstr ""
 # ),
 
 msgid "Multibyte String extension is required for WPML String Translation."
-msgstr ""
-
-# <h4>
-# <?php esc_html_e( 'Translation memory for strings', 'wpml-string-translation' ); ?>
-# </h4>
-
-msgid "Translation memory for strings"
-msgstr ""
-
-# type="radio" />
-# <?php esc_html_e( 'Look for translated strings and use their translations for new jobs', 'wpml-string-translation' ); ?>
-# </label>
-
-msgid "Look for translated strings and use their translations for new jobs"
-msgstr ""
-
-# type="radio" />
-# <?php esc_html_e( "Don't reuse string translation", 'wpml-string-translation' ); ?>
-# </label>
-
-msgid "Don't reuse string translation"
 msgstr ""
 
 # private function get_short_notice_message() {
@@ -1112,27 +1035,6 @@ msgstr ""
 msgid "Packages"
 msgstr ""
 
-# } else {
-# echo '0' . __( 'No strings selected', 'wpml-string-translation' );
-# }
-
-msgid "No strings selected"
-msgstr ""
-
-# $wpml_admin_text_config = new WPML_Admin_Text_Configuration();
-# $message = __( 'Save the following to a wpml-config.xml in the root of your theme or plugin.', 'wpml-string-translation' )
-# . "<textarea wrap=\"soft\" spellcheck=\"false\">" . htmlentities($wpml_admin_text_config->get_wpml_config_file($data[ 'icl_admin_options' ] )) .
-
-msgid "Save the following to a wpml-config.xml in the root of your theme or plugin."
-msgstr ""
-
-# } else {
-# $message = __( 'Error: no strings selected', 'wpml-string-translation' );
-# }
-
-msgid "Error: no strings selected"
-msgstr ""
-
 # $menu['order']      = 800;
 # $menu['page_title'] = __( 'String Translation', 'wpml-string-translation' );
 # $menu['menu_title'] = __( 'String Translation', 'wpml-string-translation' );
@@ -1225,59 +1127,17 @@ msgid "Widget is already converted"
 msgstr ""
 
 # <div class="wrap">
-# <h2><?php echo __('String translation', 'wpml-string-translation') ?></h2>
+# <h2><?php echo __( 'Admin Texts Translation', 'wpml-string-translation' ) ?></h2>
 # 
 
-msgid "String translation"
+msgid "Admin Texts Translation"
 msgstr ""
 
-# <p><?php _e('This table shows all the admin texts that WPML  found.', 'wpml-string-translation'); ?></p>
-# <p><?php printf(__('The fields with <span%s>red</span> background are text fields and the fields with <span%s>cyan</span> background are numeric.', 'wpml-string-translation'),' class="icl_st_string"',' class="icl_st_numeric"'); ?></p>
-# <p><?php printf(__("Choose the fields you'd like to translate and click on the 'Apply' button. Then, use WPML's <a%s>String translation</a> to translate them.", 'wpml-string-translation'),' href="admin.php?page='.WPML_ST_FOLDER.'/menu/string-translation.php"'); ?></p>
+# <a href="<?php echo admin_url( 'admin.php?page=' . WPML_ST_FOLDER . '/menu/string-translation.php' ); ?>">
+# &laquo; <?php _e( 'Return to String Translation', 'wpml-string-translation' ); ?>
+# </a>
 
-msgid "The fields with <span%s>red</span> background are text fields and the fields with <span%s>cyan</span> background are numeric."
-msgstr ""
-
-# <p><?php printf(__('The fields with <span%s>red</span> background are text fields and the fields with <span%s>cyan</span> background are numeric.', 'wpml-string-translation'),' class="icl_st_string"',' class="icl_st_numeric"'); ?></p>
-# <p><?php printf(__("Choose the fields you'd like to translate and click on the 'Apply' button. Then, use WPML's <a%s>String translation</a> to translate them.", 'wpml-string-translation'),' href="admin.php?page='.WPML_ST_FOLDER.'/menu/string-translation.php"'); ?></p>
-# 
-
-msgid "Choose the fields you'd like to translate and click on the 'Apply' button. Then, use WPML's <a%s>String translation</a> to translate them."
-msgstr ""
-
-# <?php endforeach; ?>
-# <span id="icl_st_options_write_success" class="hidden updated message fade"><?php printf(__('The selected strings can now be translated using the <a%s>string translation</a> screen', 'wpml-string-translation'), ' href="admin.php?page='.WPML_ST_FOLDER.'/menu/string-translation.php"');?></span>
-# <span id="icl_st_options_write_confirm" class="hidden"><?php _e('You have removed some of the texts that are translated already. The translations will be lost.','wpml-string-translation')?></span>
-
-msgid "The selected strings can now be translated using the <a%s>string translation</a> screen"
-msgstr ""
-
-# <div id="icl_st_option_writes">
-# <p><?php _e('This table shows all the admin texts that WPML  found.', 'wpml-string-translation'); ?></p>
-# <p><?php printf(__('The fields with <span%s>red</span> background are text fields and the fields with <span%s>cyan</span> background are numeric.', 'wpml-string-translation'),' class="icl_st_string"',' class="icl_st_numeric"'); ?></p>
-
-msgid "This table shows all the admin texts that WPML  found."
-msgstr ""
-
-# <p>
-# <input type="button" class="button" id="icl_st_ow_export" value="<?php _e('Export selected strings as a WPML config file that can be added to themes or plugins', 'wpml-string-translation'); ?>" />
-# <input type="button" class="button-primary" id="icl_st_ow_export_close" value="<?php _e('Close', 'wpml-string-translation')?>" />
-
-msgid "Export selected strings as a WPML config file that can be added to themes or plugins"
-msgstr ""
-
-# <span id="icl_st_options_write_success" class="hidden updated message fade"><?php printf(__('The selected strings can now be translated using the <a%s>string translation</a> screen', 'wpml-string-translation'), ' href="admin.php?page='.WPML_ST_FOLDER.'/menu/string-translation.php"');?></span>
-# <span id="icl_st_options_write_confirm" class="hidden"><?php _e('You have removed some of the texts that are translated already. The translations will be lost.','wpml-string-translation')?></span>
-# <p class="submit">
-
-msgid "You have removed some of the texts that are translated already. The translations will be lost."
-msgstr ""
-
-# <?php else: ?>
-# <div align="center"><?php _e('No options found. Make sure you saved your theme options at least once. <br />Some themes only add these to the wp_options table after the user explicitly saves over the theme defaults', 'wpml-string-translation') ?></div>
-# <?php endif; ?>
-
-msgid "No options found. Make sure you saved your theme options at least once. <br />Some themes only add these to the wp_options table after the user explicitly saves over the theme defaults"
+msgid "Return to String Translation"
 msgstr ""
 
 # 
@@ -1287,7 +1147,7 @@ msgstr ""
 msgid "All strings"
 msgstr ""
 
-# } else {
+# $createOption( WPML_ST_String_Statuses::get_status( ICL_TM_COMPLETE ), ICL_TM_COMPLETE );
 # $createOption( __( 'Translation needed', 'wpml-string-translation' ), ICL_TM_NOT_TRANSLATED );
 # $createOption( __( 'Waiting for translator', 'wpml-string-translation' ), ICL_TM_WAITING_FOR_TRANSLATOR );
 
@@ -1296,7 +1156,7 @@ msgstr ""
 
 # $createOption( __( 'Waiting for translator', 'wpml-string-translation' ), ICL_TM_WAITING_FOR_TRANSLATOR );
 # $createOption( __( 'Partial Translation', 'wpml-string-translation' ), ICL_STRING_TRANSLATION_PARTIAL );
-# }
+# ?>
 
 msgid "Partial Translation"
 msgstr ""
@@ -1329,7 +1189,7 @@ msgstr ""
 msgid "Add selected strings"
 msgstr ""
 
-# <input type="button" class="button-secondary" id="icl_st_delete_selected"
+# <input type="button" class="button button-secondary" id="icl_st_delete_selected"
 # value="<?php echo esc_attr__( 'Delete selected strings', 'wpml-string-translation' ) ?>"
 # data-confirm="<?php echo esc_attr__( "Are you sure you want to delete these strings?\nTheir translations will be deleted too.", 'wpml-string-translation' ) ?>"
 
@@ -1414,6 +1274,13 @@ msgid "Submit"
 msgstr ""
 
 # 
+# <h2><?php echo esc_html__( 'String translation', 'wpml-string-translation' ) ?></h2>
+# 
+
+msgid "String translation"
+msgstr ""
+
+# 
 # <p><?php printf( esc_html__( "These are the strings that we found in your .po file. Please carefully review them. Then, click on the 'add' or 'cancel' buttons at the %sbottom of this screen%s. You can exclude individual strings by clearing the check boxes next to them.", 'wpml-string-translation' ), '<a href="#add_po_strings_confirm">', '</a>' ); ?></p>
 # <form method="post" id="wpml_add_strings" action="<?php echo admin_url("admin.php?page=" . WPML_ST_FOLDER . "/menu/string-translation.php");?>">
 
@@ -1428,24 +1295,17 @@ msgid "Name: %s"
 msgstr ""
 
 # <p style="line-height:220%;">
-# <?php echo esc_html__( 'Select which strings to display:', 'wpml-string-translation' ); ?>
+# <?php echo esc_html__( 'Display:', 'wpml-string-translation' ); ?>
 # <select name="icl_st_filter_status">
 
-msgid "Select which strings to display:"
-msgstr ""
-
-# <option value="<?php echo ICL_TM_WAITING_FOR_TRANSLATOR . '-' . $lang ?>" <?php echo $selected; ?>>
-# <?php printf( esc_html__( 'Pending %s translation (%d)', 'wpml-string-translation' ), $lang_details['display_name'], $count ) ?>
-# </option>
-
-msgid "Pending %s translation (%d)"
+msgid "Display:"
 msgstr ""
 
 # <span style="white-space:nowrap">
-# <?php echo esc_html__( 'Select strings within domain:', 'wpml-string-translation' ) ?>
+# <?php echo esc_html__( 'In domain:', 'wpml-string-translation' ) ?>
 # <select name="icl_st_filter_context">
 
-msgid "Select strings within domain:"
+msgid "In domain:"
 msgstr ""
 
 # <option value=""
@@ -1456,10 +1316,10 @@ msgid "All domains"
 msgstr ""
 
 # <span style="white-space:nowrap">
-# <?php echo esc_html__( 'Select strings Translation Priority:', 'wpml-string-translation' ) ?>
+# <?php echo esc_html__( 'With Priority:', 'wpml-string-translation' ) ?>
 # <select name="icl-st-filter-translation-priority">
 
-msgid "Select strings Translation Priority:"
+msgid "With Priority:"
 msgstr ""
 
 # <label>
@@ -1504,7 +1364,7 @@ msgstr ""
 msgid "Displaying %s&#8211;%s of %s"
 msgstr ""
 
-# if ( ! $get_show_results ) {
+# <?php
 # echo esc_html__( 'Strings per page:', 'wpml-string-translation' );
 # 
 
@@ -1513,14 +1373,14 @@ msgstr ""
 
 # </select>&nbsp;
 # <a href="<?php echo esc_url( $url_show_all_results ); ?>"><?php echo esc_html__( 'Display all results', 'wpml-string-translation' ); ?></a>
-# <?php
+# </div>
 
 msgid "Display all results"
 msgstr ""
 
 # <div id="wpml-st-package-incomplete"
 # style="display:none;color:red;"><?php echo esc_html__( "You have selected strings belonging to a package. Please select all strings from the affected package or unselect these strings.", 'wpml-string-translation' ) ?></div>
-# <input type="button" class="button-secondary" id="icl_st_delete_selected"
+# <input type="button" class="button button-secondary" id="icl_st_delete_selected"
 
 msgid "You have selected strings belonging to a package. Please select all strings from the affected package or unselect these strings."
 msgstr ""
@@ -1759,6 +1619,13 @@ msgstr ""
 # </label>
 
 msgid "Translate custom post and taxonomy base slugs (via WPML String Translation)."
+msgstr ""
+
+# <span class="icl_ajx_response" id="icl_ajx_response_sgtr"></span>
+# <input type="submit" class="button-primary" value="<?php esc_html_e( 'Save', 'wpml-string-translation' )?>" />
+# </p>
+
+msgid "Save"
 msgstr ""
 
 # <div class="icl_cyan_box">

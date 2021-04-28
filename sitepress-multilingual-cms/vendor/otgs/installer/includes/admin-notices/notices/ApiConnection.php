@@ -16,7 +16,7 @@ class ApiConnection {
 	 * @return array
 	 */
 	public static function getCurrentNotices( \WP_Installer $installer, array $initialNotices ) {
-		$config = $installer->getRegisteredRepositories();
+		$config = $installer->getRepositories();
 
 		$noticeTypes = [
 			self::CONNECTION_ISSUES => [ApiConnection::class, 'shouldShowConnectionIssues'],
@@ -83,5 +83,9 @@ class ApiConnection {
 				],
 			],
 		] );
+	}
+
+	public static function dismissions( array $initialDismissions ) {
+		return $initialDismissions;
 	}
 }

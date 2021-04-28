@@ -9,10 +9,10 @@ class ReturnedJobActions implements \IWPML_Action {
 	private $addToQueue;
 
 	/**
-	 * @param  callable  $addToQueue
+	 * @param  callable $addToQueue
 	 */
 	public function __construct( callable $addToQueue ) {
-		$this->addToQueue      = $addToQueue;
+		$this->addToQueue = $addToQueue;
 	}
 
 
