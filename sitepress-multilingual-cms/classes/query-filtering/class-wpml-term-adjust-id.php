@@ -78,6 +78,7 @@ class WPML_Term_Adjust_Id {
 
 		if ( $translated_id && (int) $translated_id !== (int) $term->term_taxonomy_id ) {
 
+			/** @var \WP_Term|\stdClass $term Declared also as \stdClass because we are setting `object_id`, which is not a property of \WP_Term. */
 			$term = get_term_by( 'term_taxonomy_id', $translated_id, $term->taxonomy );
 
 			if ( $object_id ) {

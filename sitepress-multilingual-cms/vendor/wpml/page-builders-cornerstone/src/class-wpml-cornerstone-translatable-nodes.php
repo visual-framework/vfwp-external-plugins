@@ -5,6 +5,8 @@
  * @package wpml-page-builders-cornerstone
  */
 
+use WPML\PB\Cornerstone\Modules\ModuleWithItemsFromConfig;
+
 /**
  * Class WPML_Cornerstone_Translatable_Nodes
  */
@@ -52,20 +54,9 @@ class WPML_Cornerstone_Translatable_Nodes implements IWPML_Page_Builders_Transla
 						$strings[] = $string;
 					}
 				}
-				if ( isset( $node_data['integration-class'] ) ) {
-					try {
-						/**
-						 * Node object.
-						 *
-						 * @var WPML_Cornerstone_Module_With_Items $node
-						 */
-						$node    = new $node_data['integration-class']();
-						$strings = $node->get( $node_id, $settings, $strings );
-						// phpcs:disable Generic.CodeAnalysis.EmptyStatement.DetectedCatch
-					} catch ( Exception $e ) {
-						// Nothing to do with the exception, we do not handle it.
-					}
-					// phpcs:enable Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+
+				foreach ( $this->get_integration_instances( $node_data ) as $node ) {
+					$strings = $node->get( $node_id, $settings, $strings );
 				}
 			}
 		}
@@ -96,25 +87,39 @@ class WPML_Cornerstone_Translatable_Nodes implements IWPML_Page_Builders_Transla
 						$settings[ $field_key ] = $string->get_value();
 					}
 				}
-				if ( isset( $node_data['integration-class'] ) ) {
-					try {
-						/**
-						 * Node object.
-						 *
-						 * @var WPML_Cornerstone_Module_With_Items $node
-						 */
-						$node     = new $node_data['integration-class']();
-						$settings = $node->update( $node_id, $settings, $string );
-						// phpcs:disable Generic.CodeAnalysis.EmptyStatement.DetectedCatch
-					} catch ( Exception $e ) {
-						// Nothing to do with the exception, we do not handle it.
-					}
-					// phpcs:enable Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+
+				foreach ( $this->get_integration_instances( $node_data ) as $node ) {
+					$settings = $node->update( $node_id, $settings, $string );
 				}
 			}
 		}
 
 		return $settings;
+	}
+
+	/**
+	 * @param array $node_data
+	 *
+	 * @return WPML_Cornerstone_Module_With_Items[]
+	 */
+	private function get_integration_instances( $node_data ) {
+		$instances = [];
+
+		if ( isset( $node_data['integration-class'] ) ) {
+			try {
+				$instances[] = new $node_data['integration-class']();
+				// phpcs:disable Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+			} catch ( Exception $e ) {}
+			// phpcs:enable Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+		}
+
+		if ( isset( $node_data['fields_in_item'] ) ) {
+			foreach ( $node_data['fields_in_item'] as $config ) {
+				$instances[] = new ModuleWithItemsFromConfig( $config );
+			}
+		}
+
+		return $instances;
 	}
 
 	/**

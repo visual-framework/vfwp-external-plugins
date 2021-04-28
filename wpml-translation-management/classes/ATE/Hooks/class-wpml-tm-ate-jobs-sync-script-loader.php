@@ -60,15 +60,21 @@ class WPML_TM_ATE_Jobs_Sync_Script_Loader {
 				Relation::equals( ReturnedJobsQueue::STATUS_COMPLETED )
 			);
 
-			wp_localize_script( self::JS_HANDLER, self::JS_VARIABLE, [
-				'jobIds'         => $jobIds,
-				'completedInATE' => Fns::filter( $isCompletedButNotDownloaded, $jobIds ),
-				'strings'        => [
-					'tooltip' => __( 'Processing translation (could take a few minutes)',
-						'wpml-translation-management' ),
-					'status'  => __( 'Processing translation', 'wpml-translation-management' ),
-				],
-			] );
+			wp_localize_script(
+				self::JS_HANDLER,
+				self::JS_VARIABLE,
+				[
+					'jobIds'         => $jobIds,
+					'completedInATE' => Fns::filter( $isCompletedButNotDownloaded, $jobIds ),
+					'strings'        => [
+						'tooltip' => __(
+							'Processing translation (could take a few minutes)',
+							'wpml-translation-management'
+						),
+						'status'  => __( 'Processing translation', 'wpml-translation-management' ),
+					],
+				]
+			);
 
 			wp_enqueue_script( self::JS_HANDLER );
 

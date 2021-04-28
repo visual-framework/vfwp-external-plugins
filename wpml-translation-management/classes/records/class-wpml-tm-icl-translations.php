@@ -55,7 +55,7 @@ class WPML_TM_ICL_Translations extends WPML_TM_Record_User {
 		}
 		if ( ! $this->translation_id ) {
 			$this->select_translation_id(
-				" element_id = %d AND element_type LIKE %s ",
+				' element_id = %d AND element_type LIKE %s ',
 				array( $id['element_id'], $id['type_prefix'] . '%' )
 			);
 		}
@@ -63,7 +63,7 @@ class WPML_TM_ICL_Translations extends WPML_TM_Record_User {
 
 	private function build_from_trid( $id ) {
 		$this->select_translation_id(
-			" trid = %d AND language_code = %s ",
+			' trid = %d AND language_code = %s ',
 			array( $id['trid'], $id['language_code'] )
 		);
 	}
@@ -83,7 +83,8 @@ class WPML_TM_ICL_Translations extends WPML_TM_Record_User {
 				$translation_ids = $this->wpdb->get_results(
 					"SELECT translation_id, language_code
 				    FROM {$this->wpdb->prefix}{$this->table}
-				    WHERE trid = " . $trid );
+				    WHERE trid = " . $trid
+				);
 
 				$cache->set( $trid, $translation_ids );
 			}
@@ -155,7 +156,9 @@ class WPML_TM_ICL_Translations extends WPML_TM_Record_User {
 			->icl_translation_status_by_translation_id( $this->translation_id )
 			->delete();
 		$this->wpdb->delete(
-			$this->wpdb->prefix . $this->table, $this->get_args() );
+			$this->wpdb->prefix . $this->table,
+			$this->get_args()
+		);
 
 		return $this;
 	}
@@ -163,10 +166,14 @@ class WPML_TM_ICL_Translations extends WPML_TM_Record_User {
 	private function select_field( $field ) {
 
 		$this->fields[ $field ] = isset( $this->fields[ $field ] ) ? $this->fields[ $field ] : $this->wpdb->get_var(
-			$this->wpdb->prepare( " SELECT {$field}
+			$this->wpdb->prepare(
+				" SELECT {$field}
 										FROM {$this->wpdb->prefix}{$this->table}
 										WHERE translation_id = %d
-										LIMIT 1", $this->translation_id ) );
+										LIMIT 1",
+				$this->translation_id
+			)
+		);
 
 		return $this->fields[ $field ];
 	}
@@ -180,7 +187,8 @@ class WPML_TM_ICL_Translations extends WPML_TM_Record_User {
 		$this->translation_id = $this->wpdb->get_var(
 			"SELECT translation_id FROM {$this->wpdb->prefix}{$this->table}
 			 WHERE" . $this->wpdb->prepare( $where, $prepare_args )
-			. " LIMIT 1" );
+			. ' LIMIT 1'
+		);
 		if ( ! $this->translation_id ) {
 			throw new InvalidArgumentException( 'No translation entry found for query: ' . serialize( $where ) . serialize( $prepare_args ) );
 		}

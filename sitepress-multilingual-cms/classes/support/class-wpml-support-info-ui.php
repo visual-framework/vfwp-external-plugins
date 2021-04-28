@@ -186,8 +186,8 @@ class WPML_Support_Info_UI {
 	}
 
 	/**
-	 * @param array $blocks
-	 * @param       $type
+	 * @param array  $blocks
+	 * @param string $type
 	 */
 	private function set_has_messages( array &$blocks, $type ) {
 		/**

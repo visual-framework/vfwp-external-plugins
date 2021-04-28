@@ -25,6 +25,8 @@ class Hooks extends BaseHooks implements \IWPML_Frontend_Action, \IWPML_DIC_Acti
 			// Add action at high priority, as Avada cleans all scripts at priority 100.
 			add_action( 'wp_enqueue_scripts', [ $this, 'frontendScripts' ], PHP_INT_MAX );
 		}
+
+		add_filter( 'nav_menu_link_attributes', [ $this, 'addMenuLinkCssClass' ], 10, 2 );
 	}
 
 	public function frontendScripts() {
@@ -67,6 +69,27 @@ class Hooks extends BaseHooks implements \IWPML_Frontend_Action, \IWPML_DIC_Acti
 		$builder_id = filter_input( INPUT_GET, 'builder_id', FILTER_SANITIZE_STRING );
 
 		return $builder && $builder_id;
+	}
+
+	/**
+	 * Adds required CSS class in menu links. This CSS class is used by
+	 * WPML_Fix_Links_In_Display_As_Translated_Content::fix_fallback_links() to skip fixing language switcher links.
+	 *
+	 * Notes:
+	 * - This is intended for themes that provide custom menu walkers.
+	 * - For this to work, the custom menu walker must call `nav_menu_link_attributes` filter.
+	 *
+	 * @param array $atts
+	 * @param mixed $item
+	 *
+	 * @return array
+	 */
+	public function addMenuLinkCssClass( $atts, $item ) {
+		if ( 'wpml_ls_menu_item' === $item->type ) {
+			$atts['class'] .= ' wpml-ls-link';
+		}
+
+		return $atts;
 	}
 
 }

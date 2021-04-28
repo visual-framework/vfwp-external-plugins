@@ -6,6 +6,7 @@ use WPML\FP\Obj;
 
 /**
  * Class ReturnedJobsQueue
+ *
  * @package WPML\TM\ATE
  *
  * IMPORTANT!
@@ -18,9 +19,9 @@ class ReturnedJobsQueue {
 	const STATUS_BACK      = 'back';
 
 	/**
-	 * @param  int  $ateJobId
-	 * @param  string  $status
-	 * @param  callable  $ateIdToWpmlId @see comment in the class description
+	 * @param  int      $ateJobId
+	 * @param  string   $status
+	 * @param  callable $ateIdToWpmlId @see comment in the class description
 	 */
 	public static function add( $ateJobId, $status, callable $ateIdToWpmlId ) {
 		$wpmlId = $ateIdToWpmlId( $ateJobId );
@@ -33,7 +34,7 @@ class ReturnedJobsQueue {
 	}
 
 	/**
-	 * @param  int  $wpmlJobId @see comment in the class description
+	 * @param  int $wpmlJobId @see comment in the class description
 	 *
 	 * @return string|null
 	 */

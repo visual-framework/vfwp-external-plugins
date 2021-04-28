@@ -195,7 +195,7 @@ class WPML_PB_Update_Shortcodes_In_Content {
 	 */
 	private function filter_attribute_translation( $translation, $encoding ) {
 		if ( 'allow_html_tags' !== $encoding ) {
-			$translation = htmlspecialchars( $translation );
+			$translation = htmlspecialchars( htmlspecialchars_decode( $translation ) );
 		}
 
 		$translation = str_replace( array( '[', ']' ), array( '&#91;', '&#93;' ), $translation );

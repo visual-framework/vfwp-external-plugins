@@ -1,14 +1,14 @@
-jQuery(document).ready(function () {
+jQuery(function () {
 
-	var ajax_success_action = function( response, response_text ) {
-		if( response.success ) {
-			response_text.text( icl_ajx_saved );
-		} else {
-			response_text.text( icl_ajx_error );
-			response_text.show();
-		}
-		setTimeout(function () {
-			response_text.fadeOut('slow');
+    var ajax_success_action = function (response, response_text) {
+        if (response.success) {
+            response_text.text(icl_ajx_saved);
+        } else {
+            response_text.text(icl_ajx_error);
+            response_text.show();
+        }
+        setTimeout(function () {
+            response_text.fadeOut('slow');
 		}, 2500);
 	};
 

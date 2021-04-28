@@ -32,7 +32,7 @@ class ClassicEditorActions {
 			'job_type'             => $data['job_post_type'],
 			'job_id'               => $data['job_post_id'],
 			'target'               => $data['target_lang'],
-			'translation_complete' => isset( $data['complete'] ) ? true : false
+			'translation_complete' => isset( $data['complete'] ) ? true : false,
 		];
 		$job         = apply_filters( 'wpml-translation-editor-fetch-job', $job, $job_details );
 

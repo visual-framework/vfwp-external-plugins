@@ -2,7 +2,9 @@
 
 namespace WPML\PB\Gutenberg\StringsInBlock;
 
+use WPML\FP\Maybe;
 use WPML\FP\Obj;
+use WPML\PB\Gutenberg\StringsInBlock\DOMHandler\HtmlBlock;
 use WPML\PB\Gutenberg\StringsInBlock\DOMHandler\StandardBlock;
 use WPML\PB\Gutenberg\StringsInBlock\DOMHandler\ListBlock;
 use WPML\PB\Gutenberg\XPath;
@@ -10,6 +12,7 @@ use WPML\PB\Gutenberg\XPath;
 class HTML extends Base {
 
 	const LIST_BLOCK_NAME = 'core/list';
+	const HTML_BLOCK_NAME = 'core/html';
 
 	/**
 	 * @param \WP_Block_Parser_Block $block
@@ -25,14 +28,19 @@ class HTML extends Base {
 			$dom_handle = $this->get_dom_handler( $block );
 			$xpath      = $dom_handle->getDomxpath( $block->innerHTML );
 
-			foreach ( $block_queries as $query ) {
-				list( $query, $definedType ) = XPath::parse( $query );
+			foreach ( $block_queries as $blockQuery ) {
+				list( $query, $definedType, $label ) = XPath::parse( $blockQuery );
 				$elements = $xpath->query( $query );
 				foreach ( $elements as $element ) {
 					list( $text, $type ) = $dom_handle->getPartialInnerHTML( $element );
 					if ( $text ) {
 						$string_id = $this->get_string_id( $block->blockName, $text );
-						$strings[] = $this->build_string( $string_id, $block->blockName, $text, $definedType ? $definedType : $type );
+						$strings[] = $this->build_string(
+							$string_id,
+							$label ?: $this->get_block_label( $block ),
+							$text,
+							$definedType ? $definedType : $type
+						);
 					}
 				}
 			}
@@ -41,7 +49,12 @@ class HTML extends Base {
 
 			$string_id = $this->get_block_string_id( $block );
 			if ( $string_id ) {
-				$strings[] = $this->build_string( $string_id, $block->blockName, $block->innerHTML, 'VISUAL' );
+				$strings[] = $this->build_string(
+					$string_id,
+					$this->get_block_label( $block ),
+					$block->innerHTML,
+					'VISUAL'
+				);
 			}
 
 		}
@@ -82,16 +95,13 @@ class HTML extends Base {
 			}
 			list( $block->innerHTML, ) = $dom_handle->getFullInnerHTML( $dom->documentElement );
 
-		} else {
+		} elseif ( isset( $block->blockName, $block->innerHTML ) && '' !== trim( $block->innerHTML ) ) {
 
-			$string_id = $this->get_block_string_id( $block );
-			if (
-				isset( $string_translations[ $string_id ][ $lang ] ) &&
-				ICL_TM_COMPLETE == $string_translations[ $string_id ][ $lang ]['status']
-			) {
-				$block->innerHTML = $string_translations[ $string_id ][ $lang ]['value'];
+			$translation = $this->getTranslation( $block->innerHTML, $lang, $block, $string_translations );
+
+			if ( $translation ) {
+				$block->innerHTML = $translation;
 			}
-
 		}
 
 		return $block;
@@ -165,14 +175,15 @@ class HTML extends Base {
 	/**
 	 * @param \WP_Block_Parser_Block $block
 	 *
-	 * @return ListBlock|StandardBlock
+	 * @return ListBlock|StandardBlock|HtmlBlock
 	 */
 	private function get_dom_handler( \WP_Block_Parser_Block $block ) {
-		if ( self::LIST_BLOCK_NAME === $block->blockName ) {
-			return new ListBlock();
-		}
+		$class = wpml_collect( [
+			self::LIST_BLOCK_NAME => ListBlock::class,
+			self::HTML_BLOCK_NAME => HtmlBlock::class,
+		] )->get( $block->blockName, StandardBlock::class );
 
-		return new StandardBlock();
+		return new $class();
 	}
 
 	/**

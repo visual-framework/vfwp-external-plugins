@@ -11,11 +11,11 @@ interface IWPML_PB_Strategy {
 	/**
 	 * @param int $post_id
 	 * @param string $content
-	 * @param bool $do_cleanup
+	 * @param WPML\PB\Shortcode\StringCleanUp $stringCleanUp
 	 *
 	 * @return bool - true if strings were added.
 	 */
-	public function register_strings_in_content( $post_id, $content, $do_cleanup );
+	public function register_strings_in_content( $post_id, $content, WPML\PB\Shortcode\StringCleanUp $stringCleanUp );
 
 	/**
 	 * @param WPML_PB_Factory $factory

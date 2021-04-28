@@ -25,7 +25,7 @@ class WPML_TM_Word_Count_Setters_Factory {
 		);
 
 		if ( class_exists( 'WPML_ST_Package_Factory' ) ) {
-			$setters['string'] = new WPML_TM_Word_Count_Set_String( $records, $calculator );
+			$setters['string']  = new WPML_TM_Word_Count_Set_String( $records, $calculator );
 			$setters['package'] = new WPML_TM_Word_Count_Set_Package( new WPML_ST_Package_Factory(), $records, $active_langs );
 		}
 

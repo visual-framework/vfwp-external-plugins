@@ -38,13 +38,12 @@ class WPML_Basket_Tab_Ajax {
 	 * Handler for the ajax call to commit a chunk of the items in a batch provided in the request.
 	 *
 	 * @uses \WPML_Translation_Proxy_Basket_Networking::commit_basket_chunk
-	 *
 	 */
 	function send_basket_chunk() {
 		$batch_factory = new WPML_TM_Translation_Batch_Factory( $this->basket );
 
 		try {
-			$batch = $batch_factory->create( $_POST );
+			$batch                            = $batch_factory->create( $_POST );
 			list( $has_error, $data, $error ) = $this->networking->commit_basket_chunk( $batch );
 		} catch ( InvalidArgumentException $e ) {
 			$has_error = true;
@@ -73,7 +72,6 @@ class WPML_Basket_Tab_Ajax {
 	/**
 	 * Last ajax call in the multiple ajax calls made during the commit of a batch.
 	 * Empties the basket in case the commit worked error free responds to the ajax call.
-	 *
 	 */
 	function send_basket_commit() {
 		$errors = array();
@@ -84,7 +82,7 @@ class WPML_Basket_Tab_Ajax {
 			$response               = ! empty( $this->project->errors ) ? false : $response;
 			if ( $response !== false ) {
 
-				if( is_object( $response ) ){
+				if ( is_object( $response ) ) {
 					$current_service = $this->project->current_service();
 					if ( $current_service->redirect_to_ts ) {
 						$message = sprintf(
@@ -113,16 +111,15 @@ class WPML_Basket_Tab_Ajax {
 
 					$response->call_to_action = $message;
 
-					$batch_url                = OTG_TRANSLATION_PROXY_URL . sprintf( '/projects/%d/external', $this->project->get_batch_job_id() );
-					$response->ts_batch_link  = array(
+					$batch_url               = OTG_TRANSLATION_PROXY_URL . sprintf( '/projects/%d/external', $this->project->get_batch_job_id() );
+					$response->ts_batch_link = array(
 						'href' => esc_url( $batch_url ),
 						'text' => $link_text,
 					);
-				}elseif( $this->contains_local_translators_different_than_current_user( $translators ) ){
-					$response = new stdClass();
+				} elseif ( $this->contains_local_translators_different_than_current_user( $translators ) ) {
+					$response           = new stdClass();
 					$response->is_local = true;
 				}
-
 			}
 
 			$errors = $response === false && $this->project ? $this->project->errors : $errors;
@@ -133,9 +130,9 @@ class WPML_Basket_Tab_Ajax {
 
 		do_action( 'wpml_tm_basket_committed' );
 
-		if( isset( $response->is_local ) ){
+		if ( isset( $response->is_local ) ) {
 			$batch_jobs = get_option( WPML_TM_Batch_Report::BATCH_REPORT_OPTION );
-			if( $batch_jobs ){
+			if ( $batch_jobs ) {
 				$response->emails_did_not_sent = true;
 			}
 		}
@@ -156,9 +153,11 @@ class WPML_Basket_Tab_Ajax {
 		return ! \wpml_collect( $translators )
 			->reject( get_current_user_id() )
 			->reject( $is_first_available_translator )
-			->filter( function ( $translator ) {
-				return is_numeric( $translator );
-			} )
+			->filter(
+				function ( $translator ) {
+					return is_numeric( $translator );
+				}
+			)
 			->isEmpty();
 	}
 
@@ -218,7 +217,7 @@ class WPML_Basket_Tab_Ajax {
 		$result = array(
 			'result'   => $response,
 			'is_error' => ! ( $response && empty( $errors ) ),
-			'errors'   => $errors
+			'errors'   => $errors,
 		);
 		if ( ! empty( $errors ) ) {
 			$this->networking->rollback_basket_commit( $this->get_basket_name() );
@@ -253,14 +252,14 @@ class WPML_Basket_Tab_Ajax {
 			foreach ( $basket_items_types as $item_type_name => $item_type ) {
 				if ( isset( $basket[ $item_type_name ] ) ) {
 					$count_item_type = count( $basket[ $item_type_name ] );
-					$total_count += $count_item_type;
+					$total_count    += $count_item_type;
 
 					$message_content_details .= '<li>' . $item_type_name . 's: ' . $count_item_type . '</li>';
 				}
 			}
 			$message_content_details .= '</ul>';
 
-			$message_content = sprintf( __( '%s items in basket:', 'wpml-translation-management' ), $total_count );
+			$message_content  = sprintf( __( '%s items in basket:', 'wpml-translation-management' ), $total_count );
 			$message_content .= $message_content_details;
 		}
 		$container = $message_content;
@@ -268,7 +267,7 @@ class WPML_Basket_Tab_Ajax {
 		return array(
 			'message'            => $container,
 			'basket'             => $basket,
-			'allowed_item_types' => array_keys( $basket_items_types )
+			'allowed_item_types' => array_keys( $basket_items_types ),
 		);
 	}
 }

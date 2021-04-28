@@ -3,6 +3,7 @@
 namespace WPML\PB\Gutenberg\StringsInBlock\DOMHandler;
 
 use WPML\PB\Gutenberg\StringsInBlock\Base;
+use function WPML\FP\pipe;
 
 abstract class DOMHandle {
 
@@ -49,7 +50,7 @@ abstract class DOMHandle {
 	 *
 	 * @return array
 	 */
-	private function getInnerHTML( \DOMNode $element, $context ) {
+	protected function getInnerHTML( \DOMNode $element, $context ) {
 		$innerHTML = $element instanceof \DOMText
 			? $element->nodeValue
 			: $this->getInnerHTMLFromChildNodes( $element, $context );
@@ -60,9 +61,12 @@ abstract class DOMHandle {
 			$innerHTML = html_entity_decode( $innerHTML );
 		}
 
-		$innerHTML = $this->removeCdataFromStyleTag( $innerHTML );
+		$removeCdata = pipe(
+			[ $this, 'removeCdataFromStyleTag' ],
+			[ $this, 'removeCdataFromScriptTag' ]
+		);
 
-		return array( $innerHTML, $type );
+		return [ $removeCdata($innerHTML), $type ];
 	}
 
 	/**
@@ -131,7 +135,7 @@ abstract class DOMHandle {
 	}
 
 	protected function getAsHTML5( \DOMNode $element ) {
-		return strtr(
+		return str_replace( '--/>', '-->', strtr(
 			$element->ownerDocument->saveXML( $element, LIBXML_NOEMPTYTAG ),
 			[
 				'></area>'   => '/>',
@@ -148,11 +152,15 @@ abstract class DOMHandle {
 				'></source>' => '/>',
 				'></track>'  => '/>',
 				'></wbr>'    => '/>',
-			] );
+			] ) );
 	}
 
-	private function removeCdataFromStyleTag( $innerHTML ) {
-		return preg_replace( '/<style(.*?)><!\\[CDATA\\[(.*?)\\]\\]><\\/style>/', '<style$1>$2</style>', $innerHTML );
+	public static function removeCdataFromStyleTag( $innerHTML ) {
+		return preg_replace( '/<style(.*?)><!\\[CDATA\\[(.*?)\\]\\]><\\/style>/s', '<style$1>$2</style>', $innerHTML );
+	}
+
+	public static function removeCdataFromScriptTag( $innerHTML ) {
+		return preg_replace( '/<script(.*?)><!\\[CDATA\\[(.*?)\\]\\]><\\/script>/s', '<script$1>$2</script>', $innerHTML );
 	}
 
 }

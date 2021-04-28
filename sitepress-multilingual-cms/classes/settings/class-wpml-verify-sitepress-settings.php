@@ -81,7 +81,7 @@ class WPML_Verify_SitePress_Settings {
 			'tm_block_retranslating_terms'       => 1,
 		];
 
-		//configured for three levels
+		// configured for three levels
 		$update_settings = false;
 		foreach ( $default_settings as $key => $value ) {
 			if ( is_array( $value ) ) {

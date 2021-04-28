@@ -97,13 +97,6 @@ msgstr ""
 msgid "String package job"
 msgstr ""
 
-# return array(
-# 'name' => __( 'String job', 'wpml-translation-management' ),
-# 'url'  => null,
-
-msgid "String job"
-msgstr ""
-
 # 
 # $message = __( '%1$s jobs added to the Advanced Translation Editor.', 'wpml-translation-management' );
 # $this->add_message( 'updated', sprintf( $message, count( $response_jobs ) ), 'wpml_tm_ate_create_job' );
@@ -153,7 +146,7 @@ msgstr ""
 msgid "There was a problem communicating with ATE: %s "
 msgstr ""
 
-# 'strings' => [
+# 'strings'        => [
 # 'tooltip' => __( 'Processing translation (could take a few minutes)',
 # 'wpml-translation-management' ),
 
@@ -2224,6 +2217,27 @@ msgstr ""
 msgid "The %s uses a translation memory, which can reduce the number of words you need to translate."
 msgstr ""
 
+# // translators: "%s" is replaced by the name of a translation service.
+# $words_count_text .= sprintf ( __( '%s may produce a different word count', 'wpml-translation-management' ), $service->name );
+# $words_count_text .= '</a>';
+
+msgid "%s may produce a different word count"
+msgstr ""
+
+# // translators: "%s" is replaced by the the previous string.
+# $words_count_message = sprintf( __( 'The number of words WPML will send to translation (%s):', 'wpml-translation-management' ), $words_count_text );
+# } else {
+
+msgid "The number of words WPML will send to translation (%s):"
+msgstr ""
+
+# } else {
+# $words_count_message = __( 'The number of words WPML will send to translation:', 'wpml-translation-management' );
+# }
+
+msgid "The number of words WPML will send to translation:"
+msgstr ""
+
 # $post_type_label .= '<br><small>'
 # . sprintf( esc_html__( 'automatically added %s', 'wpml-translation-management' ), $tooltip ) .
 # '</small>';
@@ -2243,13 +2257,6 @@ msgstr ""
 # </a>
 
 msgid "Clear Basket"
-msgstr ""
-
-# <p class="words-count-summary-info">
-# <strong><?php _e( 'The number of words WPML will send to translation:', 'wpml-translation-management' ); ?></strong>
-# <span class="words-count-total"><?php echo $grand_total_words_count; ?></span>
-
-msgid "The number of words WPML will send to translation:"
 msgstr ""
 
 # 'jobs_committed'                 => $isCurrentUserOnlyTranslator ? $this->jobsSentToCurrentUserWhoIsTheOnlyTranslator() : $this->jobsSentDefaultMessage(),
@@ -2626,13 +2633,13 @@ msgid "Edit independently"
 msgstr ""
 
 # echo '<div class="notice notice-info">
-# <p>' . esc_html__( 'This content came from the Block editor and you need to translate it carefully so that formatting in not broken.', 'wpml-translation-management' ) . '</p>
+# <p>' . esc_html__( 'This content came from the Block editor and you need to translate it carefully so that formatting is not broken.', 'wpml-translation-management' ) . '</p>
 # <p><a href="https://wpml.org/documentation/getting-started-guide/translating-content-created-using-gutenberg-editor/?utm_source=wpmlplugin&utm_campaign=gutenberg&utm_medium=translation-editor&utm_term=translating-content-created-using-gutenberg-editor" class="wpml-external-link" target="_blank" rel="noopener">' . esc_html__( 'Learn how to translate content that comes from Block editor', 'wpml-translation-management' ) . '</a></p>
 
-msgid "This content came from the Block editor and you need to translate it carefully so that formatting in not broken."
+msgid "This content came from the Block editor and you need to translate it carefully so that formatting is not broken."
 msgstr ""
 
-# <p>' . esc_html__( 'This content came from the Block editor and you need to translate it carefully so that formatting in not broken.', 'wpml-translation-management' ) . '</p>
+# <p>' . esc_html__( 'This content came from the Block editor and you need to translate it carefully so that formatting is not broken.', 'wpml-translation-management' ) . '</p>
 # <p><a href="https://wpml.org/documentation/getting-started-guide/translating-content-created-using-gutenberg-editor/?utm_source=wpmlplugin&utm_campaign=gutenberg&utm_medium=translation-editor&utm_term=translating-content-created-using-gutenberg-editor" class="wpml-external-link" target="_blank" rel="noopener">' . esc_html__( 'Learn how to translate content that comes from Block editor', 'wpml-translation-management' ) . '</a></p>
 # </div>';
 
@@ -3241,67 +3248,32 @@ msgstr ""
 msgid "WPML cannot load the list of translation services. This can be a connection problem. Please wait a minute and reload this page.\n If the problem continues, please contact WPML support."
 msgstr ""
 
-# 'strings'         => array(
-# 'activate'      => __( 'Activate', 'wpml-translation-management' ),
-# 'documentation' => __( 'Documentation', 'wpml-translation-management' ),
+# $servicesAPI->get_translation_services( false ),
+# __( 'Other Translation Services', 'wpml-translation-management' )
+# );
 
-msgid "Activate"
+msgid "Other Translation Services"
 msgstr ""
 
-# 'activate'      => __( 'Activate', 'wpml-translation-management' ),
-# 'documentation' => __( 'Documentation', 'wpml-translation-management' ),
-# 'filter'        => array(
+# $servicesAPI->get_translation_management_systems(),
+# __( 'Translation Management System', 'wpml-translation-management' )
+# );
 
-msgid "Documentation"
+msgid "Translation Management System"
 msgstr ""
 
-# 'filter'        => array(
-# 'search'       => __( 'Search', 'wpml-translation-management' ),
-# 'clean_search' => __( 'Clear search', 'wpml-translation-management' ),
+# $headers = [
+# 'regular'       => __( 'Partner Translation Services', 'wpml-translation-management' ),
+# 'inCountry'     => __(
 
-msgid "Search"
-msgstr ""
-
-# 'search'       => __( 'Search', 'wpml-translation-management' ),
-# 'clean_search' => __( 'Clear search', 'wpml-translation-management' ),
-# ),
-
-msgid "Clear search"
-msgstr ""
-
-# 'description' => __( 'Description', 'wpml-translation-management' ),
-# 'ranking'     => __( 'Ranking', 'wpml-translation-management' ),
-# ),
-
-msgid "Ranking"
-msgstr ""
-
-# 'no_service_found' => array(
-# __( 'WPML cannot load the list of translation services. This can be a connection problem. Please wait a minute and reload this page.',
-# 'wpml-translation-management' ),
-
-msgid "WPML cannot load the list of translation services. This can be a connection problem. Please wait a minute and reload this page."
+msgid "Partner Translation Services"
 msgstr ""
 
 # 'wpml-translation-management' ),
-# __( 'If the problem continues, please contact %s.', 'wpml-translation-management' ),
-# ),
+# 'otherCountries' => __(
+# 'Other Partner Translation Services from Around the World',
 
-msgid "If the problem continues, please contact %s."
-msgstr ""
-
-# 'ts'               => array(
-# 'different'   => __( 'Looking for a different translation service?',
-# 'wpml-translation-management' ),
-
-msgid "Looking for a different translation service?"
-msgstr ""
-
-# 'tell_us_url' => 'https://wpml.org/documentation/content-translation/how-to-add-translation-services-to-wpml/#add-service-form',
-# 'tell_us'     => __( 'Tell us which one', 'wpml-translation-management' ),
-# ),
-
-msgid "Tell us which one"
+msgid "Other Partner Translation Services from Around the World"
 msgstr ""
 
 # public function get_caption() {
@@ -3323,153 +3295,6 @@ msgstr ""
 # 'reload'  => 0,
 
 msgid "You are not allowed to perform this action."
-msgstr ""
-
-# 'strings' => array(
-# 'title'        => __( 'Active service:', 'wpml-translation-management' ),
-# 'deactivate'   => __( 'Deactivate', 'wpml-translation-management' ),
-
-msgid "Active service:"
-msgstr ""
-
-# 'title'        => __( 'Active service:', 'wpml-translation-management' ),
-# 'deactivate'   => __( 'Deactivate', 'wpml-translation-management' ),
-# 'modal_header' => sprintf( __( 'Enter here your %s authentication details', 'wpml-translation-management' ), $this->active_service->get_name() ),
-
-msgid "Deactivate"
-msgstr ""
-
-# 'deactivate'   => __( 'Deactivate', 'wpml-translation-management' ),
-# 'modal_header' => sprintf( __( 'Enter here your %s authentication details', 'wpml-translation-management' ), $this->active_service->get_name() ),
-# 'modal_tip'    => $this->active_service->get_popup_message() ?
-
-msgid "Enter here your %s authentication details"
-msgstr ""
-
-# $this->active_service->get_popup_message() :
-# __( 'You can find API token at %s site', 'wpml-translation-management' ),
-# 'modal_title'  => sprintf( __( '%s authentication', 'wpml-translation-management' ), $this->active_service->get_name() ),
-
-msgid "You can find API token at %s site"
-msgstr ""
-
-# __( 'You can find API token at %s site', 'wpml-translation-management' ),
-# 'modal_title'  => sprintf( __( '%s authentication', 'wpml-translation-management' ), $this->active_service->get_name() ),
-# 'refresh_language_pairs'  => __( 'Refresh language pairs', 'wpml-translation-management' ),
-
-msgid "%s authentication"
-msgstr ""
-
-# 'modal_title'  => sprintf( __( '%s authentication', 'wpml-translation-management' ), $this->active_service->get_name() ),
-# 'refresh_language_pairs'  => __( 'Refresh language pairs', 'wpml-translation-management' ),
-# 'refresh_ts_info'         => __( 'Refresh information', 'wpml-translation-management' ),
-
-msgid "Refresh language pairs"
-msgstr ""
-
-# 'refresh_language_pairs'  => __( 'Refresh language pairs', 'wpml-translation-management' ),
-# 'refresh_ts_info'         => __( 'Refresh information', 'wpml-translation-management' ),
-# 'documentation_lower'     => __( 'documentation', 'wpml-translation-management' ),
-
-msgid "Refresh information"
-msgstr ""
-
-# 'refresh_ts_info'         => __( 'Refresh information', 'wpml-translation-management' ),
-# 'documentation_lower'     => __( 'documentation', 'wpml-translation-management' ),
-# 'refreshing_ts_message'   => __( 'Refreshing translation service information...', 'wpml-translation-management' ),
-
-msgid "documentation"
-msgstr ""
-
-# 'documentation_lower'     => __( 'documentation', 'wpml-translation-management' ),
-# 'refreshing_ts_message'   => __( 'Refreshing translation service information...', 'wpml-translation-management' ),
-# ),
-
-msgid "Refreshing translation service information..."
-msgstr ""
-
-# /* translators: sentence 1/3: create account with the translation service ("%1$s" is the service name) */
-# $authentication_message[] = __( 'To send content for translation to %1$s, you need to have an %1$s account.', 'wpml-translation-management' );
-# /* translators: sentence 2/3: create account with the translation service ("one" is "one account) */
-
-msgid "To send content for translation to %1$s, you need to have an %1$s account."
-msgstr ""
-
-# /* translators: sentence 2/3: create account with the translation service ("one" is "one account) */
-# $authentication_message[] = __( "If you don't have one, you can create it after clicking the authenticate button.", 'wpml-translation-management' );
-# /* translators: sentence 3/3: create account with the translation service ("%2$s" is "documentation") */
-
-msgid "If you don't have one, you can create it after clicking the authenticate button."
-msgstr ""
-
-# /* translators: sentence 3/3: create account with the translation service ("%2$s" is "documentation") */
-# $authentication_message[] = __( 'Please, check the %2$s page for more details.', 'wpml-translation-management' );
-# 
-
-msgid "Please, check the %2$s page for more details."
-msgstr ""
-
-# 'description'               => implode( ' ', $authentication_message ),
-# 'authenticate_button'       => __( 'Authenticate', 'wpml-translation-management' ),
-# 'de_authorize_button'       => __( 'De-authorize', 'wpml-translation-management' ),
-
-msgid "Authenticate"
-msgstr ""
-
-# 'authenticate_button'       => __( 'Authenticate', 'wpml-translation-management' ),
-# 'de_authorize_button'       => __( 'De-authorize', 'wpml-translation-management' ),
-# 'update_credentials_button' => __( 'Update credentials', 'wpml-translation-management' ),
-
-msgid "De-authorize"
-msgstr ""
-
-# 'de_authorize_button'       => __( 'De-authorize', 'wpml-translation-management' ),
-# 'update_credentials_button' => __( 'Update credentials', 'wpml-translation-management' ),
-# 'is_authorized' => $this->is_authorized_text( $this->active_service->get_name() ),
-
-msgid "Update credentials"
-msgstr ""
-
-# $isAuthorized = sprintf(
-# __( 'Success! You can now send content to %s.', 'wpml-translation-management' ),
-# $serviceName
-
-msgid "Success! You can now send content to %s."
-msgstr ""
-
-# $isAuthorized .= sprintf(
-# __( 'Go to the %s to choose the content and send it to translation.', 'wpml-translation-management' ),
-# $dashboard
-
-msgid "Go to the %s to choose the content and send it to translation."
-msgstr ""
-
-# 'link' => admin_url('plugin-install.php?tab=commercial#repository-wpml'),
-# 'text' => __( 'Please register WPML to enable the professional translation option', 'wpml-translation-management'),
-# ),
-
-msgid "Please register WPML to enable the professional translation option"
-msgstr ""
-
-# $services[] = $this->list_template_builder->set_services( $this->partner_services )
-# ->set_header( __( 'Partner Translation Services',
-# 'wpml-translation-management' ) )
-
-msgid "Partner Translation Services"
-msgstr ""
-
-# $services[] = $this->list_template_builder->set_services( $this->other_services )
-# ->set_header( __( 'Other Translation Services',
-# 'wpml-translation-management' ) )
-
-msgid "Other Translation Services"
-msgstr ""
-
-# $services[] = $this->list_template_builder->set_services( $this->management_services )
-# ->set_header( __( 'Translation Management System',
-# 'wpml-translation-management' ) )
-
-msgid "Translation Management System"
 msgstr ""
 
 # [ $this, 'is_valid_request_with_params' ],
@@ -3512,6 +3337,195 @@ msgstr ""
 # }
 
 msgid "Invalid Request"
+msgstr ""
+
+# 'strings'            => [
+# 'title'                  => __( 'Active service:', 'wpml-translation-management' ),
+# 'deactivate'             => __( 'Deactivate', 'wpml-translation-management' ),
+
+msgid "Active service:"
+msgstr ""
+
+# 'title'                  => __( 'Active service:', 'wpml-translation-management' ),
+# 'deactivate'             => __( 'Deactivate', 'wpml-translation-management' ),
+# 'modal_header'           => sprintf( __( 'Enter here your %s authentication details',
+
+msgid "Deactivate"
+msgstr ""
+
+# 'deactivate'             => __( 'Deactivate', 'wpml-translation-management' ),
+# 'modal_header'           => sprintf( __( 'Enter here your %s authentication details',
+# 'wpml-translation-management' ), $active_service->get_name() ),
+
+msgid "Enter here your %s authentication details"
+msgstr ""
+
+# $active_service->get_popup_message() :
+# __( 'You can find API token at %s site', 'wpml-translation-management' ),
+# 'modal_title'            => sprintf( __( '%s authentication', 'wpml-translation-management' ),
+
+msgid "You can find API token at %s site"
+msgstr ""
+
+# __( 'You can find API token at %s site', 'wpml-translation-management' ),
+# 'modal_title'            => sprintf( __( '%s authentication', 'wpml-translation-management' ),
+# $active_service->get_name() ),
+
+msgid "%s authentication"
+msgstr ""
+
+# $active_service->get_name() ),
+# 'refresh_language_pairs' => __( 'Refresh language pairs', 'wpml-translation-management' ),
+# 'refresh_ts_info'        => __( 'Refresh information', 'wpml-translation-management' ),
+
+msgid "Refresh language pairs"
+msgstr ""
+
+# 'refresh_language_pairs' => __( 'Refresh language pairs', 'wpml-translation-management' ),
+# 'refresh_ts_info'        => __( 'Refresh information', 'wpml-translation-management' ),
+# 'documentation_lower'    => __( 'documentation', 'wpml-translation-management' ),
+
+msgid "Refresh information"
+msgstr ""
+
+# 'refresh_ts_info'        => __( 'Refresh information', 'wpml-translation-management' ),
+# 'documentation_lower'    => __( 'documentation', 'wpml-translation-management' ),
+# 'refreshing_ts_message'  => __( 'Refreshing translation service information...',
+
+msgid "documentation"
+msgstr ""
+
+# 'documentation_lower'    => __( 'documentation', 'wpml-translation-management' ),
+# 'refreshing_ts_message'  => __( 'Refreshing translation service information...',
+# 'wpml-translation-management' ),
+
+msgid "Refreshing translation service information..."
+msgstr ""
+
+# /* translators: sentence 1/3: create account with the translation service ("%1$s" is the service name) */
+# $authentication_message[] = __( 'To send content for translation to %1$s, you need to have an %1$s account.',
+# 'wpml-translation-management' );
+
+msgid "To send content for translation to %1$s, you need to have an %1$s account."
+msgstr ""
+
+# /* translators: sentence 2/3: create account with the translation service ("one" is "one account) */
+# $authentication_message[] = __( "If you don't have one, you can create it after clicking the authenticate button.",
+# 'wpml-translation-management' );
+
+msgid "If you don't have one, you can create it after clicking the authenticate button."
+msgstr ""
+
+# /* translators: sentence 3/3: create account with the translation service ("%2$s" is "documentation") */
+# $authentication_message[] = __( 'Please, check the %2$s page for more details.',
+# 'wpml-translation-management' );
+
+msgid "Please, check the %2$s page for more details."
+msgstr ""
+
+# 'description'               => implode( ' ', $authentication_message ),
+# 'authenticate_button'       => __( 'Authenticate', 'wpml-translation-management' ),
+# 'de_authorize_button'       => __( 'De-authorize', 'wpml-translation-management' ),
+
+msgid "Authenticate"
+msgstr ""
+
+# 'authenticate_button'       => __( 'Authenticate', 'wpml-translation-management' ),
+# 'de_authorize_button'       => __( 'De-authorize', 'wpml-translation-management' ),
+# 'update_credentials_button' => __( 'Update credentials', 'wpml-translation-management' ),
+
+msgid "De-authorize"
+msgstr ""
+
+# 'de_authorize_button'       => __( 'De-authorize', 'wpml-translation-management' ),
+# 'update_credentials_button' => __( 'Update credentials', 'wpml-translation-management' ),
+# 'is_authorized'             => self::isAuthorizedText( $active_service->get_name() ),
+
+msgid "Update credentials"
+msgstr ""
+
+# $isAuthorized = sprintf(
+# __( 'Success! You can now send content to %s.', 'wpml-translation-management' ),
+# $serviceName
+
+msgid "Success! You can now send content to %s."
+msgstr ""
+
+# $isAuthorized .= sprintf(
+# __( 'Go to the %s to choose the content and send it to translation.', 'wpml-translation-management' ),
+# $dashboard
+
+msgid "Go to the %s to choose the content and send it to translation."
+msgstr ""
+
+# 'link' => admin_url( 'plugin-install.php?tab=commercial#repository-wpml' ),
+# 'text' => __( 'Please register WPML to enable the professional translation option',
+# 'wpml-translation-management' ),
+
+msgid "Please register WPML to enable the professional translation option"
+msgstr ""
+
+# 'no_service_found' => [
+# __( 'WPML cannot load the list of translation services. This can be a connection problem. Please wait a minute and reload this page.',
+# 'wpml-translation-management' ),
+
+msgid "WPML cannot load the list of translation services. This can be a connection problem. Please wait a minute and reload this page."
+msgstr ""
+
+# 'wpml-translation-management' ),
+# __( 'If the problem continues, please contact %s.', 'wpml-translation-management' ),
+# ],
+
+msgid "If the problem continues, please contact %s."
+msgstr ""
+
+# 'support_link'     => 'https://wpml.org/forums/forum/english-support/',
+# 'activate'         => __( 'Activate', 'wpml-translation-management' ),
+# 'documentation'    => __( 'Documentation', 'wpml-translation-management' ),
+
+msgid "Activate"
+msgstr ""
+
+# 'activate'         => __( 'Activate', 'wpml-translation-management' ),
+# 'documentation'    => __( 'Documentation', 'wpml-translation-management' ),
+# 'ts'               => [
+
+msgid "Documentation"
+msgstr ""
+
+# 'ts'               => [
+# 'different'   => __( 'Looking for a different translation service?',
+# 'wpml-translation-management' ),
+
+msgid "Looking for a different translation service?"
+msgstr ""
+
+# 'tell_us_url' => 'https://wpml.org/documentation/content-translation/how-to-add-translation-services-to-wpml/#add-service-form',
+# 'tell_us'     => __( 'Tell us which one', 'wpml-translation-management' ),
+# ],
+
+msgid "Tell us which one"
+msgstr ""
+
+# 'filter'           => [
+# 'search'       => __( 'Search', 'wpml-translation-management' ),
+# 'clean_search' => __( 'Clear search', 'wpml-translation-management' ),
+
+msgid "Search"
+msgstr ""
+
+# 'search'       => __( 'Search', 'wpml-translation-management' ),
+# 'clean_search' => __( 'Clear search', 'wpml-translation-management' ),
+# ],
+
+msgid "Clear search"
+msgstr ""
+
+# 'description' => __( 'Description', 'wpml-translation-management' ),
+# 'ranking'     => __( 'Ranking', 'wpml-translation-management' ),
+# ],
+
+msgid "Ranking"
 msgstr ""
 
 # 'strings' => array(
@@ -4620,13 +4634,6 @@ msgstr ""
 msgid "Unknown string Package"
 msgstr ""
 
-# 'type' => 'error',
-# 'text' => sprintf( __( 'String "%s" has not been sent.', 'wpml-translation-management' ), $string ),
-# );
-
-msgid "String \"%s\" has not been sent."
-msgstr ""
-
 # ICL_TM_COMPLETE                => __( 'Translation complete', 'wpml-translation-management' ),
 # ICL_STRING_TRANSLATION_PARTIAL => __( 'Partial translation', 'wpml-translation-management' ),
 # ICL_TM_NEEDS_UPDATE            => __( 'Translation needs update',
@@ -4655,16 +4662,16 @@ msgstr ""
 msgid "Strings in the basket"
 msgstr ""
 
-# class="<?php echo $label_class; ?>">
-# <?php printf( __( 'Translate to %s', 'wpml-translation-management' ),
-# $lang['display_name'] ) ?>
+# <td>
+# <img style="position:relative; top: 2px;" width="18" height="12" src="<?php echo esc_url( $sitepress->get_flag_url( $lang['code'] ) ); ?>" alt="<?php echo esc_url( sprintf( __( 'Flag for %s', 'wpml-translation-management' ), $lang['code'] ) ); ?>"/>
+# <label
 
-msgid "Translate to %s"
+msgid "Flag for %s"
 msgstr ""
 
-# class="icl_st_estimate_wrap">
-# &nbsp;(<?php printf( __( 'Estimated cost: %s USD',
-# 'wpml-translation-management' ),
+# printf(
+# __( 'Estimated cost: %s USD', 'wpml-translation-management' ),
+# '<span id="icl_st_estimate_' . $lang['code'] . '">0</span>'
 
 msgid "Estimated cost: %s USD"
 msgstr ""
@@ -4684,17 +4691,17 @@ msgid "One or more strings sent to %s"
 msgstr ""
 
 # <tr>
-# <th><?php _e( 'Translation options', 'wpml-translation-management' ) ?></th>
+# <th><h3><?php _e( 'Translate selected strings', 'wpml-translation-management' ) ?></h3></th>
 # </tr>
 
-msgid "Translation options"
+msgid "Translate selected strings"
 msgstr ""
 
-# type="submit"
-# value="<?php _e( 'Add to translation basket', 'wpml-translation-management' ); ?>"
-# disabled="disabled"
+# <tr>
+# <td><h4 style="margin-top: 0; font-size: 1.3em;"><?php _e( 'All languages', 'wpml-translation-management'); ?></h4></td>
+# <td>
 
-msgid "Add to translation basket"
+msgid "All languages"
 msgstr ""
 
 # disabled="disabled"
@@ -4713,9 +4720,16 @@ msgstr ""
 
 # data-more-than-one-lang-message="<?php _e( 'Strings in different languages are selected. They can not be added to the translation basket.', 'wpml-translation-management' ); ?>"
 # data-translation-basket-lang-message="<?php _e( 'You cannot add strings in this language to the basket since it already contains posts or strings of another source language! Either submit the current basket or delete the posts of differing language in the current basket', 'wpml-translation-management' ); ?>"
-# />
+# ><span class="otgs-ico-basket"></span> <?php _e( 'Add to translation basket', 'wpml-translation-management' ); ?></button>
 
 msgid "You cannot add strings in this language to the basket since it already contains posts or strings of another source language! Either submit the current basket or delete the posts of differing language in the current basket"
+msgstr ""
+
+# data-translation-basket-lang-message="<?php _e( 'You cannot add strings in this language to the basket since it already contains posts or strings of another source language! Either submit the current basket or delete the posts of differing language in the current basket', 'wpml-translation-management' ); ?>"
+# ><span class="otgs-ico-basket"></span> <?php _e( 'Add to translation basket', 'wpml-translation-management' ); ?></button>
+# 
+
+msgid "Add to translation basket"
 msgstr ""
 
 # 
@@ -5615,13 +5629,6 @@ msgstr ""
 # 
 
 msgid "To send content to translation first make sure \"%s\" is authenticated or you have at least one translator."
-msgstr ""
-
-# <th>
-# <img width="18" height="12" src="<?php echo esc_url( $flags->get_flag_url( $lang['code'] ) ); ?>" alt="<?php echo esc_url( sprintf( __( 'Flag for %s', 'wpml-translation-management' ), $lang['code'] ) ); ?>"/>
-# <strong><?php echo esc_html( $lang['display_name'] ); ?></strong>
-
-msgid "Flag for %s"
 msgstr ""
 
 # $dup_message  = '<p>';

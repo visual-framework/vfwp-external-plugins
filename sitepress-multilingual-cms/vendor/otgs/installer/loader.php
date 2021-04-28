@@ -49,10 +49,10 @@ $wp_installer_instance = dirname( __FILE__ ) . '/installer.php';
 
 // Global stack of instances.
 global $wp_installer_instances;
-$wp_installer_instances[ $wp_installer_instance ] = array(
+$wp_installer_instances[ $wp_installer_instance ] = [
 	'bootfile' => $wp_installer_instance,
-	'version'  => '2.4.3'
-);
+	'version'  => '2.6.2'
+];
 
 
 /**
@@ -164,6 +164,9 @@ if ( ! function_exists( 'wpml_installer_instance_delegator' ) ) {
 		}
 
 		include_once $delegate['bootfile'];
+
+		require_once dirname( __FILE__ ) . '/includes/loader/Config.php';
+		$delegate = OTGS\Installer\Loader\Config::merge( $delegate, $wp_installer_instances );
 
 		// set configuration.
 		$template_path = realpath( get_template_directory() );

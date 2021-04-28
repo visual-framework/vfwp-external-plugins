@@ -1,5 +1,7 @@
 <?php
 
+use \WPML\FP\Obj;
+
 /**
  * This code is inspired by WPML Widgets (https://wordpress.org/plugins/wpml-widgets/),
  * created by Jeroen Sormani
@@ -7,6 +9,8 @@
  * @author OnTheGo Systems
  */
 class WPML_Widgets_Support_Backend implements IWPML_Action {
+	const NONCE = 'wpml-language-nonce';
+
 	private $active_languages;
 	private $template_service;
 
@@ -44,8 +48,8 @@ class WPML_Widgets_Support_Backend implements IWPML_Action {
 				'label' => __( 'Display on language:', 'sitepress' ),
 			),
 			'languages'         => $languages,
-			'selected_language' => isset( $instance['wpml_language'] ) ? $instance['wpml_language'] : 'all',
-			'nonce'             => wp_create_nonce( 'wpml-language-' . $widget->id ),
+			'selected_language' => Obj::propOr( 'all', 'wpml_language', is_array( $instance ) ? $instance : [] ),
+			'nonce'             => wp_create_nonce( self::NONCE ),
 		);
 
 		echo $this->template_service->show( $model, 'language-selector.twig' );
@@ -60,9 +64,8 @@ class WPML_Widgets_Support_Backend implements IWPML_Action {
 	 * @return array
 	 */
 	public function update( $instance, $new_instance, $old_instance, $widget_instance ) {
-		$is_valid = array_key_exists( 'wpml-language-nonce', $_POST ) && wp_verify_nonce( $_POST['wpml-language-nonce'], 'wpml-language-' . $widget_instance->id );
-		if ( $is_valid && array_key_exists( 'wpml_language', $_POST ) ) {
-			$new_language = filter_var( $_POST['wpml_language'], FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_NULL_ON_FAILURE );
+		if (wp_verify_nonce( Obj::prop( 'wpml-language-nonce', $_POST ), self::NONCE ) ) {
+			$new_language = filter_var( Obj::prop('wpml_language', $_POST), FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_NULL_ON_FAILURE );
 
 			if ( 'all' === $new_language || array_key_exists( $new_language, $this->active_languages ) ) {
 				$instance['wpml_language'] = $new_language;
