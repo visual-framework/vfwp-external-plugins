@@ -2611,7 +2611,8 @@ function acf_get_valid_post_id( $post_id = 0 ) {
 	}
 	
 	
-	// $post_id may be an object
+	// $post_id may be an object.
+	// todo: Compare class types instead.
 	if( is_object($post_id) ) {
 		
 		// post
@@ -2627,7 +2628,7 @@ function acf_get_valid_post_id( $post_id = 0 ) {
 		// term
 		} elseif( isset($post_id->taxonomy, $post_id->term_id) ) {
 			
-			$post_id = acf_get_term_post_id( $post_id->taxonomy, $post_id->term_id );
+			$post_id = 'term_' . $post_id->term_id;
 		
 		// comment
 		} elseif( isset($post_id->comment_ID) ) {
@@ -2812,36 +2813,6 @@ function acf_isset_termmeta( $taxonomy = '' ) {
 	// return
 	return true;
 		
-}
-
-
-/*
-*  acf_get_term_post_id
-*
-*  This function will return a valid post_id string for a given term and taxonomy
-*
-*  @type	function
-*  @date	6/2/17
-*  @since	5.5.6
-*
-*  @param	$taxonomy (string)
-*  @param	$term_id (int)
-*  @return	(string)
-*/
-
-function acf_get_term_post_id( $taxonomy, $term_id ) {
-	
-	// WP < 4.4
-	if( !acf_isset_termmeta() ) {
-		
-		return $taxonomy . '_' . $term_id;
-		
-	}
-	
-	
-	// return
-	return 'term_' . $term_id;
-	
 }
 
 
@@ -3192,9 +3163,11 @@ function acf_get_attachment( $attachment ) {
 		case 'image':
 			$sizes_id = $attachment->ID;
 			$src = wp_get_attachment_image_src( $attachment->ID, 'full' );
-			$response['url'] = $src[0];
-			$response['width'] = $src[1];
-			$response['height'] = $src[2];
+			if ( $src ) {
+				$response['url'] = $src[0];
+				$response['width'] = $src[1];
+				$response['height'] = $src[2];
+			}
 			break;
 		case 'video':
 			$response['width'] = acf_maybe_get( $meta, 'width', 0 );
@@ -3213,14 +3186,16 @@ function acf_get_attachment( $attachment ) {
 	// Load array of image sizes.
 	if( $sizes_id ) {
 		$sizes = get_intermediate_image_sizes();
-		$data = array();
+		$sizes_data = array();
 		foreach( $sizes as $size ) {
 			$src = wp_get_attachment_image_src( $sizes_id, $size );
-			$data[ $size ] = $src[ 0 ];
-			$data[ $size . '-width' ] = $src[ 1 ];
-			$data[ $size . '-height' ] = $src[ 2 ];
+			if ( $src ) {
+				$sizes_data[ $size ] = $src[0];
+				$sizes_data[ $size . '-width' ] = $src[1];
+				$sizes_data[ $size . '-height' ] = $src[2];
+			}
 		}
-		$response['sizes'] = $data;
+		$response['sizes'] = $sizes_data;
 	}
 	
 	/**
@@ -3273,23 +3248,6 @@ function acf_get_truncated( $text, $length = 64 ) {
 	// return
 	return $return;
 	
-}
-
-
-/*
-*  acf_get_current_url
-*
-*  This function will return the current URL.
-*
-*  @date	23/01/2015
-*  @since	5.1.5
-*
-*  @param	void
-*  @return	string
-*/
-
-function acf_get_current_url() {
-	return ( is_ssl() ? 'https' : 'http' ) . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 }
 
 /*
@@ -3476,62 +3434,15 @@ function acf_get_valid_terms( $terms = false, $taxonomy = 'category' ) {
 
 
 /*
-*  acf_esc_html_deep
-*
-*  Navigates through an array and escapes html from the values.
-*
-*  @type	function
-*  @date	10/06/2015
-*  @since	5.2.7
-*
-*  @param	$value (mixed)
-*  @return	$value
-*/
-
-/*
-function acf_esc_html_deep( $value ) {
-	
-	// array
-	if( is_array($value) ) {
-		
-		$value = array_map('acf_esc_html_deep', $value);
-	
-	// object
-	} elseif( is_object($value) ) {
-		
-		$vars = get_object_vars( $value );
-		
-		foreach( $vars as $k => $v ) {
-			
-			$value->{$k} = acf_esc_html_deep( $v );
-		
-		}
-		
-	// string
-	} elseif( is_string($value) ) {
-
-		$value = esc_html($value);
-
-	}
-	
-	
-	// return
-	return $value;
-
-}
-*/
-
-
-/*
 *  acf_validate_attachment
 *
-*  This function will validate an attachment based on a field's resrictions and return an array of errors
+*  This function will validate an attachment based on a field's restrictions and return an array of errors
 *
 *  @type	function
 *  @date	3/07/2015
 *  @since	5.2.3
 *
-*  @param	$attachment (array) attachment data. Cahnges based on context
+*  @param	$attachment (array) attachment data. Changes based on context
 *  @param	$field (array) field settings containing restrictions
 *  @param	$context (string) $file is different when uploading / preparing
 *  @return	$errors (array)
@@ -3567,7 +3478,7 @@ function acf_validate_attachment( $attachment, $field, $context = 'prepare' ) {
 	// prepare
 	} elseif( $context == 'prepare' ) {
 		
-		$file['type'] = pathinfo($attachment['url'], PATHINFO_EXTENSION);
+		$file['type'] = pathinfo($attachment['filename'], PATHINFO_EXTENSION);
 		$file['size'] = acf_maybe_get($attachment, 'filesizeInBytes', 0);
 		$file['width'] = acf_maybe_get($attachment, 'width', 0);
 		$file['height'] = acf_maybe_get($attachment, 'height', 0);
@@ -3576,7 +3487,7 @@ function acf_validate_attachment( $attachment, $field, $context = 'prepare' ) {
 	} else {
 		
 		$file = array_merge($file, $attachment);
-		$file['type'] = pathinfo($attachment['url'], PATHINFO_EXTENSION);
+		$file['type'] = pathinfo($attachment['filename'], PATHINFO_EXTENSION);
 		
 	}
 	
@@ -4851,24 +4762,19 @@ function acf_array_camel_case( $array = array() ) {
 }
 
 /**
- * acf_is_block_editor
+ * Returns true if the current screen is using the block editor.
  *
- * Returns true if the current screen uses the block editor.
+ * @date 13/12/18
+ * @since 5.8.0
  *
- * @date	13/12/18
- * @since	5.8.0
- *
- * @param	void
- * @return	bool
+ * @return bool
  */
 function acf_is_block_editor() {
-	if( function_exists('get_current_screen') ) {
+	if ( function_exists( 'get_current_screen' ) ) {
 		$screen = get_current_screen();
-		if( method_exists($screen, 'is_block_editor') ) {
+		if( $screen && method_exists( $screen, 'is_block_editor' ) ) {
 			return $screen->is_block_editor();
 		}
 	}
 	return false;
 }
-
-?>
