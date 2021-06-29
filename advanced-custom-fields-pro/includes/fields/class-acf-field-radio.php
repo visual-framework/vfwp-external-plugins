@@ -55,6 +55,7 @@ class acf_field_radio extends acf_field {
 	function render_field( $field ) {
 
 		// vars
+		$i = 0;
 		$e = '';
 		$ul = array( 
 			'class'				=> 'acf-radio-list',
@@ -68,32 +69,43 @@ class acf_field_radio extends acf_field {
 		$ul['class'] .= ' ' . $field['class'];
 		
 		
-		// Determine selected value.
-		$value = (string) $field['value'];
+		// select value
+		$checked = '';
+		$value = strval($field['value']);
 		
-		// 1. Selected choice.
-		if( isset( $field['choices'][ $value ] ) ) {
-			$checked = (string) $value;
+		
+		// selected choice
+		if( isset($field['choices'][ $value ]) ) {
 			
-		// 2. Custom choice.
+			$checked = $value;
+			
+		// custom choice
 		} elseif( $field['other_choice'] && $value !== '' ) {
+			
 			$checked = 'other';
 			
-		// 3. Empty choice. 
+		// allow null	
 		} elseif( $field['allow_null'] ) {
-			$checked = '';
 			
-		// 4. Default to first choice.
+			// do nothing
+			
+		// select first input by default	
 		} else {
-			$checked = (string) key( $field['choices'] );
+			
+			$checked = key($field['choices']);
+			
 		}
+		
+		
+		// ensure $checked is a string (could be an int)
+		$checked = strval($checked); 
+		
 				
 		// other choice
-		$other_input = false;
 		if( $field['other_choice'] ) {
 			
-			// Define other input attrs.
-			$other_input = array(
+			// vars
+			$input = array(
 				'type'		=> 'text',
 				'name'		=> $field['name'],
 				'value'		=> '',
@@ -101,70 +113,101 @@ class acf_field_radio extends acf_field {
 				'class'		=> 'acf-disabled'
 			);
 			
-			// Select other choice if value is not a valid choice.
+			
+			// select other choice if value is not a valid choice
 			if( $checked === 'other' ) {
-				unset( $other_input['disabled'] );
-				$other_input['value'] = $field['value'];
+				
+				unset($input['disabled']);
+				$input['value'] = $field['value'];
+				
 			}
 			
-			// Ensure an 'other' choice is defined.
-			if( !isset( $field['choices']['other'] ) ) {
+			
+			// allow custom 'other' choice to be defined
+			if( !isset($field['choices']['other']) ) {
+				
 				$field['choices']['other'] = '';
+				
 			}
+			
+			
+			// append other choice
+			$field['choices']['other'] .= '</label> <input type="text" ' . acf_esc_attr($input) . ' /><label>';
+		
 		}
 		
-		// Bail early if no choices.
-		if( empty( $field['choices'] ) ) {
-			return;
-		}
 		
-		// Hiden input.
+		// bail early if no choices
+		if( empty($field['choices']) ) return;
+		
+		
+		// hiden input
 		$e .= acf_get_hidden_input( array('name' => $field['name']) );
 		
-		// Open <ul>.
+		
+		// open
 		$e .= '<ul ' . acf_esc_attr($ul) . '>';
 		
-		// Loop through choices.
+		
+		// foreach choices
 		foreach( $field['choices'] as $value => $label ) {
-			$is_selected = false;
 			
-			// Ensure value is a string.
-			$value = (string) $value;
+			// ensure value is a string
+			$value = strval($value);
+			$class = '';
 			
-			// Define input attrs.
-			$attrs = array(
+			
+			// increase counter
+			$i++;
+			
+			
+			// vars
+			$atts = array(
 				'type'	=> 'radio',
-				'id'	=> sanitize_title( $field['id'] . '-' . $value ), 
+				'id'	=> $field['id'], 
 				'name'	=> $field['name'],
 				'value'	=> $value
 			);
 			
-			// Check if selected.
-			if( esc_attr($value) === esc_attr($checked) ) {
-				$attrs['checked'] = 'checked';
-				$is_selected = true;
+			
+			// checked
+			if( $value === $checked ) {
+				
+				$atts['checked'] = 'checked';
+				$class = ' class="selected"';
+				
 			}
 			
-			// Check if is disabled.
+			
+			// deisabled
 			if( isset($field['disabled']) && acf_in_array($value, $field['disabled']) ) {
-				$attrs['disabled'] = 'disabled';
+			
+				$atts['disabled'] = 'disabled';
+				
 			}
 			
-			// Additional HTML (the "Other" input).
-			$additional_html = '';
-			if( $value === 'other' && $other_input ) {
-				$additional_html = ' ' . acf_get_text_input( $other_input );
+			
+			// id (use crounter for each input)
+			if( $i > 1 ) {
+			
+				$atts['id'] .= '-' . $value;
+				
 			}
+			
 			
 			// append
-			$e .= '<li><label' . ( $is_selected ? ' class="selected"' : '' ) . '><input ' . acf_esc_attr( $attrs ) . '/>' . acf_esc_html( $label ) . '</label>' . $additional_html . '</li>';
+			$e .= '<li><label' . $class . '><input ' . acf_esc_attr( $atts ) . '/>' . $label . '</label></li>';
+			
 		}
 		
-		// Close <ul>.
+		
+		// close
 		$e .= '</ul>';
 		
-		// Output HTML.
+		
+		// return
 		echo $e;
+		
 	}
 	
 	

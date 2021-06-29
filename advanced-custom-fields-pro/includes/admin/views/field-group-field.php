@@ -1,38 +1,34 @@
 <?php 
 
-// Define input name prefix using unique identifier.
-$input_prefix = 'acf_fields[' . $field['ID'] . ']';
-$input_id = acf_idify( $input_prefix );
+// vars
+$prefix = 'acf_fields[' . $field['ID'] . ']';
+$id = acf_idify( $prefix );
 
-// Update field props.
-$field['prefix'] = $input_prefix;
+// add prefix
+$field['prefix'] = $prefix;
 
-// Elements.
-$div_attrs = array(
-	'class' 	=> 'acf-field-object acf-field-object-' . acf_slugify( $field['type'] ),
+// div
+$div = array(
+	'class' 	=> 'acf-field-object acf-field-object-' . acf_slugify($field['type']),
 	'data-id'	=> $field['ID'],
 	'data-key'	=> $field['key'],
 	'data-type'	=> $field['type'],
 );
 
-// Misc template vars.
-$field_label = acf_get_field_label( $field, 'admin' );
-$field_type_label = acf_get_field_type_label( $field['type'] );
+$meta = array(
+	'ID'			=> $field['ID'],
+	'key'			=> $field['key'],
+	'parent'		=> $field['parent'],
+	'menu_order'	=> $i,
+	'save'			=> ''
+);
 
 ?>
-<div <?php echo acf_esc_attr( $div_attrs ); ?>>
+<div <?php echo acf_esc_attr( $div ); ?>>
 	
 	<div class="meta">
-		<?php 
-		$meta_inputs = array(
-			'ID'			=> $field['ID'],
-			'key'			=> $field['key'],
-			'parent'		=> $field['parent'],
-			'menu_order'	=> $i,
-			'save'			=> ''
-		);
-		foreach( $meta_inputs as $k => $v ):
-			acf_hidden_input(array( 'name' => $input_prefix . '[' . $k . ']', 'value' => $v, 'id' => $input_id . '-' . $k ));
+		<?php foreach( $meta as $k => $v ):
+			acf_hidden_input(array( 'name' => $prefix . '[' . $k . ']', 'value' => $v, 'id' => $id . '-' . $k ));
 		endforeach; ?>
 	</div>
 	
@@ -43,7 +39,7 @@ $field_type_label = acf_get_field_type_label( $field['type'] );
 			</li>
 			<li class="li-field-label">
 				<strong>
-					<a class="edit-field" title="<?php _e("Edit field",'acf'); ?>" href="#"><?php echo acf_esc_html( $field_label ); ?></a>
+					<a class="edit-field" title="<?php _e("Edit field",'acf'); ?>" href="#"><?php echo acf_get_field_label($field, 'admin'); ?></a>
 				</strong>
 				<div class="row-options">
 					<a class="edit-field" title="<?php _e("Edit field",'acf'); ?>" href="#"><?php _e("Edit",'acf'); ?></a>
@@ -53,9 +49,9 @@ $field_type_label = acf_get_field_type_label( $field['type'] );
 				</div>
 			</li>
 			<?php // whitespace before field name looks odd but fixes chrome bug selecting all text in row ?>
-			<li class="li-field-name"> <?php echo esc_html( $field['name'] ); ?></li>
-			<li class="li-field-key"> <?php echo esc_html( $field['key'] ); ?></li>
-			<li class="li-field-type"> <?php echo esc_html( $field_type_label ); ?></li>
+			<li class="li-field-name"> <?php echo $field['name']; ?></li>
+			<li class="li-field-key"> <?php echo $field['key']; ?></li>
+			<li class="li-field-type"> <?php echo acf_get_field_type_label($field['type']); ?></li>
 		</ul>
 	</div>
 	

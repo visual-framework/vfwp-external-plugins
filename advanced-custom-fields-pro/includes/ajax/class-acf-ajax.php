@@ -62,6 +62,8 @@ class ACF_Ajax {
 	}
 	
 	/**
+	 * set
+	 *
 	 * Sets request data for the given key.
 	 *
 	 * @date	31/7/18
@@ -71,7 +73,7 @@ class ACF_Ajax {
 	 * @param	mixed $value The data value.
 	 * @return	ACF_Ajax
 	 */
-	function set( $key = '', $value = null ) {
+	function set( $key = '', $value ) {
 		$this->request[$key] = $value;
 		return $this;
 	}
