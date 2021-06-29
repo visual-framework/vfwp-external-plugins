@@ -3434,8 +3434,7 @@
 		wait: 'load',
 		
 		events: {
-			'removeField': 'onRemove',
-			'duplicateField': 'onDuplicate'
+			'removeField': 'onRemove'
 		},
 		
 		$input: function(){
@@ -3474,13 +3473,6 @@
 		onRemove: function(){
 			if( this.select2 ) {
 				this.select2.destroy();
-			}
-		},
-		
-		onDuplicate: function( e, $el, $duplicate ){
-			if( this.select2 ) {
-				$duplicate.find('.select2-container').remove();
-				$duplicate.find('select').removeClass('select2-hidden-accessible');
 			}
 		}
 	});
@@ -5369,7 +5361,7 @@
 		label: __('Value is equal to'),
 		fieldTypes: [ 'text', 'textarea', 'number', 'range', 'email', 'url', 'password' ],
 		match: function( rule, field ){
-			if( acf.isNumeric(rule.value) ) {
+			if( $.isNumeric(rule.value) ) {
 				return isEqualToNumber( rule.value, field.val() );
 			} else {
 				return isEqualTo( rule.value, field.val() );
@@ -5565,8 +5557,8 @@
 				
 				// append					
 				choices.push({
-					id: line[0].trim(),
-					text: line[1].trim()
+					id: $.trim( line[0] ),
+					text: $.trim( line[1] )
 				});
 			});
 			
@@ -6066,7 +6058,7 @@
 	
 	var getPostID = function() {
 		var postID = acf.get('post_id');
-		return acf.isNumeric(postID) ? postID : 0;
+		return $.isNumeric(postID) ? postID : 0;
 	}
 	
 	
@@ -7776,12 +7768,9 @@
 				});
 			}
 			
-			// Temporarily remove conflicting attribute.
-			var attrAjax = $select.attr( 'data-ajax' );
-			if( attrAjax !== undefined ) {
-				$select.removeData('ajax');
-				$select.removeAttr('data-ajax');
-			}
+		    // remove conflicting atts
+		    $select.removeData('ajax');
+			$select.removeAttr('data-ajax');
 			
 			// ajax
 			if( this.get('ajax') ) {
@@ -7841,11 +7830,6 @@
 			
 			// add class
 			$container.addClass('-acf');
-			
-			// Add back temporarily removed attr.
-			if( attrAjax !== undefined ) {
-				$select.attr('data-ajax', attrAjax);
-			}
 			
 			// action for 3rd party customization
 			acf.doAction('select2_init', $select, options, this.data, (field || false), this);

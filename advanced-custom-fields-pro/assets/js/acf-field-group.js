@@ -724,7 +724,7 @@
 			var copy = acf.__('copy');
 			
 			// increase suffix "1"
-			if( acf.isNumeric(end) ) {
+			if( $.isNumeric(end) ) {
 				var i = (end*1) + 1;
 				label = label.replace( end, i );
 				name = name.replace( end, i );

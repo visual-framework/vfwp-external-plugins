@@ -199,7 +199,7 @@ class acf_field_post_object extends acf_field {
 			
 			
 			// order posts by search
-			if( $is_search && empty($args['orderby']) && isset($args['s']) ) {
+			if( $is_search && empty($args['orderby']) ) {
 				
 				$posts = acf_order_by_search( $posts, $args['s'] );
 				
