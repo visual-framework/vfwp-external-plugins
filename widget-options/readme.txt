@@ -1,11 +1,11 @@
 === Widget Options - Add Context To WordPress Widgets ===
-Contributors: expresstech, phpbits, flowdee
+Contributors: marketingfire, phpbits, flowdee
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=FMKC2SLPTULP8
 Tags: widgets, restrict widgets, display widgets, widget logic, hide widgets, hide widget, sidebar, widget content, display widget, widget options, widget option, widget, widget css, CSS, widget classes, widget styling, widget ID, widget custom class, widget visibility, widget ninja, jetpack visibility, siteorigin, siteorigin pagebuilder, pagebuilder by siteorigin
 Requires at least: 4.0
-Tested up to: 5.2
+Tested up to: 5.9
 Requires PHP: 5.6
-Stable tag: 3.6.1
+Stable tag: 3.7.14
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,11 +15,13 @@ Get Better Control over your WordPress Widgets. Easily show or hide WordPress wi
 
 <strong>Control your sidebar widgets more!</strong> Assign different contents on your sidebars, footer and any sidebar widgets.
 
+With over <strong>1,060,000+ downloads</strong> and an <strong>average rating of 4.9 stars</strong>, there are no doubts that Widget Options is the perfect solution for you to take better control of your widgets.
+
 <strong>Widget Options</strong> adds elegant and feature-packed tabbed options below each widget to completely manage and control each widgets visibility and appearance.
 
 Built with seamlessly integration with WordPress, Widget Options is the world's most complete widget management plugin solution yet.
 
-[vimeo https://vimeo.com/190057410]
+[youtube https://www.youtube.com/watch?v=GNawoUZ_t18]
 
 <h4>Show or hide widgets on specific WordPress pages</h4>
 With Widget Options Plugin, you can easily assign pages visibility and restrict each widgets on different pages, posts, custom post types, categories, tags and custom taxonomies.
@@ -101,15 +103,15 @@ Check full <a href="http://widget-options.com/features/">Extended Widget Options
 
 <h4>Add-ons</h4>
 
-In need of <a href="https://widget-options.com/modal-pop-up-and-sliding-widget-options/" target="_blank">WordPress Sliding Panel</a> for your widgets? Check out <a href="https://widget-options.com/modal-pop-up-and-sliding-widget-options/" target="_blank">Sliding Widget Options</a> add-on and transform any of your widgets to modal pop-up, slide in and/or sliding widget panel; and increase your website's user engagement!
+In need of <a href="https://widget-options.com/features/modal-pop-up-and-sliding-widget-options/" target="_blank">WordPress Sliding Panel</a> for your widgets? Check out <a href="https://widget-options.com/features/modal-pop-up-and-sliding-widget-options/" target="_blank">Sliding Widget Options</a> add-on and transform any of your widgets to modal pop-up, slide in and/or sliding widget panel; and increase your website's user engagement!
 
-If you like to contribute, report issue or have suggestions, you can find the development version on <a href="https://github.com/phpbits/widget-options" target="_blank">Github</a>.
+If you like to contribute, report issue or have suggestions, you can find the development version on <a href="https://github.com/WidgetOptions/widget-options" target="_blank">Github</a>.
 
 <strong>More information</strong>
 
-* Follow the developer <a href="https://twitter.com/phpbits" target="_blank">@Twitter</a>
-* <a href="https://www.facebook.com/groups/WPwidgets/" target="_blank">Join Facebook Community Group</a>
-* Other <a href="https://phpbits.net/plugins/">WordPress plugins</a>
+* Follow the developer <a href="https://twitter.com/WidgetOptions" target="_blank">@Twitter</a>
+* <a href="https://www.facebook.com/WidgetOptions/" target="_blank">Join Facebook Community Group</a>
+* <a href="https://www.youtube.com/channel/UCgKC5IAqoz4Q7nW0WzueQFw" target="_blank">Youtube Channel</a>
 
 == Installation ==
 
@@ -151,6 +153,52 @@ Widget Options is a featured pack fully lightweight plugin. Using Query Monitor 
 10. Advanced Custom Fields ( ACF ) Support
 
 == Changelog ==
+
+= 3.7.14 =
+
+* Fixed PHP Recoverable fatal error – when switching AMP mode
+
+= 3.7.13 =
+
+* Fixed issue in versioning
+
+= 3.7.12 =
+
+* Fixed jQuery UI styles
+
+= 3.7.11 =
+* Fixed visibility issue for WooCommerce taxonomies.
+
+= 3.7.10 =
+* Fixed CSS issue with other plugins.
+* Fixed missing icons on Elementor page builder.
+
+= 3.7.9 =
+* Compatible with Latest WordPress.
+* Added option to revert Classic Widgets Screen.
+* Fixed admin notices.
+
+= 3.7.8 =
+* Compatible with Latest WordPress.
+* Updated dependency security vulnerability.
+* Fixed Multisite warning issues.
+* Fixed custom post type list in display condition.
+
+= 3.7.7 =
+* Compatible with Latest WordPress.
+* Fixed deprecated jQuery functions.
+* Fixed Logic option issue.
+* Fixed Mobile restrictions issues.
+* Update plugin page descriptions.
+* Updated admin options page details.
+* Added affiliate URL support via hooks.
+
+= 3.7.6 =
+* Fix blank page issue in admin widget page.
+
+= 3.7.5 =
+* Compatible with Latest WordPress.
+* Other improvements.
 
 = 3.7.4 =
 * Update readme and plugin info.
@@ -194,7 +242,7 @@ Widget Options is a featured pack fully lightweight plugin. Using Query Monitor 
 * Add option to disable automatic addition of .widget class
 * Fixes and support for is_active_sidebar
 * Update subscription sidebar and add free e-book download
-* Add module card for <a href="https://widget-options.com/modal-pop-up-and-sliding-widget-options/" target="_blank">WordPress Sliding Panel</a> add-on
+* Add module card for <a href="https://widget-options.com/features/modal-pop-up-and-sliding-widget-options/" target="_blank">WordPress Sliding Panel</a> add-on
 * Add module card for <a href="https://widget-options.com/features/clone-wordpress-widgets/" target="_blank">Clone WordPress Widgets</a> premium feature
 * Improvements for better speed on admin widgets dashboard
 
@@ -202,7 +250,7 @@ Widget Options is a featured pack fully lightweight plugin. Using Query Monitor 
 * Use better Global pages items to prevent issues with site with lots of pages
 * Fix Multisite Issue when Network Activated
 * Add 'widget' class to fix issue with Elegant Themes that using 'et_widget' as base class
-* Add support for <a href="https://widget-options.com/modal-pop-up-and-sliding-widget-options/" target="_blank">Sliding Widgets</a> add-on
+* Add support for <a href="https://widget-options.com/features/modal-pop-up-and-sliding-widget-options/" target="_blank">Sliding Widgets</a> add-on
 
 = 3.3.1 =
 * Fix PHP 7.0 Global variables issue
@@ -220,15 +268,15 @@ Widget Options is a featured pack fully lightweight plugin. Using Query Monitor 
 
 = 3.1 =
 * Add Pagebuilder by SiteOrigin Plugin Widgets Compatibility
-* Fixes for https://github.com/phpbits/widget-options/issues/6
+* Fixes for https://github.com/WidgetOptions/widget-options/issues/6
 * Performance enhancement
 
 = 3.0.2 =
-* Fix reported issue : https://github.com/phpbits/widget-options/issues/7
+* Fix reported issue : https://github.com/WidgetOptions/widget-options/issues/7
 * Fix DIVI jQuery UI styling issues
 
 = 3.0.1 =
-* Fix reported issue : https://github.com/phpbits/widget-options/issues/4
+* Fix reported issue : https://github.com/WidgetOptions/widget-options/issues/4
 
 = 3.0 =
 * Improve settings page and add modular options inspired by iThemes Security Plugin
@@ -247,7 +295,7 @@ Widget Options is a featured pack fully lightweight plugin. Using Query Monitor 
 * Update pro tabs with additional features added on Extended Widget Options 2.0
 
 = 1.2 =
-* Add Widget CSS ID and Classes tab options. <a href="https://phpbits.net/widget-options-improved-control-adding-id-classes-options">Learn more about this update</a>
+* Add Widget CSS ID and Classes tab options. <a href="https://widget-options.com/blog/add-wordpress-widget-css-classes-id/">Learn more about this update</a>
 * Add Blog Page Visibility for Widgets as per @cfabrice & @fljdave request
 
 = 1.1.1 =

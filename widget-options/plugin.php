@@ -3,7 +3,7 @@
  * Plugin Name: Widget Options
  * Plugin URI: https://widget-options.com/
  * Description: Additional Widget options for better widget control. Get <strong><a href="http://widget-options.com/" target="_blank" >Extended Widget Options for WordPress</a></strong> for complete widget controls. Thanks!
- * Version: 3.7.4
+ * Version: 3.7.14
  * Author: Widget Options Team
  * Author URI: https://widget-options.com/
  * Text Domain: widget-options
@@ -11,7 +11,6 @@
  *
  * @category Widgets
  * @author Widget Options Team
- * @version 3.7.4
  */
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -53,8 +52,21 @@ final class WP_Widget_Options {
 
 			self::$instance->includes();
 			// self::$instance->roles         = new WIDGETOPTS_Roles();
+			add_filter( 'use_widgets_block_editor', array(self::$instance,'widget_options_use_widgets_block_editor') );
 		}
 		return self::$instance;
+	}
+
+	/**
+	 * REVERT classic widgets screen
+	 */
+	public function widget_options_use_widgets_block_editor( $use_widgets_block_editor ) {
+		global $widget_options;
+		if(!empty($widget_options['classic_widgets_screen']) && $widget_options['classic_widgets_screen'] == 'activate' ){
+			return false;
+		}else{
+			return true;
+		}
 	}
 
 	/**
@@ -73,7 +85,7 @@ final class WP_Widget_Options {
 
 		// Plugin version.
 		if ( ! defined( 'WIDGETOPTS_VERSION' ) ) {
-			define( 'WIDGETOPTS_VERSION', ' 3.7.4' );
+			define( 'WIDGETOPTS_VERSION', '3.7.14' );
 		}
 
 		// Plugin Folder Path.
@@ -89,6 +101,11 @@ final class WP_Widget_Options {
 		// Plugin Root File.
 		if ( ! defined( 'WIDGETOPTS_PLUGIN_FILE' ) ) {
 			define( 'WIDGETOPTS_PLUGIN_FILE', __FILE__ );
+		}
+
+		// Plugin Root File.
+		if (!defined('WIDGETOPTS_PLUGIN_WEBSITE')) {
+			define('WIDGETOPTS_PLUGIN_WEBSITE', 'https://widget-options.com');
 		}
 	}
 
@@ -121,6 +138,7 @@ final class WP_Widget_Options {
 			require_once WIDGETOPTS_PLUGIN_DIR . 'includes/transient.php';
 
 			if( in_array( $pagenow, array( 'options-general.php' ) ) ){
+				require_once WIDGETOPTS_PLUGIN_DIR . 'includes/admin/settings/modules/classic-widgets-screen.php';
 				require_once WIDGETOPTS_PLUGIN_DIR . 'includes/admin/settings/modules/visibility.php';
 				require_once WIDGETOPTS_PLUGIN_DIR . 'includes/admin/settings/modules/devices.php';
 				require_once WIDGETOPTS_PLUGIN_DIR . 'includes/admin/settings/modules/alignment.php';
@@ -249,4 +267,3 @@ if( !function_exists( 'WIDGETOPTS' ) ){
 		WIDGETOPTS();
 	}
 }
-?>
