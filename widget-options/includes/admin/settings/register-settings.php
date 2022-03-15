@@ -116,7 +116,11 @@ endif;
  */
 if( !function_exists( 'widgetopts_get_settings' ) ):
 	function widgetopts_get_settings() {
-		$settings = get_option( 'widgetopts_settings' );
+		if (is_multisite()) {
+			$settings = get_blog_option(get_current_blog_id(), 'widgetopts_settings');
+		} else {
+			$settings = get_option( 'widgetopts_settings' );
+		}
 
 		if( empty( $settings ) ) {
 
@@ -143,7 +147,7 @@ if( !function_exists( 'widgetopts_get_settings' ) ):
 			$beaver 			= array( 'beaver' 			=> get_option( 'widgetopts_tabmodule-beaver' ) );
 			$acf 				= array( 'acf' 				=> get_option( 'widgetopts_tabmodule-acf' ) );
 			$state 				= array( 'state' 			=> get_option( 'widgetopts_tabmodule-state' ) );
-
+			$classic_widgets_screen = array( 'state' 			=> get_option( 'widgetopts_tabmodule-classic_widgets_screen' ) );
 			/*
 			 * Available only on Extended version
 			 */
@@ -160,13 +164,16 @@ if( !function_exists( 'widgetopts_get_settings' ) ):
 			// $disable_widgets 	= array( 'disable_widgets' 	=> get_option( 'widgetopts_tabmodule-disable_widgets' ) );
 			// $permission 		= array( 'permission' 		=> get_option( 'widgetopts_tabmodule-permission' ) );
 
-			$settings = array_merge( array( 'settings' => $settings ), $visibility, $devices, $alignment, $hide_title, $classes, $logic, $siteorigin, $search, $move, $elementor, $widget_area, $import_export, $beaver, $acf, $state );
+			$settings = array_merge( array( 'settings' => $settings ), $visibility, $devices, $alignment, $hide_title, $classes, $logic, $siteorigin, $search, $move, $elementor, $widget_area, $import_export, $beaver, $acf, $state,$classic_widgets_screen );
 
 			// Let's let devs alter that value coming in
 			$value = apply_filters( 'widgetopts_update_settings', $settings );
 
 			update_option( 'widgetopts_settings', $settings );
 		}
+
+		$default = array('settings' => array(), 'visibility' => '', 'devices' => '', 'alignment' => '', 'columns' => '', 'dates' => '', 'styling' => '', 'roles' => '', 'hide_title' => '', 'classes' => '', 'logic' => '', 'links' => '', 'fixed' => '', 'taxonomies' => '', 'animation' => '', 'shortcodes' => '', 'cache' => '', 'siteorigin' => '', 'search' => '', 'disable_widgets' => '', 'permission' => '', 'move' => '', 'clone' => '', 'elementor' => '', 'widget_area' => '', 'import_export' => '', 'urls' => '', 'beaver' => '', 'acf' => '', 'state' => '', 'sliding' => '','classic_widgets_screen'=>'activate');
+		$settings = shortcode_atts($default, $settings);
 
 		return apply_filters( 'widgetopts_get_settings', $settings );
 	}

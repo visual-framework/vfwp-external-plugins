@@ -32,7 +32,8 @@ if( !function_exists( 'widgetopts_filter_plugin_actions' ) ){
   	}
 
     $links[]  = '<a href="'. esc_url( admin_url( 'options-general.php?page=widgetopts_plugin_settings' ) ) .'">' . __( 'Settings', 'widget-options' ) . '</a>';
-    $links[]  = '<a href="'. esc_url( 'https://widget-options.com/pricing/?utm_source=upgradebtn&utm_medium=plugins&utm_campaign=widgetoptspluginlink' ) .'" target="_blank" style="color: #3db634">' . __( 'Upgrade', 'widget-options' ) . '</a>';
+	$upgrade_link = apply_filters('widget_options_site_url', trailingslashit(WIDGETOPTS_PLUGIN_WEBSITE).'pricing/?utm_source=upgradebtn&utm_medium=plugins&utm_campaign=widgetoptspluginlink');
+    $links[]  = '<a href="'. esc_url($upgrade_link) .'" target="_blank" style="color: #3db634">' . __( 'Upgrade', 'widget-options' ) . '</a>';
     return $links;
   }
 }
@@ -57,6 +58,7 @@ if( !function_exists( 'widgetopts_register_defaults' ) ){
 				add_option( 'widgetopts_tabmodule-classes', 'activate' );
 				add_option( 'widgetopts_tabmodule-logic', 'activate' );
 				add_option( 'widgetopts_tabmodule-state', 'activate' );
+				add_option( 'widgetopts_tabmodule-classic_widgets_screen', 'activate' );
 				//add free version settings
 				$defaults = array(
 						'visibility' 	=> 	array(

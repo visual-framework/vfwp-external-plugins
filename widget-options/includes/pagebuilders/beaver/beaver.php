@@ -4,13 +4,13 @@
  * Plugin URI: https://widget-options.com/
  * Description: <strong>Requires <a href="https://wordpress.org/plugins/widget-options/" target="_blank">Widget Options Plugin</a></strong>! Extend functionalities to Beaver Builder for more visibility restriction options.
  * Version: 1.0
- * Author: Phpbits Creative Studio
- * Author URI: https://phpbits.net/
+ * Author: Widget Options Team
+ * Author URI: https://widget-options.com/
  * Text Domain: widget-options
  * Domain Path: languages
  *
  * @category Widgets
- * @author Jeffrey Carandang
+ * @author Widget Options Team
  * @version 1.0
  */
 // Exit if accessed directly.
@@ -465,7 +465,7 @@ class WP_Widget_Options_Beaver {
                 <span class="dashicons dashicons-lock"></span> <?php _e( 'Beaver Builder Support', 'widget-options' );?>
             </li>
         </ul>
-        <p><strong><a href="http://widget-options.com/?utm_source=beaverbuilder&utm_medium=learnmore&utm_campaign=widgetoptsprotab" class="button-primary" target="_blank"><?php _e( 'Learn More', 'widget-options' );?></a></strong></p>
+        <p><strong><a href="<?php echo apply_filters('widget_options_site_url', trailingslashit(WIDGETOPTS_PLUGIN_WEBSITE).'?utm_source=beaverbuilder&utm_medium=learnmore&utm_campaign=widgetoptsprotab');?>" class="button-primary" target="_blank"><?php _e( 'Learn More', 'widget-options' );?></a></strong></p>
     </div>
 	<?php }
 
@@ -804,9 +804,14 @@ class WP_Widget_Options_Beaver {
                 if ( stristr($display_logic,"return")===false ){
                     $display_logic="return (" . $display_logic . ");";
                 }
-                if ( !eval( $display_logic ) ){
-                    return false;
-                }
+				$display_logic = htmlspecialchars_decode($display_logic, ENT_QUOTES);
+				try {
+					if ( !eval( $display_logic ) ){
+						return false;
+					}
+				} catch (ParseError $e) {
+					return false;
+				}
 			}
 		}
 
