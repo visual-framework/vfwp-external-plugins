@@ -1,6 +1,7 @@
 <?php
 
 use \WPML\FP\Obj;
+use WPML\LIB\WP\Option as Option;
 
 /**
  * This code is inspired by WPML Widgets (https://wordpress.org/plugins/wpml-widgets/),
@@ -28,6 +29,20 @@ class WPML_Widgets_Support_Backend implements IWPML_Action {
 	public function add_hooks() {
 		add_action( 'in_widget_form', array( $this, 'language_selector' ), 10, 3 );
 		add_filter( 'widget_update_callback', array( $this, 'update' ), 10, 4 );
+		add_action( 'wp_ajax_wpml_change_selected_language_for_legacy_widget', array( $this, 'set_selected_language_for_legacy_widget' ) );
+		if ( $this->is_widgets_page() ) {
+			add_action('enqueue_block_editor_assets', array($this, 'enqueue_scripts'));
+		}
+	}
+
+	public function enqueue_scripts() {
+		wp_register_script( 'widgets-language-switcher-script', ICL_PLUGIN_URL . '/dist/js/widgets-language-switcher/app.js', array( 'wp-block-editor' ) );
+		wp_localize_script(
+			'widgets-language-switcher-script',
+			'wpml_active_and_selected_languages',
+			[ "active_languages" => $this->active_languages, "legacy_widgets_languages" => $this->get_legacy_widgets_selected_languages() ]
+		);
+		wp_enqueue_script( 'widgets-language-switcher-script' );
 	}
 
 	/**
@@ -36,6 +51,16 @@ class WPML_Widgets_Support_Backend implements IWPML_Action {
 	 * @param array          $instance
 	 */
 	public function language_selector( $widget, $form, $instance ) {
+		/**
+		 * This allows to disable the display of the language selector on a widget form.
+		 *
+		 * @since 4.5.3
+		 *
+		 * @param bool If display should be disabled (default: false)
+		 */
+		if ( apply_filters( 'wpml_widget_language_selector_disable', false ) ) {
+			return;
+		}
 
 		$languages        = $this->active_languages;
 		$languages['all'] = array(
@@ -74,4 +99,44 @@ class WPML_Widgets_Support_Backend implements IWPML_Action {
 
 		return $instance;
 	}
+
+	public function is_widgets_page() {
+		global $pagenow;
+
+		return is_admin() && 'widgets.php' === $pagenow;
+	}
+
+	private function get_legacy_widgets_selected_languages() {
+		$legacy_widgets_languages = [];
+		$widgets = array_values($GLOBALS['wp_widget_factory']->widgets);
+		foreach ($widgets as $widget) {
+			$widget_option = Option::get($widget->option_name);
+
+			if ( is_array( $widget_option ) ) {
+				foreach ($widget_option as $key => $option) {
+					if (is_array($option) && array_key_exists('wpml_language', $option)) {
+						$legacy_widgets_languages[$widget->id_base . '-' . $key] = $option['wpml_language'];
+					}
+				}
+			}
+		}
+		return $legacy_widgets_languages;
+	}
+
+	public function set_selected_language_for_legacy_widget() {
+		if ( isset( $_POST['id'] ) && isset( $_POST['selected_language_value'] ) ) {
+			$widget_id = sanitize_text_field( $_POST['id'] );
+			$selected_language_value = sanitize_text_field( $_POST['selected_language_value'] );
+
+			$widget = explode('-', $widget_id);
+			$widget_id = array_pop($widget);
+			$widget_option_name = 'widget_' . implode('-', $widget);
+			$widgets_by_type = get_option($widget_option_name);
+
+			$widgets_by_type[$widget_id]['wpml_language'] = $selected_language_value;
+
+			Option::update($widget_option_name, $widgets_by_type);
+		}
+	}
+
 }

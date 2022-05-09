@@ -18,6 +18,8 @@ use WPML\FP\Functor\Pointed;
  *
  * @method static callable|Left|Right fromNullable( ...$value ) - Curried :: a → Either a
  *
+ * @method static callable|Left|Right fromBool( ...$value ) - Curried :: a → Either a
+ *
  * @method static Either tryCatch( ...$fn ) - Curried :: a → Either a
  *
  * @method static mixed getOrElse( ...$other )
@@ -39,6 +41,11 @@ abstract class Either {
 		self::macro( 'fromNullable', curryN( 1, function ( $value ) {
 			return is_null( $value ) ? self::left( $value ) : self::right( $value );
 		} ) );
+
+		self::macro( 'fromBool', curryN( 1, function ( $value ) {
+			return (bool) $value ? self::right( $value ) : self::left( $value );
+		} ) );
+
 	}
 
 	/**

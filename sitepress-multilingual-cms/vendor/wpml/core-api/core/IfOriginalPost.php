@@ -2,7 +2,6 @@
 
 namespace WPML\Element\API;
 
-use WPML\Collect\Support\Collection;
 use WPML\FP\Fns;
 use WPML\FP\Obj;
 use function WPML\FP\curryN;

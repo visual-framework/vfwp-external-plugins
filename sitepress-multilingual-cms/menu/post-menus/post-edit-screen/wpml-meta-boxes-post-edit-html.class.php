@@ -128,32 +128,31 @@ class WPML_Meta_Boxes_Post_Edit_HTML {
 	}
 
 	private function translation_priority() {
-		if ( ! class_exists( 'WPML_TM_Translation_Priorities' ) ) {
-			return;
-		}
-		?>
-        <div id="icl_translation_priority_dropdown" class="icl_box_paragraph">
-            <p>
-                <label for="icl_translation_priority_dropdown">
-                    <strong><?php esc_html_e( 'Translation Priority', 'sitepress' ); ?></strong>
-                </label>
-            </p>
-			<?php
-			wp_nonce_field( 'wpml_translation_priority', 'nonce' );
-
-			wp_dropdown_categories(
-				array(
-					'hide_empty' => 0,
-					'selected'   => $this->get_selected_priority(),
-					'name'       => 'icl_translation_priority',
-					'taxonomy'   => self::TAXONOMIES_PRIORITY
-				)
-			);
+		if ( \WPML\Setup\Option::isTMAllowed() ) {
 			?>
-            <a href="<?php echo admin_url( 'edit-tags.php?taxonomy=translation_priority' ); ?>"
-               target="_blank"><?php esc_html_e( 'edit terms', 'sitepress' ); ?></a>
-        </div>
-		<?php
+			<div id="icl_translation_priority_dropdown" class="icl_box_paragraph">
+				<p>
+					<label for="icl_translation_priority_dropdown">
+						<strong><?php esc_html_e( 'Translation Priority', 'sitepress' ); ?></strong>
+					</label>
+				</p>
+				<?php
+				wp_nonce_field( 'wpml_translation_priority', 'nonce' );
+
+				wp_dropdown_categories(
+					array(
+						'hide_empty' => 0,
+						'selected'   => $this->get_selected_priority(),
+						'name'       => 'icl_translation_priority',
+						'taxonomy'   => self::TAXONOMIES_PRIORITY
+					)
+				);
+				?>
+				<a href="<?php echo admin_url( 'edit-tags.php?taxonomy=translation_priority' ); ?>"
+				   target="_blank"><?php esc_html_e( 'edit terms', 'sitepress' ); ?></a>
+			</div>
+			<?php
+		}
 	}
 
 	/**

@@ -26,10 +26,12 @@ class WPML_Display_As_Translated_Attachments_Query {
 			 $this->sitepress->get_current_language() !== $this->sitepress->get_default_language()
 		) {
 
-			$q->query_vars['post_parent__in'] = array(
-				$q->query_vars['post_parent'],
-				$this->post_translation->get_original_element( $q->query_vars['post_parent'] ),
-			);
+			$q->query_vars['post_parent__in'] = [ $q->query_vars['post_parent'] ];
+			$originalElementId                = $this->post_translation->get_original_element( $q->query_vars['post_parent'] );
+
+			if ( $originalElementId ) {
+				$q->query_vars['post_parent__in'] [] = $originalElementId;
+			}
 
 			unset( $q->query_vars['post_parent'] );
 		}

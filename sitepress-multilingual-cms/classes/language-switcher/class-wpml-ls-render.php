@@ -50,7 +50,9 @@ class WPML_LS_Render extends WPML_SP_User {
 			add_filter( 'wp_setup_nav_menu_item', array( $this, 'maybe_repair_menu_item' ), PHP_INT_MAX );
 
 			add_filter( 'the_content', array( $this, 'the_content_filter' ), self::THE_CONTENT_FILTER_PRIORITY );
-			add_action( 'wp_footer', array( $this, 'wp_footer_action' ), 19 );
+			if ( ! $this->is_widgets_page() ) {
+				add_action( 'wp_footer', array( $this, 'wp_footer_action' ), 19 );
+			}
 
 			$this->assets->init_hooks();
 		}
@@ -285,6 +287,12 @@ class WPML_LS_Render extends WPML_SP_User {
 		}
 
 		return wpml_home_url_ls_hide_check() && ! $slot->is_shortcode_actions();
+	}
+
+	public function is_widgets_page() {
+		global $pagenow;
+
+		return is_admin() && 'widgets.php' === $pagenow;
 	}
 
 	/**

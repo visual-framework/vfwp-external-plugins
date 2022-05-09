@@ -3,7 +3,6 @@
 namespace WPML\Ajax;
 
 use WPML\Collect\Support\Collection;
-use WPML\FP\Either;
 
 interface IHandler {
 	/**
