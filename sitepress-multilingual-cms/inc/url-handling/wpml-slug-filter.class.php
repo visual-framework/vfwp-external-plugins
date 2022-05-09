@@ -63,11 +63,8 @@ class WPML_Slug_Filter extends WPML_Full_PT_API {
 
 	function wp_unique_post_slug( $slug_suggested, $post_id, $post_status, $post_type, $post_parent, $slug ) {
 		if ( $post_status !== 'auto-draft' && $this->sitepress->is_translated_post_type( $post_type ) ) {
-			$post_language       = $post_id
-				? $this->post_translations->get_element_lang_code( $post_id )
-				: $this->sitepress->get_current_language();
-			$post_language       = $post_language
-				? $post_language : $this->sitepress->post_translations()->get_save_post_lang( $post_id, $this->sitepress );
+			$post_language       = $post_id ? $this->post_translations->get_element_lang_code( $post_id ) : $this->sitepress->get_current_language();
+			$post_language       = $post_language ?: $this->sitepress->post_translations()->get_save_post_lang( $post_id, $this->sitepress );
 			$parent              = is_post_type_hierarchical( $post_type ) ? (int) $post_parent : false;
 			$slug_suggested_wpml = $this->find_unique_slug_post( $post_id, $post_type, $post_language, $parent, $slug );
 		}
@@ -105,7 +102,7 @@ class WPML_Slug_Filter extends WPML_Full_PT_API {
 		) {
 			$suffix = 2;
 			do {
-				$alt_post_name = substr( $slug, 0, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$suffix ++;
 			} while ( $this->post_slug_exists( $post_id, $post_language, $alt_post_name, $post_type, $post_parent ) );
 			$slug = $alt_post_name;

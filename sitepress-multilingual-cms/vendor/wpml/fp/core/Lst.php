@@ -20,13 +20,25 @@ use WPML\Collect\Support\Arr;
  * @method static callable|array zipObj( ...$a, ...$b ) - Curried :: [a] → [b] → [a => b]
  * @method static callable|array zipWith( ...$f, ...$a, ...$b ) - Curried :: ( ( a, b ) → c ) → [a] → [b] → [c]
  * @method static callable|string join( ...$glue, ...$array ) - Curried :: string → [a] → string
+ * @method static callable|string joinWithCommasAndAnd( ...$array ) - Curried :: [a] → string
  * @method static callable|array concat( ...$a, ...$b ) - Curried :: [a] → [a] → [a]
  * @method static callable|array|null find( ...$predicate, ...$array ) - Curried :: ( a → bool ) → [a] → a | null
  * @method static callable|array flattenToDepth( ...$depth, ...$array ) - Curried :: int → [[a]] → [a]
  * @method static callable|array flatten( ...$array ) - Curried :: [[a]] → [a]
  * @method static callable|bool includes( ...$val, ...$array ) - Curried :: a → [a] → bool
+ * @method static callable|bool includesAll( ...$values, ...$array ) - Curried :: [a] → [a] → bool
+ *
+ * Determines if all the values are in the given array
+ *
+ * ```
+ * $includes10and20 = Lst::includesAll( [ 10, 20 ] );
+ *
+ * $this->assertTrue( $includes10and20( [ 5, 10, 15, 20 ] ) );
+ * $this->assertFalse( $includes10and20( [ 5, 15, 20 ] ) );
+ * ```
  * @method static callable|bool nth( ...$n, ...$array ) - Curried :: int → [a] → a | null
- * @method static callable|bool last( ...$array ) - Curried :: [a] → a | null
+ * @method static callable|bool first( ...$array ) - Curried :: [a, b] → a | null
+ * @method static callable|bool last( ...$array ) - Curried :: [a, b] → b | null
  * @method static callable|int length( ...$array ) - Curried :: [a] → int
  * @method static callable|array take( ...$n, ...$array ) - Curried :: int → [a] → [a]
  * @method static callable|array takeLast( ...$n, ...$array ) - Curried :: int → [a] → [a]
@@ -148,6 +160,21 @@ class Lst {
 
 		self::macro( 'join', curryN( 2, 'implode' ) );
 
+		self::macro( 'joinWithCommasAndAnd', curryN( 1, function ( $array ) {
+			$last = Lst::last( $array );
+			if ( $last ) {
+				if ( Lst::length( $array ) > 1 ) {
+					return str_replace( '  ', ' ', Lst::join( ', ', Lst::dropLast( 1, $array ) ) . ' ' . __( ' and ', 'sitepress' ) . ' ' . $last );
+					// TODO Replace above with following (after 4.5.0 release to get 'and' translated):
+					// return Lst::join( ', ', Lst::dropLast( 1, $array ) ) . ' ' . __( 'and', 'sitepress' ) . ' ' . $last;
+				} else {
+					return $last;
+				}
+			} else {
+				return '';
+			}
+		} ) );
+
 		self::macro( 'concat', curryN( 2, 'array_merge' ) );
 
 		self::macro( 'find', curryN( 2, function ( $predicate, $array ) {
@@ -168,6 +195,15 @@ class Lst {
 			return in_array( $val, $array, true );
 		} ) );
 
+		self::macro( 'includesAll', curryN( 2, function ( $values, $array ) {
+			foreach ( $values as $val ) {
+				if ( ! in_array( $val, $array, true ) ) {
+					return false;
+				}
+			}
+			return true;
+		} ) );
+
 		self::macro( 'nth', curryN( 2, function ( $n, $array ) {
 			$count = count( $array );
 			if ( $n < 0 ) {
@@ -177,6 +213,8 @@ class Lst {
 			return $n >= 0 && $n < $count ? $array[ $n ] : null;
 
 		} ) );
+
+		self::macro( 'first', self::nth( 0 ) );
 
 		self::macro( 'last', self::nth( - 1 ) );
 
@@ -270,6 +308,33 @@ class Lst {
 	}
 
 	/**
+	 * Curried function that wraps each item in array with pair: [$key => $item1]
+	 *
+	 * keyWith :: string -> array -> array
+	 *
+	 * ```
+	 * $data = [ 1, 2.3, 'some data', - 2, 'a' ];
+	 *
+	 * Lst::keyWith('myKey', $data);
+	 * [ [ 'myKey' => 1 ], [ 'myKey' => 2.3 ], [ 'myKey' => 'some data' ], [ 'myKey' => - 2 ], [ 'myKey' => 'a' ] ]
+	 * ```
+	 *
+	 * @param string $key
+	 * @param mixed[] $array
+	 *
+	 * @return mixed[]|callable
+	 */
+	public static function keyWith( $key = null, $array = null ) {
+		$keyWith = function ( $key, $array ) {
+			return Fns::map( function ( $item ) use ( $key ) {
+				return [ $key => $item ];
+			}, $array );
+		};
+
+		return call_user_func_array( curryN( 2, $keyWith ), func_get_args() );
+	}
+
+	/**
 	 * This method will return the values in the original collection that are not present in the given collection:
 	 *
 	 * @param array|Collection $array1
@@ -300,6 +365,19 @@ class Lst {
 		$repeat = flip( partial( 'array_fill', 0 ) );
 
 		return call_user_func_array( curryN( 2, $repeat ), func_get_args() );
+	}
+
+	/**
+	 * @param array|Collection $param
+	 *
+	 * @return callable|int
+	 */
+	public static function sum( $param = null ) {
+		$sum = function ( $param ) {
+			return is_object( $param ) ? $param->sum() : array_sum( $param );
+		};
+
+		return call_user_func_array( curryN( 1, $sum ), func_get_args() );
 	}
 }
 

@@ -1,11 +1,16 @@
 <?php
 
+use WPML\FP\Obj;
+
 /**
  * Class WPML_Query_Parser
  *
  * @since 3.2.3
  */
 class WPML_Query_Parser {
+
+	const LANG_VAR = 'wpml_lang';
+
 	/** @var  WPML_Post_Translation $post_translations */
 	protected $post_translations;
 	/** @var  WPML_Term_Translation $post_translations */
@@ -378,7 +383,7 @@ class WPML_Query_Parser {
 			$post_type = $q->query_vars['post_type'];
 		}
 
-		$current_language = $this->sitepress->get_current_language();
+		$current_language = Obj::path( [ 'query_vars', self::LANG_VAR ], $q ) ?: $this->sitepress->get_current_language();
 		$q                = $this->maybe_redirect_to_translated_taxonomy( $q, $current_language );
 		if ( ! $q ) { // it means that `maybe_redirect_to_translated_taxonomy` has made redirection, it just facilitates the test
 			return $q;

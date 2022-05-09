@@ -5,6 +5,8 @@
 
 namespace WPML\WP;
 
+use function WPML\FP\curryN;
+
 class OptionManager {
 
 	private $group_keys_key = 'WPML_Group_Keys';
@@ -20,6 +22,7 @@ class OptionManager {
 	 */
 	public function get( $group, $key, $default = false ) {
 		$data = get_option( $this->get_key( $group ), array() );
+
 		return isset( $data[ $key ] ) ? $data[ $key ] : $default;
 	}
 
@@ -72,6 +75,51 @@ class OptionManager {
 	 */
 	public function reset_options( $options ) {
 		$options[] = $this->group_keys_key;
+
 		return array_merge( $options, get_option( $this->group_keys_key, array() ) );
+	}
+
+	/**
+	 * Curried :: string → string → a → void
+	 * @param string|null $group
+	 * @param string|null $key
+	 * @param mixed|null $value
+	 *
+	 * @return callable|void
+	 */
+	public static function updateWithoutAutoLoad( $group = null, $key = null, $value = null ) {
+		$update = function ( $group, $key, $value ) {
+			( new OptionManager() )->set( $group, $key, $value, false );
+		};
+
+		return call_user_func_array( curryN( 3, $update ), func_get_args() );
+	}
+
+	/**
+	 * Curried :: string → string → a → void
+	 * @param string|null $group
+	 * @param string|null $key
+	 * @param mixed|null $value
+	 *
+	 * @return callable|void
+	 */
+	public static function update( $group = null, $key = null, $value = null ) {
+		return call_user_func_array( curryN( 3, [ new OptionManager(), 'set' ] ), func_get_args() );
+	}
+
+	/**
+	 * Curried :: a → string → string → b
+	 * @param mixed|null $default
+	 * @param string|null $group
+	 * @param string|null $key
+	 *
+	 * @return callable|mixed
+	 */
+	public static function getOr( $default = null, $group = null, $key = null ) {
+		$get = function ( $default, $group, $key ) {
+			return ( new OptionManager() )->get( $group, $key, $default );
+		};
+
+		return call_user_func_array( curryN( 3, $get ), func_get_args() );
 	}
 }
