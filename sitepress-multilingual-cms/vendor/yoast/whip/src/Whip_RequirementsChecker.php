@@ -1,9 +1,4 @@
 <?php
-/**
- * WHIP libary file.
- *
- * @package Yoast\WHIP
- */
 
 /**
  * Main controller class to require a certain version of software.
@@ -11,15 +6,11 @@
 class Whip_RequirementsChecker {
 
 	/**
-	 * Requirements the environment should comply with.
-	 *
 	 * @var array
 	 */
 	private $requirements;
 
 	/**
-	 * The text domain to use for translations.
-	 *
 	 * @var string
 	 */
 	private $textdomain;
@@ -28,15 +19,13 @@ class Whip_RequirementsChecker {
 	 * Whip_RequirementsChecker constructor.
 	 *
 	 * @param array  $configuration The configuration to check.
-	 * @param string $textdomain    The text domain to use for translations.
-	 *
-	 * @throws Whip_InvalidType When the $configuration parameter is not of the expected type.
+	 * @param string $textdomain The text domain to use for translations.
 	 */
-	public function __construct( $configuration = array(), $textdomain = 'default' ) {
-		$this->requirements   = array();
-		$this->configuration  = new Whip_Configuration( $configuration );
-		$this->messageManager = new Whip_MessagesManager();
-		$this->textdomain     = $textdomain;
+	public function __construct( $configuration = array(), $textdomain = 'wordpress' ) {
+		$this->requirements     = array();
+		$this->configuration    = new Whip_Configuration( $configuration );
+		$this->messageMananger  = new Whip_MessagesManager();
+		$this->textdomain       = $textdomain;
 	}
 
 	/**
@@ -45,7 +34,7 @@ class Whip_RequirementsChecker {
 	 * @param Whip_Requirement $requirement The requirement to add.
 	 */
 	public function addRequirement( Whip_Requirement $requirement ) {
-		// Only allow unique entries to ensure we're not checking specific combinations multiple times.
+		// Only allow unique entries to ensure we're not checking specific combinations multiple times
 		if ( $this->requirementExistsForComponent( $requirement->component() ) ) {
 			return;
 		}
@@ -96,14 +85,14 @@ class Whip_RequirementsChecker {
 	 * @return bool Whether or not the requirement is fulfilled.
 	 */
 	private function requirementIsFulfilled( Whip_Requirement $requirement ) {
-		$availableVersion = $this->configuration->configuredVersion( $requirement );
-		$requiredVersion  = $requirement->version();
+		$available_version = $this->configuration->configuredVersion( $requirement );
+		$required_version = $requirement->version();
 
 		if ( in_array( $requirement->operator(), array( '=', '==', '===' ), true ) ) {
-			return version_compare( $availableVersion, $requiredVersion, '>=' );
+			return -1 !== version_compare( $available_version, $required_version );
 		}
 
-		return version_compare( $availableVersion, $requiredVersion, $requirement->operator() );
+		return version_compare( $available_version, $required_version, $requirement->operator() );
 	}
 
 	/**
@@ -111,10 +100,10 @@ class Whip_RequirementsChecker {
 	 */
 	public function check() {
 		foreach ( $this->requirements as $requirement ) {
-			// Match against config.
-			$requirementFulfilled = $this->requirementIsFulfilled( $requirement );
+			// Match against config
+			$requirement_fulfilled = $this->requirementIsFulfilled( $requirement );
 
-			if ( $requirementFulfilled ) {
+			if ( $requirement_fulfilled ) {
 				continue;
 			}
 
@@ -130,10 +119,10 @@ class Whip_RequirementsChecker {
 	private function addMissingRequirementMessage( Whip_Requirement $requirement ) {
 		switch ( $requirement->component() ) {
 			case 'php':
-				$this->messageManager->addMessage( new Whip_UpgradePhpMessage( $this->textdomain ) );
+				$this->messageMananger->addMessage(	new Whip_UpgradePhpMessage( $this->textdomain ) );
 				break;
 			default:
-				$this->messageManager->addMessage( new Whip_InvalidVersionRequirementMessage( $requirement, $this->configuration->configuredVersion( $requirement ) ) );
+				$this->messageMananger->addMessage(	new Whip_InvalidVersionRequirementMessage( $requirement, $this->configuration->configuredVersion( $requirement ) ) );
 				break;
 		}
 	}
@@ -144,7 +133,7 @@ class Whip_RequirementsChecker {
 	 * @return bool Whether or not there are messages to display.
 	 */
 	public function hasMessages() {
-		return $this->messageManager->hasMessages();
+		return $this->messageMananger->hasMessages();
 	}
 
 	/**
@@ -153,6 +142,7 @@ class Whip_RequirementsChecker {
 	 * @return Whip_Message The latest message.
 	 */
 	public function getMostRecentMessage() {
-		return $this->messageManager->getLatestMessage();
+		return $this->messageMananger->getLatestMessage();
 	}
+
 }

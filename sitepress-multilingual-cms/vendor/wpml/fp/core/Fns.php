@@ -152,17 +152,15 @@ class Fns {
 		} ) );
 
 		self::macro( 'map', curryN( 2, function ( $fn, $target ) {
-			if ( ! Logic::isMappable( $target ) ) {
-				throw( new \InvalidArgumentException( 'target should be an object with map method or an array' ) );
-			}
-
 			if ( is_object( $target ) ) {
 				return $target->map( $fn );
-			} else {
+			}
+			if ( is_array( $target ) ) {
 				$keys = array_keys( $target );
 
 				return array_combine( $keys, array_map( $fn, $target, $keys ) );
 			}
+			throw( new \InvalidArgumentException( 'target should be an object with map method or an array' ) );
 		} ) );
 
 		self::macro( 'each', curryN( 2, function ( $fn, $target ) {
@@ -314,7 +312,7 @@ class Fns {
 
 				$args = func_get_args();
 				$key  = call_user_func_array( $cacheKeyFn, $args );
-				if ( array_key_exists( $key, $cache ) ) {
+				if ( isset( $cache[ $key ] ) ) {
 					return $cache[ $key ];
 				}
 

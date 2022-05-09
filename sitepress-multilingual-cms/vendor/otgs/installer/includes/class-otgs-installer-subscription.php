@@ -8,9 +8,6 @@ class OTGS_Installer_Subscription {
 	const SUBSCRIPTION_STATUS_INACTIVE_UPGRADED = 3;
 	const SUBSCRIPTION_STATUS_ACTIVE_NO_EXPIRATION = 4;
 
-	const SITE_KEY_TYPE_PRODUCTION = 0;
-	const SITE_KEY_TYPE_DEVELOPMENT = 1;
-
 	const SUBSCRIPTION_STATUS_TEXT_EXPIRED = 'expired';
 	const SUBSCRIPTION_STATUS_TEXT_VALID = 'valid';
 	const SUBSCRIPTION_STATUS_TEXT_REFUNDED = 'refunded';
@@ -19,7 +16,6 @@ class OTGS_Installer_Subscription {
 	private $status;
 	private $expires;
 	private $site_key;
-	private $site_key_type;
 	private $site_url;
 	private $type;
 	private $registered_by;
@@ -65,9 +61,6 @@ class OTGS_Installer_Subscription {
 			if ( isset( $subscription['data']->subscription_type ) ) {
 				$this->type = $subscription['data']->subscription_type;
 			}
-
-			$this->site_key_type = isset($subscription['key_type'])
-				? $subscription['key_type'] : self::SITE_KEY_TYPE_PRODUCTION;
 		}
 	}
 
@@ -124,10 +117,6 @@ class OTGS_Installer_Subscription {
 
 	public function get_type() {
 		return $this->type;
-	}
-
-	public function get_site_key_type() {
-		return $this->site_key_type;
 	}
 
 	public function get_registered_by() {

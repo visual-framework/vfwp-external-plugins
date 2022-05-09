@@ -1,9 +1,4 @@
 <?php
-/**
- * WHIP libary file.
- *
- * @package Yoast\WHIP
- */
 
 /**
  * Interface Whip_DismissStorage.
@@ -25,4 +20,5 @@ interface Whip_DismissStorage {
 	 * @return int The stored value.
 	 */
 	public function get();
+
 }

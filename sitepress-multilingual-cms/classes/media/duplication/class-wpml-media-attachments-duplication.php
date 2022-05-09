@@ -1,7 +1,6 @@
 <?php
 
 use WPML\FP\Obj;
-use WPML\Media\Option;
 
 class WPML_Media_Attachments_Duplication {
 
@@ -53,12 +52,12 @@ class WPML_Media_Attachments_Duplication {
 		add_action( 'wpml_pro_translation_completed', array( $this, 'sync_on_translation_complete' ), 10, 3 );
 
 		add_action( 'wp_ajax_wpml_media_set_initial_language', array( $this, 'batch_set_initial_language' ) );
-		add_action( 'wp_ajax_wpml_media_translate_media', array( $this, 'batch_translate_media' ), 10, 0 );
-		add_action( 'wp_ajax_wpml_media_duplicate_media', array( $this, 'batch_duplicate_media' ), 10, 0 );
-		add_action( 'wp_ajax_wpml_media_duplicate_featured_images', array( $this, 'ajax_batch_duplicate_featured_images' ), 10, 0 );
+		add_action( 'wp_ajax_wpml_media_translate_media', array( $this, 'batch_translate_media' ) );
+		add_action( 'wp_ajax_wpml_media_duplicate_media', array( $this, 'batch_duplicate_media' ) );
+		add_action( 'wp_ajax_wpml_media_duplicate_featured_images', array( $this, 'batch_duplicate_featured_images' ) );
 
-		add_action( 'wp_ajax_wpml_media_mark_processed', array( $this, 'batch_mark_processed' ), 10, 0 );
-		add_action( 'wp_ajax_wpml_media_scan_prepare', array( $this, 'batch_scan_prepare' ), 10, 0 );
+		add_action( 'wp_ajax_wpml_media_mark_processed', array( $this, 'batch_mark_processed' ) );
+		add_action( 'wp_ajax_wpml_media_scan_prepare', array( $this, 'batch_scan_prepare' ) );
 
 		add_action( 'wp_ajax_wpml_media_set_content_prepare', array( $this, 'set_content_defaults_prepare' ) );
 		add_action( 'wp_ajax_wpml_media_set_content_defaults', array( $this, 'set_content_defaults' ) );
@@ -817,10 +816,10 @@ class WPML_Media_Attachments_Duplication {
 		return self::create_duplicate_attachment( $source_attachment_id, $pidd, $lang );
 	}
 
-	private function duplicate_featured_images( $limit = 0, $offset = 0 ) {
+	private function duplicate_featured_images( $limit = 0 ) {
 		global $wpdb;
 
-		list( $thumbnails, $processed ) = $this->get_post_thumbnail_map( $limit, $offset );
+		list( $thumbnails, $processed ) = $this->get_post_thumbnail_map( $limit );
 
 		if ( sizeof( $thumbnails ) ) {
 			// Posts IDs with found featured images
@@ -837,21 +836,20 @@ class WPML_Media_Attachments_Duplication {
 
 	/**
 	 * @param int $limit
-	 * @param int $offset Offset to use for getting thumbnails. Default: 0.
 	 *
 	 * @return array
 	 */
-	public function get_post_thumbnail_map( $limit = 0, $offset = 0 ) {
+	public function get_post_thumbnail_map( $limit = 0 ) {
 		global $wpdb;
 
-		$featured_images_sql = "SELECT * FROM {$wpdb->postmeta} WHERE meta_key = '_thumbnail_id' ORDER BY `meta_id`";
+		$featured_images_sql = "SELECT * FROM {$wpdb->postmeta} WHERE meta_key = '_thumbnail_id'";
 
 		if ( $limit > 0 ) {
-			$featured_images_sql .= $wpdb->prepare( ' LIMIT %d, %d', $offset, $limit );
+			$featured_images_sql .= $wpdb->prepare( ' LIMIT %d', $limit );
 		}
 
 		$featured_images = $wpdb->get_results( $featured_images_sql );
-		$processed       = count( $featured_images );
+		$processed       = $wpdb->get_var( 'SELECT FOUND_ROWS()' );
 
 		$thumbnails = array();
 		foreach ( $featured_images as $featured ) {
@@ -912,37 +910,14 @@ class WPML_Media_Attachments_Duplication {
 		}
 	}
 
-	public function ajax_batch_duplicate_featured_images() {
-		if (
-			! isset( $_POST['nonce'] )
-			|| ! wp_verify_nonce( $_POST['nonce'], 'wpml_media_settings_actions' )
-		) {
-			wp_nonce_ays( '' );
-		}
+	public function batch_duplicate_featured_images() {
+		$limit = 10;
 
-		$featured_images_left = array_key_exists( 'featured_images_left', $_POST ) && is_numeric( $_POST['featured_images_left'] )
-			? (int) $_POST['featured_images_left']
-			: null;
+		$response = array();
 
-		return $this->batch_duplicate_featured_images( true, $featured_images_left );
-	}
+		$found = $this->duplicate_featured_images( $limit );
 
-	public function batch_duplicate_featured_images( $outputResult = true, $featured_images_left = null ) {
-		// Use $featured_images_left if it's a number otherwise proceed with null.
-		$featured_images_left = is_numeric( $featured_images_left ) ? (int) $featured_images_left : null;
-
-		if ( null === $featured_images_left ) {
-			$featured_images_left = $this->get_featured_images_total_number();
-		}
-
-		// Use 10 as limit or what's left if there are less than 10 images left to proceed.
-		$limit = $featured_images_left < 10 ? $featured_images_left : 10;
-
-		// Duplicate batch of feature images.
-		$processed = $this->duplicate_featured_images( $limit, $featured_images_left - $limit );
-
-		// Response result.
-		$response = array( 'left' => max( $featured_images_left - $processed, 0 ) );
+		$response['left'] = max( $found - $limit, 0 );
 		if ( $response['left'] ) {
 			$response['message'] = sprintf( __( 'Duplicating featured images. %d left', 'sitepress' ), $response['left'] );
 		} else {
@@ -950,28 +925,11 @@ class WPML_Media_Attachments_Duplication {
 			$response['message'] = sprintf( __( 'Duplicating featured images: done!', 'sitepress' ), $response['left'] );
 		}
 
-		if ( $outputResult ) {
-			wp_send_json( $response );
-		}
-		return $response['left'];
+		echo wp_json_encode( $response );
+		exit;
 	}
 
-	/**
-	 * Returns the total number of Featured Images.
-	 *
-	 * @return int
-	 */
-	private function get_featured_images_total_number() {
-		$wpdb = $this->wpdb; // Makes Codesniffer interpret the following correctly.
-
-		return (int) $wpdb->get_var(
-			"SELECT COUNT(*)
-			FROM {$wpdb->postmeta}
-			WHERE meta_key = '_thumbnail_id'"
-		);
-	}
-
-	public function batch_duplicate_media( $outputResult = true ) {
+	public function batch_duplicate_media() {
 		$limit = 10;
 
 		$response = array();
@@ -1004,11 +962,8 @@ class WPML_Media_Attachments_Duplication {
 			$response['message'] = sprintf( __( 'Duplicating media: done!', 'sitepress' ), $response['left'] );
 		}
 
-		if ( $outputResult ) {
-			wp_send_json( $response );
-		}
-		return $response['left'];
-
+		echo wp_json_encode( $response );
+		exit;
 	}
 
 	private function get_batch_translate_limit( $active_languages ) {
@@ -1019,7 +974,7 @@ class WPML_Media_Attachments_Duplication {
 		return max( $limit, 1 );
 	}
 
-	public function batch_translate_media( $outputResult = true ) {
+	public function batch_translate_media() {
 		$response = array();
 
 		$active_languages = count( $this->sitepress->get_active_languages() );
@@ -1057,10 +1012,7 @@ class WPML_Media_Attachments_Duplication {
 			$response['message'] = sprintf( esc_html__( 'Translating media: done!', 'sitepress' ), $response['left'] );
 		}
 
-		if ( $outputResult ) {
-			wp_send_json( $response );
-		}
-		return $response['left'];
+		wp_send_json( $response );
 	}
 
 	public function batch_set_initial_language() {
@@ -1096,7 +1048,7 @@ class WPML_Media_Attachments_Duplication {
 		exit;
 	}
 
-	function batch_scan_prepare( $outputResult = true ) {
+	function batch_scan_prepare() {
 		$response = array();
 		$this->wpdb->delete( $this->wpdb->postmeta, array( 'meta_key' => 'wpml_media_processed' ) );
 
@@ -1104,12 +1056,11 @@ class WPML_Media_Attachments_Duplication {
 		$this->add_missing_media_duplication_meta_values( '_wpml_media_duplicate' );
 		$response['message'] = __( 'Started...', 'sitepress' );
 
-		if ( $outputResult ) {
-			wp_send_json( $response );
-		}
+		echo wp_json_encode( $response );
+		exit;
 	}
 
-	public function batch_mark_processed( $outputResult = true ) {
+	public function batch_mark_processed() {
 		$response             = array();
 		$attachments_prepared = $this->wpdb->prepare( "SELECT ID FROM {$this->wpdb->posts} WHERE post_type=%s", array( 'attachment' ) );
 		$attachments          = $this->wpdb->get_col( $attachments_prepared );
@@ -1145,13 +1096,15 @@ class WPML_Media_Attachments_Duplication {
 			}
 		}
 
-		Option::setSetupFinished();
+		$settings                  = get_option( '_wpml_media' );
+		$settings['starting_help'] = 1;
+		update_option( '_wpml_media', $settings );
 
 		$response['message'] = __( 'Done!', 'sitepress' );
 
-		if ( $outputResult ) {
-			wp_send_json( $response );
-		}
+		echo wp_json_encode( $response );
+
+		exit;
 	}
 
 	public function create_duplicated_media( $attachment ) {

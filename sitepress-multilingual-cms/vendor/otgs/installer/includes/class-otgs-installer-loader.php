@@ -28,7 +28,6 @@ class OTGS_Installer_Loader {
 			->load_translation_service_info_hooks()
 			->load_plugins_update_cache_cleaner()
 			->load_buy_url_hooks()
-			->load_admin_notice_hooks()
-			->load_auto_upgrade_hooks();
+			->load_admin_notice_hooks();
 	}
 }

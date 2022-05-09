@@ -106,11 +106,9 @@ function icl_sitepress_activate() {
                  `tp_id` INT NULL DEFAULT NULL,
                  `tp_revision` INT NOT NULL DEFAULT 1,
                  `ts_status` TEXT NULL DEFAULT NULL,
-                 `review_status` ENUM('NEEDS_REVIEW', 'EDITING', 'ACCEPTED'),
-                 `ate_comm_retry_count` INT(11) UNSIGNED DEFAULT 0,
                  PRIMARY KEY (`rid`),
                  UNIQUE KEY `translation_id` (`translation_id`)
-                ) {$charset_collate}
+                ) {$charset_collate}    
             ";
 			if ( $wpdb->query( $sql ) === false ) {
 				throw new Exception( $wpdb->last_error );
@@ -134,9 +132,8 @@ function icl_sitepress_activate() {
                 `editor` VARCHAR(16) NULL,
                 `editor_job_id` BIGINT(20) UNSIGNED NULL,
                 `edit_timestamp` INT(11) UNSIGNED NULL,
-                `automatic` TINYINT UNSIGNED NOT NULL DEFAULT 0,
                 INDEX ( `rid` , `translator_id` )
-                ) {$charset_collate}
+                ) {$charset_collate}    
             ";
 			if ( $wpdb->query( $sql ) === false ) {
 				throw new Exception( $wpdb->last_error );
@@ -242,8 +239,8 @@ function icl_sitepress_activate() {
                   `language` varchar(10) NOT NULL,
                   `status` tinyint(4) NOT NULL,
                   `value` longtext NULL DEFAULT NULL,
-                  `mo_string` longtext NULL DEFAULT NULL,
-                  `translator_id` bigint(20) unsigned DEFAULT NULL,
+                  `mo_string` longtext NULL DEFAULT NULL,              
+                  `translator_id` bigint(20) unsigned DEFAULT NULL, 
                   `translation_service` varchar(16) DEFAULT '' NOT NULL,
                   `batch_id` int DEFAULT 0 NOT NULL,
                   `translation_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -336,7 +333,7 @@ function icl_sitepress_activate() {
             `md5` VARCHAR( 32 ) NOT NULL ,
             PRIMARY KEY ( `rid` ) ,
             INDEX ( `nid` )
-            ) {$charset_collate}
+            ) {$charset_collate} 
       ";
 		if ( $wpdb->query( $icl_translation_sql ) === false ) {
 			throw new Exception( $wpdb->last_error );
@@ -348,7 +345,7 @@ function icl_sitepress_activate() {
             `md5` VARCHAR( 32 ) NOT NULL ,
             `links_fixed` TINYINT NOT NULL DEFAULT 0,
             PRIMARY KEY ( `nid` )
-            ) {$charset_collate}
+            ) {$charset_collate}  
       ";
 		if ( $wpdb->query( $icl_translation_sql ) === false ) {
 			throw new Exception( $wpdb->last_error );
@@ -362,7 +359,7 @@ function icl_sitepress_activate() {
             `can_delete` TINYINT NOT NULL ,
             `show` TINYINT NOT NULL ,
             PRIMARY KEY ( `id` )
-            ) {$charset_collate}
+            ) {$charset_collate}  
       ";
 		if ( $wpdb->query( $icl_translation_sql ) === false ) {
 			throw new Exception( $wpdb->last_error );

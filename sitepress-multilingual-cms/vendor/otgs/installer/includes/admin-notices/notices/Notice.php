@@ -7,7 +7,7 @@ use function OTGS\Installer\FP\partial;
 
 class Notice {
 	/**
-	 * @param \WP_Installer $installer
+	 * @param array $installer
 	 * @param array $config
 	 *
 	 * @return \Closure

@@ -128,16 +128,6 @@ class Just extends Maybe {
 	/**
 	 * @param callable $fn
 	 *
-	 * @return Just|Nothing
-	 */
-	public function reject( $fn = null ) {
-		$fn = $fn ?: Fns::identity();
-		return $this->filter( Logic::complement( $fn ) );
-	}
-
-	/**
-	 * @param callable $fn
-	 *
 	 * @return mixed
 	 */
 	public function chain( callable $fn ) {
@@ -187,15 +177,6 @@ class Nothing extends Maybe {
 	 * @return Nothing
 	 */
 	public function filter( callable $fn ) {
-		return $this;
-	}
-
-	/**
-	 * @param callable $fn
-	 *
-	 * @return Nothing
-	 */
-	public function reject( callable $fn ) {
 		return $this;
 	}
 

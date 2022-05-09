@@ -4,7 +4,6 @@ use WPML\Core\Twig_Environment;
 use WPML\Core\Twig_Loader_Filesystem;
 use WPML\Core\Twig_Loader_String;
 use WPML\Core\Twig_LoaderInterface;
-use function WPML\Container\make;
 
 class WPML_WP_API extends WPML_PHP_Functions {
 	/**
@@ -456,10 +455,7 @@ class WPML_WP_API extends WPML_PHP_Functions {
 	}
 
 	public function is_front_end() {
-		return ! is_admin() &&
-		       ! $this->is_ajax() &&
-		       ! $this->is_cron_job() &&
-		       ! wpml_is_rest_request();
+		return ! is_admin() && ! $this->is_ajax() && ! $this->is_cron_job();
 	}
 
 	public function is_ajax() {

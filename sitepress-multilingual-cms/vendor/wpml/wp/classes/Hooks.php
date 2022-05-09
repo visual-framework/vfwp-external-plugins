@@ -3,10 +3,7 @@
 namespace WPML\LIB\WP;
 
 use WPML\FP\Either;
-use WPML\FP\Lst;
-use WPML\FP\Obj;
 use WPML\FP\Promise;
-use function WPML\FP\pipe;
 
 class Hooks {
 
@@ -63,14 +60,6 @@ class Hooks {
 		remove_filter( $name, $filterFn, $priority, $acceptedArgs );
 
 		return $result;
-	}
-
-	public static function getArgs( array $argsLabels ) {
-		return pipe(
-			Obj::pick( Obj::keys( $argsLabels ) ),
-			Obj::values(),
-			Lst::zipObj( Obj::values( $argsLabels ) )
-		);
 	}
 }
 

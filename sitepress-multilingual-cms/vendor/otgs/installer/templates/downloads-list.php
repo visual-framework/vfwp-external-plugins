@@ -1,9 +1,5 @@
 <form method="post" class="otgsi_downloads_form">
 	<?php
-
-	use OTGS\Installer\CommercialTab\DownloadFilter;
-	use OTGS\Installer\CommercialTab\DownloadsList;
-
 	$sections = $this->get_plugins_sections( $repository_id, $package['downloads'] );
 	if ( count( $sections ) === 1 ) {
 		?>
@@ -24,9 +20,7 @@
             </thead>
             <tbody><?php
 			foreach ( reset( $sections )['downloads'] as $download_id => $download ) {
-				if ( DownloadFilter::shouldDisplayRecord($download_id)) {
-					echo DownloadsList::getDownloadRow( $download_id, $download, $site_key, $repository_id );
-				}
+				echo \OTGS\Installer\CommercialTab\DownloadsList::getDownloadRow( $download_id, $download, $site_key, $repository_id );
 			}
 			?>
             </tbody>
@@ -56,9 +50,7 @@
                     </thead>
                     <tbody><?php
 					foreach ( $section['downloads'] as $download_id => $download ) {
-					    if ( DownloadFilter::shouldDisplayRecord($download_id)) {
-						    echo DownloadsList::getDownloadRow( $download_id, $download, $site_key, $repository_id );
-					    }
+						echo \OTGS\Installer\CommercialTab\DownloadsList::getDownloadRow( $download_id, $download, $site_key, $repository_id );
 					}
 					?>
                     </tbody>
