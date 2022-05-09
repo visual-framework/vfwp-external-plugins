@@ -62,11 +62,7 @@ class Resources {
 		}
 
 		if ( $domain && WordPress::versionCompare( '>=', '5.0.0' ) ) {
-			$rootPath = $domain === 'wpml-translation-management' && defined( 'WPML_PLUGIN_PATH' )
-				? WPML_PLUGIN_PATH
-				: $pluginBasePath;
-
-			wp_set_script_translations( $handle, $domain, "$rootPath/locale/jed" );
+			wp_set_script_translations( $handle, $domain, "$pluginBasePath/locale/jed/$handle" );
 		}
 	}
 }

@@ -66,6 +66,9 @@ $text = isset( $text ) ? $text : '';
 
         <div class="tablenav top">
 			<?php
+			/**
+			 * @phpstan-ignore-next-line
+			 */
 			$wp_list_table->pagination( 'bottom' );
 			?>
         </div>
@@ -154,6 +157,9 @@ $text = isset( $text ) ? $text : '';
 						$actions['visit']   = "<span class='view'><a href='" . esc_url( get_home_url( $blog['blog_id'] ) ) . "' rel='permalink'>" . esc_html__( 'Visit', 'sitepress' ) . '</a></span>';
 
 						$actions = apply_filters( 'manage_sites_action_links', array_filter( $actions ), $blog['blog_id'], $blog_name );
+						/**
+						 * @phpstan-ignore-next-line
+						 */
 						echo $wp_list_table->row_actions( $actions );
 						?>
                     </td>
@@ -194,6 +200,9 @@ $text = isset( $text ) ? $text : '';
 
         <div class="tablenav bottom">
 			<?php
+			/**
+			 * @phpstan-ignore-next-line
+			 */
 			$wp_list_table->pagination( 'bottom' );
 			?>
         </div>

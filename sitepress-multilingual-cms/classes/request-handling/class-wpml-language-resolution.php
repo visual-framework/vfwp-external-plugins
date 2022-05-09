@@ -49,9 +49,7 @@ class WPML_Language_Resolution {
 
 	public function current_lang_filter( $lang, WPML_Request $wpml_request_handler ) {
 		if ( $this->current_request_lang !== $lang ) {
-			$preview_lang = apply_filters( 'wpml_should_filter_preview_lang', true )
-				? $this->filter_preview_language_code()
-				: null;
+			$preview_lang = $this->filter_preview_language_code();
 
 			if ( $preview_lang ) {
 				$lang = $preview_lang;

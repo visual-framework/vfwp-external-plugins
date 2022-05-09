@@ -43,13 +43,11 @@ class OTGS_Installer_Site_Key_Ajax {
 		}
 
 		try {
-			list ($subscription, $site_key_data) = $this->subscription_fetch->get( $repository, $site_key, WP_Installer::SITE_KEY_VALIDATION_SOURCE_REGISTRATION );
+			$subscription = $this->subscription_fetch->get( $repository, $site_key, WP_Installer::SITE_KEY_VALIDATION_SOURCE_REGISTRATION );
 			if ( $subscription ) {
 				$subscription_data = $this->subscription_factory->create( array(
 					'data'          => $subscription,
 					'key'           => $site_key,
-					'key_type'      => isset($site_key_data['type'])
-						? (int) $site_key_data['type'] : OTGS_Installer_Subscription::SITE_KEY_TYPE_PRODUCTION,
 					'site_url'      => get_site_url(),
 					'registered_by' => get_current_user_id()
 				) );
@@ -59,7 +57,6 @@ class OTGS_Installer_Site_Key_Ajax {
 				$this->repositories->save_subscription( $repository );
 				$this->repositories->refresh();
 				$this->clean_plugins_update_cache();
-				do_action( 'otgs_installer_site_key_update', $repository->get_id() );
 			} else {
 				$error = __( 'Invalid site key for the current site.', 'installer' ) . '<br /><div class="installer-footnote">' . __( 'Please note that the site key is case sensitive.', 'installer' ) . '</div>';
 			}
@@ -88,7 +85,6 @@ class OTGS_Installer_Site_Key_Ajax {
 			$this->repositories->save_subscription( $repository );
 
 			$this->clean_plugins_update_cache();
-			do_action( 'otgs_installer_site_key_update', $repository->get_id() );
 		}
 
 		$this->repositories->refresh();
@@ -106,14 +102,12 @@ class OTGS_Installer_Site_Key_Ajax {
 
 			if ( $site_key ) {
 				try {
-					list ($subscription, $site_key_data) = $this->subscription_fetch->get( $repository, $site_key, WP_Installer::SITE_KEY_VALIDATION_SOURCE_REGISTRATION );
+					$subscription = $this->subscription_fetch->get( $repository, $site_key, WP_Installer::SITE_KEY_VALIDATION_SOURCE_REGISTRATION );
 
 					if ( $subscription ) {
 						$subscription_data = $this->subscription_factory->create( array(
 							'data'          => $subscription,
 							'key'           => $site_key,
-							'key_type'      => isset($site_key_data['type'])
-								? (int) $site_key_data['type'] : OTGS_Installer_Subscription::SITE_KEY_TYPE_PRODUCTION,
 							'site_url'      => get_site_url(),
 							'registered_by' => get_current_user_id(),
 						) );

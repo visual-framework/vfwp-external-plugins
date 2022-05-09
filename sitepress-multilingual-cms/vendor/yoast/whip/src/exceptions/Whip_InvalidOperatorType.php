@@ -1,28 +1,22 @@
 <?php
-/**
- * WHIP libary file.
- *
- * @package Yoast\WHIP
- */
 
 /**
- * Class InvalidOperatorType.
+ * Class InvalidOperatorType
  */
 class Whip_InvalidOperatorType extends Exception {
+
+	private $validOperators = array( '=', '==', '===', '<', '>', '<=', '>=' );
 
 	/**
 	 * InvalidOperatorType constructor.
 	 *
-	 * @param string   $value          Invalid operator.
-	 * @param string[] $validOperators Valid operators.
+	 * @param string       $value
 	 */
-	public function __construct( $value, $validOperators = array( '=', '==', '===', '<', '>', '<=', '>=' ) ) {
+	public function __construct( $value ) {
 		parent::__construct(
-			sprintf(
-				'Invalid operator of %s used. Please use one of the following operators: %s',
+			sprintf( 'Invalid operator of %s used. Please use one of the following operators: %s',
 				$value,
-				implode( ', ', $validOperators )
-			)
-		);
+				implode( ', ', $this->validOperators )
+			) );
 	}
 }

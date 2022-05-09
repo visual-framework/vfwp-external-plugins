@@ -3,7 +3,6 @@
 namespace OTGS\Installer\AdminNotices\Notices;
 
 use OTGS\Installer\Collection;
-use OTGS\Installer\Recommendations\RecommendationsManager;
 use OTGS\Installer\Recommendations\Storage;
 use function OTGS\Installer\FP\partial;
 
@@ -17,7 +16,7 @@ class Recommendation {
 		add_filter( 'otgs_installer_admin_notices_dismissions', self::class . '::dismissions' );
 		add_filter(
 			'otgs_installer_admin_notices',
-			self::class . '::getCurrentNotices'
+			partial( self::class . '::getCurrentNotices', Storage::class . '::getAll' )
 		);
 	}
 
@@ -27,8 +26,8 @@ class Recommendation {
 	 *
 	 * @return array
 	 */
-	public static function getCurrentNotices( array $initialNotices ) {
-		$activatedPluginsConfig = apply_filters('wpml_installer_get_stored_recommendation_notices', []);
+	public static function getCurrentNotices( $getActivatedPlugins, array $initialNotices ) {
+		$activatedPluginsConfig = call_user_func( $getActivatedPlugins );
 		$addNoticeIdField       = function ( $item ) {
 			$item['noticeId'] = self::PLUGIN_ACTIVATED . '-' . $item['glue_check_slug'];
 

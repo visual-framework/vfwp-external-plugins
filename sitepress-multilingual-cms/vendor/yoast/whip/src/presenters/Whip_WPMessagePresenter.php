@@ -1,34 +1,17 @@
 <?php
-/**
- * WHIP libary file.
- *
- * @package Yoast\WHIP
- */
 
 /**
  * A message presenter to show a WordPress notice.
  */
 class Whip_WPMessagePresenter implements Whip_MessagePresenter {
 
-	/**
-	 * The string to show to dismiss the message.
-	 *
-	 * @var string
-	 */
+	/** @var string The string to show to dismiss the message. */
 	private $dismissMessage;
 
-	/**
-	 * The message to be displayed.
-	 *
-	 * @var Whip_Message
-	 */
+	/** @var Whip_Message The message to be displayed */
 	private $message;
 
-	/**
-	 * Dismisser object.
-	 *
-	 * @var Whip_MessageDismisser
-	 */
+	/** @var Whip_MessageDismisser */
 	private $dismisser;
 
 	/**
@@ -45,24 +28,17 @@ class Whip_WPMessagePresenter implements Whip_MessagePresenter {
 	}
 
 	/**
-	 * Registers hooks to WordPress.
+	 * Registers hooks to WordPress. This is a separate function so you can
+	 * control when the hooks are registered.
 	 *
-	 * This is a separate function so you can control when the hooks are registered.
-	 */
-	public function registerHooks() {
-		add_action( 'admin_notices', array( $this, 'renderMessage' ) );
-	}
-
-	/**
-	 * Registers hooks to WordPress.
-	 *
-	 * @deprecated 1.2.0 Use the Whip_WPMessagePresenter::registerHooks() method instead.
-	 * @codeCoverageIgnore
-	 * @phpcs:disable Generic.NamingConventions.CamelCapsFunctionName
 	 */
 	public function register_hooks() {
-		// phpcs:enable
-		self::registerHooks();
+		global $whip_admin_notices_added;
+
+		if ( null === $whip_admin_notices_added || ! $whip_admin_notices_added ) {
+			add_action( 'admin_notices', array( $this, 'renderMessage' ) );
+			$whip_admin_notices_added = true;
+		}
 	}
 
 	/**
@@ -78,17 +54,11 @@ class Whip_WPMessagePresenter implements Whip_MessagePresenter {
 
 		$dismissButton = sprintf(
 			'<a href="%2$s">%1$s</a>',
-			esc_html( $this->dismissMessage ),
-			esc_url( $dismissListener->getDismissURL() )
+			$this->dismissMessage,
+			$dismissListener->getDismissURL()
 		);
 
-		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- output correctly escaped directly above and in the `kses()` method.
-		printf(
-			'<div class="error"><p>%1$s</p><p>%2$s</p></div>',
-			$this->kses( $this->message->body() ),
-			$dismissButton
-		);
-		// phpcs:enable
+		printf( '<div class="error"><p>%1$s</p><p>%2$s</p></div>', $this->kses( $this->message->body() ), $dismissButton );
 	}
 
 	/**
@@ -99,18 +69,15 @@ class Whip_WPMessagePresenter implements Whip_MessagePresenter {
 	 * @return string The cleaned message.
 	 */
 	public function kses( $message ) {
-		return wp_kses(
-			$message,
-			array(
-				'a'      => array(
-					'href'   => true,
-					'target' => true,
-				),
-				'strong' => true,
-				'p'      => true,
-				'ul'     => true,
-				'li'     => true,
-			)
-		);
+		return wp_kses( $message, array(
+			'a'      => array(
+				'href'   => true,
+				'target' => true,
+			),
+			'strong' => true,
+			'p'      => true,
+			'ul'     => true,
+			'li'     => true,
+		) );
 	}
 }

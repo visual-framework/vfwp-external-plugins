@@ -2,7 +2,6 @@
 
 namespace OTGS\Installer\AdminNotices\Notices;
 
-use OTGS\Installer\AdminNotices\Loader;
 use OTGS\Installer\AdminNotices\Store;
 use OTGS\Installer\AdminNotices\ToolsetConfig;
 use OTGS\Installer\AdminNotices\WPMLConfig;
@@ -15,7 +14,6 @@ class Account {
 	const EXPIRED = 'expired';
 	const REFUNDED = 'refunded';
 	const GET_FIRST_INSTALL_TIME = 'get_first_install_time';
-	const DEVELOPMENT_MODE = 'development_mode';
 
 	/**
 	 * @param \WP_Installer $installer
@@ -28,15 +26,14 @@ class Account {
 		$config = $installer->get_site_key_nags_config();
 
 		$noticeTypes = [
-			self::NOT_REGISTERED   => [ Account::class, 'shouldShowNotRegistered' ],
-			self::EXPIRED          => [ Account::class, 'shouldShowExpired' ],
-			self::REFUNDED         => [ Account::class, 'shouldShowRefunded' ],
-			self::DEVELOPMENT_MODE => [ Account::class, 'shouldShowDevelopmentBanner' ],
+			self::NOT_REGISTERED => [Account::class, 'shouldShowNotRegistered'],
+			self::EXPIRED        => [Account::class, 'shouldShowExpired'],
+			self::REFUNDED       => [Account::class, 'shouldShowRefunded'],
 		];
 
 		return collection::of( $noticeTypes )
 		                 ->entities()
-		                 ->reduce( Notice::addNoticesForType( $installer, $config ), Collection::of( $initialNotices ) )
+		                 ->reduce( Notice::addNoticesForType($installer, $config), Collection::of( $initialNotices ) )
 		                 ->get();
 
 	}
@@ -75,39 +72,6 @@ class Account {
 	 *
 	 * @return bool
 	 */
-	public static function shouldShowDevelopmentBanner( \WP_Installer $installer, array $nag ) {
-		$showDevelopmentBanner = $installer->repository_has_development_site_key( $nag['repository_id'] );
-		$isDismissed = Loader::isDismissed( $nag[ 'repository_id' ], Account::DEVELOPMENT_MODE );
-		if ( $showDevelopmentBanner && $isDismissed && $nag['repository_id'] === 'wpml' ) {
-			wp_enqueue_style( 'installer-admin-notices', $installer->res_url() . '/res/css/admin-notices.css', array(), $installer->version() );
-			add_action( 'wp_before_admin_bar_render', [ static::class, 'addWpmlDevelopmentAdminBar' ], 100);
-		}
-		return $showDevelopmentBanner;
-	}
-
-	public static function addWpmlDevelopmentAdminBar() {
-		/** @var \WP_Admin_Bar $wp_admin_bar */
-		global $wp_admin_bar;
-
-		$helpText = __( 'This site is registered on wpml.org as a development site.', 'installer' );
-		$text = __( 'Development Site', 'installer' );
-
-		$wp_admin_bar->add_menu(
-			array(
-				'parent' => false,
-				'id'     => 'otgs-wpml-development',
-				'title'  => '<i  class="otgs-ico-sitepress-multilingual-cms js-otgs-popover-tooltip" data-tippy-zIndex="999999" title="' . $helpText . '" > ' . $text . '</i>',
-				'href'   => false,
-			)
-		);
-	}
-
-	/**
-	 * @param \WP_Installer $installer
-	 * @param array $nag
-	 *
-	 * @return bool
-	 */
 	public static function shouldShowRefunded( \WP_Installer $installer, array $nag ) {
 		return $installer->repository_has_refunded_subscription( $nag['repository_id'] );
 	}
@@ -123,16 +87,14 @@ class Account {
 		return array_merge_recursive( $initialPages, [
 			'repo' => [
 				'wpml'    => [
-					Account::NOT_REGISTERED   => $wpmlPages,
-					Account::EXPIRED          => $wpmlPages,
-					Account::REFUNDED         => $wpmlPages,
-					Account::DEVELOPMENT_MODE => $wpmlPages,
+					Account::NOT_REGISTERED => $wpmlPages,
+					Account::EXPIRED        => $wpmlPages,
+					Account::REFUNDED       => $wpmlPages,
 				],
 				'toolset' => [
-					Account::NOT_REGISTERED   => $toolsetPages,
-					Account::EXPIRED          => $toolsetPages,
-					Account::REFUNDED         => $toolsetPages,
-					Account::DEVELOPMENT_MODE => $toolsetPages,
+					Account::NOT_REGISTERED => $toolsetPages,
+					Account::EXPIRED        => $toolsetPages,
+					Account::REFUNDED       => $toolsetPages,
 				],
 			],
 		] );
@@ -140,10 +102,9 @@ class Account {
 
 	public static function screens( array $screens ) {
 		$config = [
-			Account::NOT_REGISTERED   => [ 'screens' => [ 'plugins' ] ],
-			Account::EXPIRED          => [ 'screens' => [ 'plugins' ] ],
-			Account::REFUNDED         => [ 'screens' => [ 'plugins', 'dashboard' ] ],
-			Account::DEVELOPMENT_MODE => [ 'screens' => [ 'plugins', 'dashboard', 'plugin-install' ] ],
+			Account::NOT_REGISTERED => [ 'screens' => [ 'plugins' ] ],
+			Account::EXPIRED        => [ 'screens' => [ 'plugins' ] ],
+			Account::REFUNDED       => [ 'screens' => [ 'plugins', 'dashboard' ] ],
 		];
 
 		return array_merge_recursive( $screens, [
@@ -158,16 +119,14 @@ class Account {
 		return array_merge_recursive( $initialTexts, [
 			'repo' => [
 				'wpml'    => [
-					Account::NOT_REGISTERED   => WPMLTexts::class . '::notRegistered',
-					Account::EXPIRED          => WPMLTexts::class . '::expired',
-					Account::REFUNDED         => WPMLTexts::class . '::refunded',
-					Account::DEVELOPMENT_MODE => WPMLTexts::class . '::developmentBanner',
+					Account::NOT_REGISTERED => WPMLTexts::class . '::notRegistered',
+					Account::EXPIRED        => WPMLTexts::class . '::expired',
+					Account::REFUNDED       => WPMLTexts::class . '::refunded',
 				],
 				'toolset' => [
-					Account::NOT_REGISTERED   => ToolsetTexts::class . '::notRegistered',
-					Account::EXPIRED          => ToolsetTexts::class . '::expired',
-					Account::REFUNDED         => ToolsetTexts::class . '::refunded',
-					Account::DEVELOPMENT_MODE => ToolsetTexts::class . '::developmentBanner',
+					Account::NOT_REGISTERED => ToolsetTexts::class . '::notRegistered',
+					Account::EXPIRED        => ToolsetTexts::class . '::expired',
+					Account::REFUNDED       => ToolsetTexts::class . '::refunded',
 				],
 			],
 		] );
@@ -178,7 +137,6 @@ class Account {
 			$initialDismissions,
 			[
 				Account::NOT_REGISTERED => Dismissions::class . '::dismissAccountNotice',
-				Account::DEVELOPMENT_MODE => Dismissions::class . '::dismissAccountNotice',
 				Account::EXPIRED        => Dismissions::class . '::dismissAccountNotice',
 				Account::REFUNDED       => Dismissions::class . '::dismissAccountNotice',
 			]

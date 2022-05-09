@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Class WPML_URL_Converter
  *
@@ -15,14 +16,7 @@ class WPML_URL_Converter {
 	 */
 	private $strategy;
 
-	/**
-	 * @var string
-	 */
 	protected $default_language;
-
-	/**
-	 * @var string[]
-	 */
 	protected $active_languages;
 
 	/**
@@ -131,7 +125,7 @@ class WPML_URL_Converter {
 	 * WARNING: The URI slugs won't be translated for arbitrary URL (not the current one)
 	 *
 	 * @param string $url
-	 * @param bool   $lang_code
+	 * @param bool $lang_code
 	 *
 	 * @return bool|mixed|string
 	 */
@@ -148,7 +142,7 @@ class WPML_URL_Converter {
 		}
 		$language_from_url = $this->get_language_from_url( $url );
 
-		if ( $language_from_url === $lang_code || 'all' === $lang_code ) {
+		if ( $language_from_url === $lang_code ) {
 			$new_url = $url;
 		} else {
 			if ( $this->can_resolve_object_url( $url ) ) {
@@ -173,7 +167,10 @@ class WPML_URL_Converter {
 		$http_referer_factory = new WPML_URL_HTTP_Referer_Factory();
 		$http_referer         = $http_referer_factory->create();
 		$url                  = $http_referer->get_url( $url );
-		$language             = $this->lang_param->lang_by_param( $url ) ?: $this->get_strategy()->get_lang_from_url_string( $url );
+
+		if ( ! ( $language = $this->lang_param->lang_by_param( $url ) ) ) {
+			$language = $this->get_strategy()->get_lang_from_url_string( $url );
+		}
 
 		/**
 		 * Filters language code fetched from the current URL and allows to rewrite

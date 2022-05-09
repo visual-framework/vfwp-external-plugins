@@ -6,9 +6,7 @@
  */
 class WPML_User_Options_Menu {
 
-	/** @var WP_User */
 	private $current_user;
-	/** @var SitePress */
 	private $sitepress;
 	/**
 	 * @var string

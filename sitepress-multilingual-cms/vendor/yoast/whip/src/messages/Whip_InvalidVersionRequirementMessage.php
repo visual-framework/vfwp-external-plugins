@@ -1,44 +1,30 @@
 <?php
-/**
- * WHIP libary file.
- *
- * @package Yoast\WHIP
- */
 
 /**
- * Class Whip_InvalidVersionMessage.
+ * Class Whip_InvalidVersionMessage
  */
 class Whip_InvalidVersionRequirementMessage implements Whip_Message {
 
-	/**
-	 * Object containing the version requirement for a component.
-	 *
-	 * @var Whip_VersionRequirement
-	 */
 	private $requirement;
-
 	/**
-	 * Detected version requirement or -1 if not found.
-	 *
-	 * @var string|int
+	 * @var
 	 */
 	private $detected;
 
 	/**
 	 * Whip_InvalidVersionRequirementMessage constructor.
 	 *
-	 * @param Whip_VersionRequirement $requirement Object containing the version requirement for a component.
-	 * @param string|int              $detected    Detected version requirement or -1 if not found.
+	 * @param Whip_Requirement $requirement
+	 * @param                  $detected
 	 */
-	public function __construct( Whip_VersionRequirement $requirement, $detected ) {
-		$this->requirement = $requirement;
-		$this->detected    = $detected;
+	public function __construct( Whip_VersionRequirement $requirement, $detected )
+	{
+	    $this->requirement = $requirement;
+		$this->detected = $detected;
 	}
 
 	/**
-	 * Retrieves the message body.
-	 *
-	 * @return string Message.
+	 * @return string
 	 */
 	public function body() {
 		return sprintf(

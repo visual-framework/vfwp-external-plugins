@@ -1,8 +1,4 @@
 <?php
-
-use WPML\Settings\PostTypesUI;
-use function \WPML\Container\make;
-
 if ( ! isset( $wpdb ) ) {
 	global $wpdb;
 }
@@ -52,11 +48,9 @@ foreach ( $custom_taxonomies as $custom_tax ) {
 	}
 }
 
-/**	@var PostTypesUI $custom_types_ui */
-$custom_post_types_ui = make( PostTypesUI::class );
+$translation_modes = new WPML_Translation_Modes();
 
-/**	@var WPML_Custom_Types_Translation_UI $custom_types_ui */
-$custom_tax_types_ui = make( WPML_Custom_Types_Translation_UI::class );
+$custom_types_ui = new WPML_Custom_Types_Translation_UI( $translation_modes, new WPML_UI_Unlock_Button() );
 
 $CPT_slug_UI = $taxonomy_slug_UI = null;
 if ( class_exists( 'WPML_ST_Slug_Translation_UI_Factory' ) ) {
@@ -90,7 +84,7 @@ if ( $custom_posts ) {
 				<?php wp_nonce_field( 'icl_custom_posts_sync_options_nonce', '_icl_nonce' ); ?>
 
 				<div class="wpml-flex-table wpml-translation-setup-table wpml-margin-top-sm">
-					<?php $custom_post_types_ui->render_custom_types_header_ui( esc_html__( 'Post types', 'sitepress' ) ); ?>
+					<?php $custom_types_ui->render_custom_types_header_ui( esc_html__( 'Post types', 'sitepress' ) ); ?>
 					<div class="wpml-flex-table-body">
 					<?php
 					foreach ( $custom_posts as $k => $custom_post ) :
@@ -108,14 +102,13 @@ if ( $custom_posts ) {
 
 						<div class="wpml-flex-table-row wpml-flex-table-row-wrap js-type-translation-row">
 							<?php
-							$custom_post_types_ui->render_row(
+							$custom_types_ui->render_row(
 								esc_html( $custom_post->labels->name ),
 								'icl_sync_custom_posts',
 								$k,
 								$disabled,
 								$translation_mode,
-								$unlocked,
-								esc_html( $custom_post->labels->singular_name )
+								$unlocked
 							);
 							if ( $CPT_slug_UI ) {
 								?>
@@ -131,11 +124,8 @@ if ( $custom_posts ) {
 				<p class="buttons-wrap">
 					<span class="icl_ajx_response" id="icl_ajx_response_cp"></span>
 					<input type="submit"
-						   id="wpml_post_type_save_legacy"
 						   class="js_element_type_sync_button button button-primary"
-						   value="<?php esc_attr_e( 'Save', 'sitepress' ); ?>" style="display:none"/>
-					<span id="wpml_post_type_save" style="display: inline-block"></span>
-
+						   value="<?php esc_attr_e( 'Save', 'sitepress' ); ?>" />
 				</p>
 
 			</form>
@@ -171,7 +161,7 @@ if ( $custom_taxonomies ) {
 				<?php wp_nonce_field( 'icl_custom_tax_sync_options_nonce', '_icl_nonce' ); ?>
 
 				<div class="wpml-flex-table wpml-translation-setup-table wpml-margin-top-sm">
-					<?php $custom_tax_types_ui->render_custom_types_header_ui( esc_html__( 'Taxonomy', 'sitepress' ) ); ?>
+					<?php $custom_types_ui->render_custom_types_header_ui( esc_html__( 'Taxonomy', 'sitepress' ) ); ?>
 					<div class="wpml-flex-table-body">
 						<?php
 						foreach ( $custom_taxonomies as $ctax ) :
@@ -188,7 +178,7 @@ if ( $custom_taxonomies ) {
 							?>
 							<div class="wpml-flex-table-row wpml-flex-table-row-wrap js-type-translation-row">
 								<?php
-								$custom_tax_types_ui->render_row(
+								$custom_types_ui->render_row(
 									esc_html( $wp_taxonomies[ $ctax ]->label ),
 									'icl_sync_tax',
 									$ctax,

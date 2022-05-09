@@ -41,15 +41,11 @@ class WPML_Frontend_Redirection extends WPML_SP_User {
 	 * @return string The language code of the currently requested URL in case no redirection was necessary.
 	 */
 	public function maybe_redirect() {
-		$target = $this->redirect_helper->get_redirect_target();
-		if ( false !== $target ) {
-			$frontend_redirection_url = new WPML_Frontend_Redirection_Url( $target );
-			$target                   = $frontend_redirection_url->encode_apostrophes_in_url();
+		if ( ( $target = $this->redirect_helper->get_redirect_target() ) !== false ) {
 			$this->sitepress->get_wp_api()->wp_safe_redirect( $target );
 		};
 
-		// allow forcing the current language when it can't be decoded from the URL.
+		// allow forcing the current language when it can't be decoded from the URL
 		return $this->lang_resolution->current_lang_filter( $this->request_handler->get_requested_lang(), $this->request_handler );
 	}
-
 }

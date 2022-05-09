@@ -1,17 +1,12 @@
 <?php
-/**
- * WHIP libary file.
- *
- * @package Yoast\WHIP
- */
 
 /**
- * A helper class to format messages.
+ * A helper class to format messages
  */
 final class Whip_MessageFormatter {
 
 	/**
-	 * Wraps a piece of text in HTML strong tags.
+	 * Wraps a piece of text in HTML strong tags
 	 *
 	 * @param string $toWrap The text to wrap.
 	 * @return string The wrapped text.
@@ -21,7 +16,7 @@ final class Whip_MessageFormatter {
 	}
 
 	/**
-	 * Wraps a piece of text in HTML p tags.
+	 * Wraps a piece of text in HTML p tags
 	 *
 	 * @param string $toWrap The text to wrap.
 	 * @return string The wrapped text.
@@ -31,7 +26,7 @@ final class Whip_MessageFormatter {
 	}
 
 	/**
-	 * Wraps a piece of text in HTML p and strong tags.
+	 * Wraps a piece of text in HTML p and strong tags
 	 *
 	 * @param string $toWrap The text to wrap.
 	 * @return string The wrapped text.

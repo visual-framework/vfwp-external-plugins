@@ -1,7 +1,5 @@
 <?php
 
-use WPML\FP\Obj;
-
 /**
  * Class WPML_TF_Backend_Promote_Hooks
  *
@@ -51,9 +49,7 @@ class WPML_TF_Backend_Promote_Hooks implements IWPML_Action {
 	 * @param array    $fields
 	 * @param stdClass $job
 	 */
-	public function add_notice_for_manager_on_job_completed( $new_post_id, $fields, $job ) {
-		if ( Obj::prop( 'translation_service', $job ) !== 'local' ) {
-			$this->promote_notices->show_notice_for_new_site( (int) $job->manager_id );
-		}
+	public function add_notice_for_manager_on_job_completed( $new_post_id, $fields, $job ){
+		$this->promote_notices->show_notice_for_new_site( (int) $job->manager_id );
 	}
 }

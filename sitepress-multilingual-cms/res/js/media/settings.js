@@ -191,23 +191,19 @@
 				}
 			}
 
-			function wpml_media_duplicate_featured_images( left = null ) {
+			function wpml_media_duplicate_featured_images() {
+
 				if (jQuery('#duplicate_featured', form).is(':checked')) {
-					const nonce = document.getElementById( 'wpml_media_settings_nonce' );
 					jQuery.ajax(
 						{
 							url:      ajaxurl,
 							type:     'POST',
-							data:     {
-								action: 'wpml_media_duplicate_featured_images',
-								nonce: nonce ? nonce.value : '',
-								featured_images_left: left
-							},
+							data:     {action: 'wpml_media_duplicate_featured_images'},
 							dataType: 'json',
 							success:  function (ret) {
 								wpml_update_status(ret.message);
 								if (ret.left > 0) {
-									wpml_media_duplicate_featured_images( ret.left );
+									wpml_media_duplicate_featured_images();
 								} else {
 									wpml_media_mark_processed();
 								}

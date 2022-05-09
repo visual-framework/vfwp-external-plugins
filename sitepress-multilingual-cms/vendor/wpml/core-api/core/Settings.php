@@ -2,21 +2,17 @@
 
 namespace WPML\API;
 
-use WPML\FP\Lst;
 use WPML\FP\Obj;
 
 class Settings {
 
-	const WPML_DOWNLOADED_LOCALES_KEY = 'wpml_downloaded_locales';
-
 	/**
 	 * @param string $key
-	 * @param bool|mixed $default
 	 *
 	 * @return bool|mixed
 	 */
-	public static function get( $key, $default = false ) {
-		return self::getOr( $default, $key );
+	public static function get( $key ) {
+		return self::getOr( false, $key );
 	}
 
 	/**
@@ -64,11 +60,5 @@ class Settings {
 	 */
 	public static function assoc( $key, $subKey, $value ) {
 		return self::setAndSave( $key, Obj::assoc( $subKey, $value, self::getOr([], $key ) ) );
-	}
-
-	public static function pathOr( $default, $path ) {
-		$key = Lst::nth( 0, $path );
-
-		return Obj::pathOr( $default, Lst::drop( 1, $path ), self::getOr( [], $key ) );
 	}
 }
