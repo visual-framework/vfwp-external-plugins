@@ -33,7 +33,7 @@ function relevanssi_pinning( $hits ) {
 
 	// Is pinning used?
 	$results = $wpdb->get_results( "SELECT * FROM $wpdb->postmeta WHERE ( meta_key = '_relevanssi_pin' OR meta_key = '_relevanssi_unpin' OR meta_key = '_relevanssi_pin_for_all' ) AND meta_value != '' LIMIT 1" );
-	if ( empty( $results ) ) {
+	if ( ! is_multisite() && empty( $results ) ) {
 		// No, nothing is pinned.
 		return $hits;
 	}
@@ -65,6 +65,11 @@ function relevanssi_pinning( $hits ) {
 		}
 	}
 
+	$full_search_phrase = esc_sql( trim( $hits[1] ) );
+	if ( ! in_array( $full_search_phrase, $term_list, true ) ) {
+		$term_list[] = $full_search_phrase;
+	}
+
 	/**
 	 * Doing this instead of individual get_post_meta() calls can cut hundreds
 	 * of database queries!
@@ -77,12 +82,26 @@ function relevanssi_pinning( $hits ) {
 		)
 	);
 
+	$pin_weights_sql = $wpdb->get_results(
+		"SELECT post_id, meta_value FROM $wpdb->postmeta
+		WHERE meta_key = '_relevanssi_pin_weights'"
+	);
+
+	$pin_weights = array();
+	foreach ( $pin_weights_sql as $row ) {
+		$pin_weights[ $row->post_id ] = $row->meta_value;
+	}
+	unset( $pin_weights_sql );
+
 	/**
 	 * If the search query is "foo bar baz", $term_list now contains "foo", "bar",
 	 *"baz", "foo bar", "bar baz", and "foo bar baz".
 	*/
-
 	if ( is_array( $term_list ) ) {
+		$term_list_array = $term_list;
+
+		array_multisort( array_map( 'relevanssi_strlen', $term_list_array ), SORT_DESC, $term_list_array );
+
 		$term_list = implode( "','", $term_list );
 		$term_list = "'$term_list'";
 
@@ -98,7 +117,7 @@ function relevanssi_pinning( $hits ) {
 			$return_value = $object_array['format'];
 
 			$blog_id = 0;
-			if ( isset( $hit->blog_id ) ) {
+			if ( isset( $hit->blog_id ) && function_exists( 'switch_to_blog' ) ) {
 				// Multisite, so switch_to_blog() to correct blog and process
 				// the pinned hits per blog.
 				$blog_id = $hit->blog_id;
@@ -106,36 +125,61 @@ function relevanssi_pinning( $hits ) {
 				if ( ! isset( $pins_fetched[ $blog_id ] ) ) {
 					$positive_ids[ $blog_id ] = $wpdb->get_col( 'SELECT post_id FROM ' . $wpdb->prefix . "postmeta WHERE meta_key = '_relevanssi_pin' AND meta_value IN ( $term_list )" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 					$negative_ids[ $blog_id ] = $wpdb->get_col( 'SELECT post_id FROM ' . $wpdb->prefix . "postmeta WHERE meta_key = '_relevanssi_unpin' AND meta_value IN ( $term_list )" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					if ( ! is_array( $pins_fetched ) ) {
+						$pins_fetched = array();
+					}
 					$pins_fetched[ $blog_id ] = true;
 				}
 				restore_current_blog();
-			} else {
-				// Single site.
-				if ( ! $pins_fetched ) {
-					$positive_ids[0] = $wpdb->get_col( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_relevanssi_pin' AND meta_value IN ( $term_list )" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-					$negative_ids[0] = $wpdb->get_col( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_relevanssi_unpin' AND meta_value IN ( $term_list )" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-					$pins_fetched    = true;
-				}
+			} elseif ( ! $pins_fetched ) { // Single site.
+				$positive_ids[0] = $wpdb->get_col( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_relevanssi_pin' AND meta_value IN ( $term_list )" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$negative_ids[0] = $wpdb->get_col( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_relevanssi_unpin' AND meta_value IN ( $term_list )" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$pins_fetched    = true;
 			}
 			$hit_id = strval( $hit->ID ); // The IDs from the database are strings, the one from the post is an integer in some contexts.
-			if ( $hit_id && is_array( $positive_ids[ $blog_id ] ) && count( $positive_ids[ $blog_id ] ) > 0 && in_array( $hit_id, $positive_ids[ $blog_id ], true ) ) {
-				$hit->relevanssi_pinned = 1;
-				$pinned_posts[]         = relevanssi_return_value( $hit, $return_value );
-			} else {
-				if ( isset( $hit->ID ) && isset( $posts_pinned_for_all[ $hit->ID ] ) ) {
-					$hit->relevanssi_pinned = 1;
-					$pinned_posts[]         = relevanssi_return_value( $hit, $return_value );
-				} elseif ( is_array( $negative_ids[ $blog_id ] ) && count( $negative_ids[ $blog_id ] ) > 0 ) {
-					if ( ! in_array( $hit_id, $negative_ids[ $blog_id ], true ) ) {
-						$other_posts[] = relevanssi_return_value( $hit, $return_value );
-					}
-				} else {
-					$other_posts[] = relevanssi_return_value( $hit, $return_value );
+
+			$positive_match = isset( $positive_ids[ $blog_id ] )
+				&& is_array( $positive_ids[ $blog_id ] )
+				&& in_array( $hit_id, $positive_ids[ $blog_id ], true );
+			$negative_match = isset( $negative_ids[ $blog_id ] )
+				&& is_array( $negative_ids[ $blog_id ] )
+				&& in_array( $hit_id, $negative_ids[ $blog_id ], true );
+			$pinned_for_all = isset( $hit->ID ) && isset( $posts_pinned_for_all[ $hit->ID ] );
+
+			$pin_weight = 0;
+			$weights    = unserialize( $pin_weights[ $hit->ID ] ?? '' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
+			foreach ( $term_list_array as $term ) {
+				if ( isset( $weights[ $term ] ) ) {
+					$pin_weight = $weights[ $term ];
+					break;
 				}
 			}
+
+			if ( 0 === $pin_weight ) {
+				$term       = $term_list_array[0];
+				$pin_weight = 1;
+			}
+
+			if ( $hit_id && $positive_match && ! $negative_match ) {
+				$hit->relevanssi_pinned                 = 1;
+				$pinned_posts[ $term ][ $pin_weight ][] = relevanssi_return_value( $hit, $return_value );
+			} elseif ( $pinned_for_all && ! $negative_match ) {
+				$hit->relevanssi_pinned = 1;
+				$pinned_posts[0][0][]   = relevanssi_return_value( $hit, $return_value );
+			} elseif ( ! $negative_match ) {
+				$other_posts[] = relevanssi_return_value( $hit, $return_value );
+			}
+		}
+		array_multisort( array_map( 'relevanssi_strlen', array_keys( $pinned_posts ) ), SORT_DESC, $pinned_posts );
+
+		$all_pinned_posts = array();
+		foreach ( $pinned_posts as $term => $posts_for_term ) {
+			krsort( $posts_for_term, SORT_NUMERIC );
+			$posts_for_term   = call_user_func_array( 'array_merge', $posts_for_term );
+			$all_pinned_posts = array_merge( $all_pinned_posts, $posts_for_term );
 		}
 
-		$hits[0] = array_merge( $pinned_posts, $other_posts );
+		$hits[0] = array_merge( $all_pinned_posts, $other_posts );
 	}
 	return $hits;
 }

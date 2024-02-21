@@ -97,7 +97,7 @@ function relevanssi_extract_multiple_excerpts( $terms, $content, $excerpt_length
 				$excerpts[] = $excerpt;
 			}
 		}
-		$tries++;
+		++$tries;
 
 		/**
 		 * Enables the excerpt optimization.
@@ -121,11 +121,13 @@ function relevanssi_extract_multiple_excerpts( $terms, $content, $excerpt_length
 	if ( empty( $excerpts ) && $gap > 0 ) {
 		$result = relevanssi_get_first_match( $words, $terms, $excerpt_length );
 
-		$excerpts[] = array(
-			'text'  => $result['excerpt'],
-			'hits'  => $result['best_excerpt_term_hits'],
-			'start' => $result['start'],
-		);
+		if ( ! empty( $result['excerpt'] ) ) {
+			$excerpts[] = array(
+				'text'  => $result['excerpt'],
+				'hits'  => $result['best_excerpt_term_hits'],
+				'start' => $result['start'],
+			);
+		}
 	}
 
 	if ( empty( $excerpts ) ) {
@@ -159,7 +161,7 @@ function relevanssi_add_source_to_excerpts( &$excerpts, $source ) {
 	}
 	array_walk(
 		$excerpts,
-		function( &$item ) use ( $source ) {
+		function ( &$item ) use ( $source ) {
 			$item['source'] = $source;
 		}
 	);
@@ -179,11 +181,22 @@ function relevanssi_combine_excerpts( $post_id, ...$excerpt_sources ) {
 	$excerpts = array_merge( ...$excerpt_sources );
 	usort(
 		$excerpts,
-		function( $a, $b ) {
+		function ( $a, $b ) {
 			return $b['hits'] - $a['hits'];
 		}
 	);
 	$number_of_excerpts = get_option( 'relevanssi_max_excerpts', 1 );
+
+	$excerpts_with_hits = array_filter(
+		$excerpts,
+		function ( $excerpt ) {
+			return $excerpt['hits'] > 0;
+		}
+	);
+
+	if ( count( $excerpts_with_hits ) > 0 ) {
+		$excerpts = $excerpts_with_hits;
+	}
 
 	$excerpts = array_slice(
 		/**

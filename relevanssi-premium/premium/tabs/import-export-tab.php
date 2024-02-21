@@ -92,6 +92,7 @@ function relevanssi_serialize_options() {
 	$serialize_options['relevanssi_excerpt_allowable_tags']   = get_option( 'relevanssi_excerpt_allowable_tags' );
 	$serialize_options['relevanssi_excerpt_custom_fields']    = get_option( 'relevanssi_excerpt_custom_fields' );
 	$serialize_options['relevanssi_excerpt_length']           = get_option( 'relevanssi_excerpt_length' );
+	$serialize_options['relevanssi_excerpt_specific_fields']  = get_option( 'relevanssi_excerpt_specific_fields' );
 	$serialize_options['relevanssi_excerpt_type']             = get_option( 'relevanssi_excerpt_type' );
 	$serialize_options['relevanssi_excerpts']                 = get_option( 'relevanssi_excerpts' );
 	$serialize_options['relevanssi_exclude_posts']            = get_option( 'relevanssi_exclude_posts' );
@@ -114,7 +115,7 @@ function relevanssi_serialize_options() {
 	$serialize_options['relevanssi_index_limit']              = get_option( 'relevanssi_index_limit' );
 	$serialize_options['relevanssi_index_pdf_parent']         = get_option( 'relevanssi_index_pdf_parent' );
 	$serialize_options['relevanssi_index_post_type_archives'] = get_option( 'relevanssi_index_post_type_archives' );
-	$serialize_options['relevanssi_index_post_types']         = get_option( 'relevanssi_index_post_types' );
+	$serialize_options['relevanssi_index_post_types']         = get_option( 'relevanssi_index_post_types', array() );
 	$serialize_options['relevanssi_index_subscribers']        = get_option( 'relevanssi_index_subscribers' );
 	$serialize_options['relevanssi_index_synonyms']           = get_option( 'relevanssi_index_synonyms' );
 	$serialize_options['relevanssi_index_taxonomies']         = get_option( 'relevanssi_index_taxonomies' );
@@ -158,6 +159,7 @@ function relevanssi_serialize_options() {
 	$serialize_options['relevanssi_title_boost']              = get_option( 'relevanssi_title_boost' );
 	$serialize_options['relevanssi_trim_logs']                = get_option( 'relevanssi_trim_logs' );
 	$serialize_options['relevanssi_txt_col']                  = $txt_col;
+	$serialize_options['relevanssi_update_translations']      = get_option( 'relevanssi_update_translations' );
 	$serialize_options['relevanssi_wpml_only_current']        = get_option( 'relevanssi_wpml_only_current' );
 
 	$serialized_options = wp_json_encode( $serialize_options );

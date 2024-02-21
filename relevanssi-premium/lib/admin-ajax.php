@@ -16,6 +16,7 @@ add_action( 'wp_ajax_relevanssi_list_categories', 'relevanssi_list_categories' )
 add_action( 'wp_ajax_relevanssi_admin_search', 'relevanssi_admin_search' );
 add_action( 'wp_ajax_relevanssi_update_counts', 'relevanssi_update_counts' );
 add_action( 'wp_ajax_nopriv_relevanssi_update_counts', 'relevanssi_update_counts' );
+add_action( 'wp_ajax_relevanssi_list_custom_fields', 'relevanssi_list_custom_fields' );
 
 /**
  * Checks if current user can access Relevanssi options.
@@ -265,7 +266,7 @@ function relevanssi_admin_search_format_posts( $posts, $total, $offset, $query )
 
 	foreach ( $posts as $post ) {
 		$blog_name = '';
-		if ( isset( $post->blog_id ) ) {
+		if ( isset( $post->blog_id ) && function_exists( 'switch_to_blog' ) ) {
 			switch_to_blog( $post->blog_id );
 			$blog_name = get_bloginfo( 'name' ) . ': ';
 		}
@@ -312,7 +313,7 @@ EOH;
 		 * @param object $post         The post object.
 		 */
 		$result .= apply_filters( 'relevanssi_admin_search_element', $post_element, $post );
-		if ( isset( $post->blog_id ) ) {
+		if ( isset( $post->blog_id ) && function_exists( 'restore_current_blog' ) ) {
 			restore_current_blog();
 		}
 	}
@@ -454,4 +455,16 @@ function relevanssi_update_counts() {
 		update_option( 'relevanssi_user_count', is_null( $user_count ) ? 0 : $user_count, false );
 		update_option( 'relevanssi_taxterm_count', is_null( $taxterm_count ) ? 0 : $taxterm_count, false );
 	}
+}
+
+/**
+ * Returns a comma-separated list of indexed custom field names.
+ *
+ * @uses relevanssi_list_all_indexed_custom_fields()
+ */
+function relevanssi_list_custom_fields() {
+	$response = relevanssi_list_all_indexed_custom_fields();
+
+	echo wp_json_encode( $response );
+	wp_die();
 }

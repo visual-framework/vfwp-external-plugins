@@ -520,13 +520,10 @@ function relevanssi_process_post_type( $post_type, $admin_search, $include_attac
 			$restriction = str_replace( '*np*', '', $restriction );
 		}
 		$query_restrictions .= $restriction;
-	} else {
-		// No regular post types.
-		if ( $non_post_post_type ) {
-			// But there is a non-post post type restriction.
-			$query_restrictions .= " AND (relevanssi.type IN ($non_post_post_type))";
-			// Clean: $non_post_post_types is escaped.
-		}
+	} elseif ( $non_post_post_type ) { // No regular post types.
+		// But there is a non-post post type restriction.
+		$query_restrictions .= " AND (relevanssi.type IN ($non_post_post_type))";
+		// Clean: $non_post_post_types is escaped.
 	}
 
 	if ( $negative_post_type ) {
@@ -579,7 +576,14 @@ function relevanssi_process_post_status( $post_status ) {
 	}
 
 	if ( $escaped_post_status ) {
+		$block_non_post_results = false;
 		if ( $wp_query->is_admin || $relevanssi_admin_test ) {
+			$block_non_post_results = true;
+		}
+		if ( $wp_query->is_admin && isset( $wp_query->query_vars['action'] ) && 'relevanssi_live_search' === $wp_query->query_vars['action'] ) {
+			$block_non_post_results = false;
+		}
+		if ( $block_non_post_results ) {
 			$query_restrictions .= " AND ((relevanssi.doc IN (SELECT DISTINCT(posts.ID) FROM $wpdb->posts AS posts
 				WHERE posts.post_status IN ($escaped_post_status))))";
 		} else {

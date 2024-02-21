@@ -127,6 +127,10 @@ function relevanssi_truncate_logs( $verbose = true ) {
 	global $wpdb, $relevanssi_variables;
 
 	$result = $wpdb->query( 'TRUNCATE ' . $relevanssi_variables['log_table'] ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	if ( isset( $relevanssi_variables['tracking_table'] ) ) {
+		$tracking_result = $wpdb->query( 'TRUNCATE ' . $relevanssi_variables['tracking_table'] ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$results         = $result && $tracking_result;
+	}
 
 	if ( $verbose ) {
 		if ( false !== $result ) {
@@ -236,7 +240,7 @@ function relevanssi_options_form() {
 			'name'     => __( 'Debugging', 'relevanssi' ),
 			'require'  => 'tabs/debugging-tab.php',
 			'callback' => 'relevanssi_debugging_tab',
-			'save'     => false,
+			'save'     => true,
 		),
 	);
 
@@ -253,7 +257,7 @@ function relevanssi_options_form() {
 	<?php
 	array_walk(
 		$tabs,
-		function( $tab ) use ( $this_page, $active_tab ) {
+		function ( $tab ) use ( $this_page, $active_tab ) {
 			?>
 			<a href="<?php echo esc_attr( $this_page ); ?>&amp;tab=<?php echo esc_attr( $tab['slug'] ); ?>"
 			class="nav-tab <?php echo esc_attr( $tab['slug'] === $active_tab ? 'nav-tab-active' : '' ); ?>">
@@ -366,6 +370,8 @@ function relevanssi_add_admin_scripts( $hook ) {
 		'pdf_reset_confirm'    => __( 'Are you sure you want to delete all attachment content from the index?', 'relevanssi' ),
 		'pdf_reset_done'       => __( 'Relevanssi attachment data wiped clean.', 'relevanssi' ),
 		'pdf_reset_problems'   => __( 'There were problems wiping the Relevanssi attachment data clean.', 'relevanssi' ),
+		'error_reset_done'     => __( 'Relevanssi attachment server errors wiped.', 'relevanssi' ),
+		'error_reset_problems' => __( 'There were problems wiping the Relevanssi attachment server errors.', 'relevanssi' ),
 		'hour'                 => __( 'hour', 'relevanssi' ),
 		'hours'                => __( 'hours', 'relevanssi' ),
 		'about'                => __( 'about', 'relevanssi' ),

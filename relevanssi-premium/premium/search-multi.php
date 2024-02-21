@@ -105,6 +105,7 @@ function relevanssi_search_multi( $multi_args ) {
 
 		if ( count( $terms ) < 1 ) {
 			// Tokenizer killed all the search terms.
+			restore_current_blog();
 			continue;
 		}
 		$terms = array_keys( $terms ); // Don't care about tf in query.
@@ -145,7 +146,14 @@ function relevanssi_search_multi( $multi_args ) {
 			);
 
 			foreach ( $df_counts as $term => $df ) {
-				$query   = relevanssi_generate_search_query( $term, $search_again, false, $query_join, $query_restrictions );
+				$this_query_restrictions = relevanssi_add_phrase_restrictions(
+					$query_restrictions,
+					$phrase_queries,
+					$term,
+					$operator
+				);
+
+				$query   = relevanssi_generate_search_query( $term, $search_again, false, $query_join, $this_query_restrictions );
 				$matches = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
 				if ( count( $matches ) < 1 ) {
 					continue;
@@ -203,10 +211,8 @@ function relevanssi_search_multi( $multi_args ) {
 				if ( $search_again ) {
 					// No hits even with partial matching.
 					$search_again = false;
-				} else {
-					if ( 'sometimes' === get_option( 'relevanssi_fuzzy' ) ) {
-						$search_again = true;
-					}
+				} elseif ( 'sometimes' === get_option( 'relevanssi_fuzzy' ) ) {
+					$search_again = true;
 				}
 			} else {
 				$search_again = false;
@@ -274,7 +280,7 @@ function relevanssi_search_multi( $multi_args ) {
 		$hit                                   = $post_objects[ $hit ];
 		$hits[ intval( $i ) ]                  = $hit;
 		$hits[ intval( $i ) ]->relevance_score = round( $weight, 2 );
-		$i++;
+		++$i;
 	}
 
 	if ( count( $hits ) < 1 ) {
@@ -296,7 +302,6 @@ function relevanssi_search_multi( $multi_args ) {
 			$match_arrays['excerpt']     = $return['excerpt_matches'];
 			$term_hits                   = $return['term_hits'];
 			$query                       = $return['query'];
-			$doc_weight                  = $return['doc_weights'];
 		}
 	}
 
@@ -318,7 +323,6 @@ function relevanssi_search_multi( $multi_args ) {
 		'term_hits'           => $term_hits,
 		'query'               => $q,
 		'query_no_synonyms'   => $q_no_synonyms,
-		'doc_weights'         => $doc_weight,
 	);
 
 	return $return;
@@ -402,7 +406,7 @@ function relevanssi_is_multisite_search( $query ) {
  *
  * @return bool True, if blog is public.
  */
-function relevanssi_is_blog_ok( $blogid ) : bool {
+function relevanssi_is_blog_ok( $blogid ): bool {
 	// Only search blogs that are publicly available (unless filter says otherwise).
 	$public_status = (bool) get_blog_status( $blogid, 'public' );
 	if ( null === $public_status ) {

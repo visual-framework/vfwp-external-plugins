@@ -71,7 +71,12 @@ function relevanssi_related_posts( $post_id = null, $just_objects = false, $no_t
 
 	$settings = get_option( 'relevanssi_related_settings', relevanssi_related_default_settings() );
 
-	$transient_name = 'relevanssi_related_posts_' . $post_id;
+	/**
+	 * Filters the related posts transient cache name.
+	 *
+	 * @param string The transient name, defaults to relevanssi_related_posts_[ID].
+	 */
+	$transient_name = apply_filters( 'relevanssi_related_posts_cache_id', 'relevanssi_related_posts_' . $post_id );
 	if ( $just_objects ) {
 		$transient_name .= '_jo';
 	}
@@ -277,6 +282,7 @@ function relevanssi_get_related_post_ids( $post_id, $use_cache = true ) {
 	);
 
 	$exclude_ids = array_merge( $exclude_ids, $global_exclude_ids );
+	$exclude_ids = array_merge( $exclude_ids, $related_posts );
 	$exclude_ids = array_keys( array_flip( $exclude_ids ) );
 
 	$date_query = array();
@@ -321,6 +327,15 @@ function relevanssi_get_related_post_ids( $post_id, $use_cache = true ) {
 			);
 			relevanssi_do_query( $related_posts_query );
 			$related_posts = array_merge( $related_posts, $related_posts_query->posts );
+
+			// There may be null results in the set and those may cause problems
+			// further down the line.
+			$related_posts = array_filter(
+				$related_posts,
+				function ( $value ) {
+					return $value;
+				}
+			);
 		}
 	}
 
@@ -334,7 +349,7 @@ function relevanssi_get_related_post_ids( $post_id, $use_cache = true ) {
 	if ( 'random_cat' === $settings['notenough'] || 'random_cat' === $settings['nothing'] ) {
 		$cats      = get_the_category( $post_id );
 		$cat_ids   = array_map(
-			function( $cat ) {
+			function ( $cat ) {
 				return $cat->term_id;
 			},
 			$cats
@@ -430,7 +445,7 @@ function relevanssi_get_related_post_ids( $post_id, $use_cache = true ) {
 	 * post IDs. This step makes sure the array has post IDs.
 	 */
 	$related_posts = array_map(
-		function( $item ) {
+		function ( $item ) {
 			if ( is_object( $item ) && isset( $item->ID ) ) {
 				return $item->ID;
 			} else {

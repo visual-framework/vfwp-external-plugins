@@ -14,7 +14,7 @@
  * Prints out the Premium attachments tab in Relevanssi settings.
  */
 function relevanssi_attachments_tab() {
-	$index_post_types = get_option( 'relevanssi_index_post_types' );
+	$index_post_types = get_option( 'relevanssi_index_post_types', array() );
 	$index_pdf_parent = get_option( 'relevanssi_index_pdf_parent' );
 
 	global $wpdb;
@@ -105,6 +105,13 @@ function relevanssi_attachments_tab() {
 			<?php /* translators: the placeholders are the names of the custom fields */ ?>
 			<p class="description"><?php printf( esc_html__( "This will remove all %1\$s and %2\$s custom fields from all posts. If you want to reread all attachment files, use this to clean up; clicking the reading button doesn't wipe the slate clean like it does in regular indexing.", 'relevanssi' ), '<code>_relevanssi_pdf_content</code>', '<code>_relevanssi_pdf_error</code>' ); ?></p>
 			<p class="description"><?php esc_html_e( 'If you have posts where you have modified the attachment content after reading it, this will leave those posts untouched.', 'relevanssi' ); ?></p>
+		</td>
+	</tr>
+	<tr>
+		<th scope="row"><?php esc_html_e( 'Clear server errors', 'relevanssi' ); ?></td>
+		<td>
+			<input type="button" id="clearservererrors" value="<?php esc_html_e( 'Clear server errors', 'relevanssi' ); ?>" class="button-primary" />
+			<p class="description"><?php esc_html_e( "This will clear all 'Server did not respond' errors from the posts, so you can try reading those files again.", 'relevanssi' ); ?></p>
 		</td>
 	</tr>
 	<tr>

@@ -77,7 +77,7 @@ function relevanssi_do_excerpt( $t_post, $query, $excerpt_length = null, $excerp
 		$untokenized_terms = array_filter( explode( ' ', $query ) );
 	}
 	$untokenized_terms = array_map(
-		function( $term ) {
+		function ( $term ) {
 			if ( is_numeric( $term ) ) {
 				$term = " $term";
 			}
@@ -121,8 +121,14 @@ function relevanssi_do_excerpt( $t_post, $query, $excerpt_length = null, $excerp
 	$content = preg_replace_callback( "/$pattern/", 'strip_shortcode_tag', $content );
 
 	// Add the custom field content.
-	if ( 'on' === get_option( 'relevanssi_excerpt_custom_fields' ) ) {
-		$content .= relevanssi_get_custom_field_content( $post->ID );
+	if ( 'on' === get_option( 'relevanssi_excerpt_custom_fields' )
+		&& 'off' === get_option( 'relevanssi_excerpt_specific_fields' ) ) {
+		if ( 'user' === $post->post_type && function_exists( 'relevanssi_get_user_custom_field_content' ) ) {
+			$content .= relevanssi_get_user_custom_field_content( $post->ID );
+		} else {
+			$field_content = relevanssi_get_custom_field_content( $post->ID );
+			$content      .= $field_content[0];
+		}
 	}
 
 	/**
@@ -154,7 +160,18 @@ function relevanssi_do_excerpt( $t_post, $query, $excerpt_length = null, $excerp
 	// Replace linefeeds and carriage returns with spaces.
 	$content = preg_replace( "/\n\r|\r\n|\n|\r/", ' ', $content );
 
-	if ( 'OR' === get_option( 'relevanssi_implicit_operator' ) || 'on' === get_option( 'relevanssi_index_synonyms' ) ) {
+	// Replace spaces inside HTML tags to avoid splitting tags when doing
+	// word-based excerpts.
+	$content = preg_replace_callback(
+		'~<([!a-zA-Z\/][^>].*?)>~s',
+		function ( $matches ) {
+			return '<' . str_replace( ' ', '*VÄLILYÖNTI*', $matches[1] ) . '>';
+		},
+		$content
+	);
+
+	if ( 'OR' === get_option( 'relevanssi_implicit_operator' )
+		|| 'on' === get_option( 'relevanssi_index_synonyms' ) ) {
 		$query = relevanssi_add_synonyms( $query );
 	}
 
@@ -162,6 +179,36 @@ function relevanssi_do_excerpt( $t_post, $query, $excerpt_length = null, $excerp
 	$excerpts = relevanssi_create_excerpts( $content, $terms, $query, $excerpt_length, $excerpt_type );
 	if ( function_exists( 'relevanssi_add_source_to_excerpts' ) ) {
 		relevanssi_add_source_to_excerpts( $excerpts, 'content' );
+	}
+
+	$custom_field_excerpts = array();
+	if ( 'on' === get_option( 'relevanssi_excerpt_specific_fields' )
+		&& 'on' === get_option( 'relevanssi_excerpt_custom_fields' ) ) {
+		$custom_field_content  = relevanssi_get_custom_field_content( $post->ID );
+		$custom_field_excerpts = array();
+		foreach ( $custom_field_content as $field => $value ) {
+			$field_excerpts = relevanssi_create_excerpts(
+				$value,
+				$terms,
+				$query,
+				$excerpt_length,
+				$excerpt_type
+			);
+			if ( function_exists( 'relevanssi_add_source_to_excerpts' ) ) {
+				relevanssi_add_source_to_excerpts( $field_excerpts, $field );
+				$field_excerpts = array_filter(
+					$field_excerpts,
+					function ( $excerpt ) {
+						return $excerpt['hits'];
+					}
+				);
+			} elseif ( is_array( $field_excerpts ) ) {
+				if ( $field_excerpts[0]['hits'] > $excerpts[0]['hits'] ) {
+					$excerpts = $field_excerpts;
+				}
+			}
+			$custom_field_excerpts = array_merge( $custom_field_excerpts, $field_excerpts );
+		}
 	}
 
 	$comment_excerpts = array();
@@ -179,7 +226,7 @@ function relevanssi_do_excerpt( $t_post, $query, $excerpt_length = null, $excerp
 				relevanssi_add_source_to_excerpts( $comment_excerpts, 'comments' );
 				$comment_excerpts = array_filter(
 					$comment_excerpts,
-					function( $excerpt ) {
+					function ( $excerpt ) {
 						return $excerpt['hits'];
 					}
 				);
@@ -206,7 +253,7 @@ function relevanssi_do_excerpt( $t_post, $query, $excerpt_length = null, $excerp
 				relevanssi_add_source_to_excerpts( $excerpt_excerpts, 'excerpt' );
 				$excerpt_excerpts = array_filter(
 					$excerpt_excerpts,
-					function( $excerpt ) {
+					function ( $excerpt ) {
 						return $excerpt['hits'];
 					}
 				);
@@ -223,7 +270,8 @@ function relevanssi_do_excerpt( $t_post, $query, $excerpt_length = null, $excerp
 			$post->ID,
 			$excerpts,
 			$comment_excerpts,
-			$excerpt_excerpts
+			$excerpt_excerpts,
+			$custom_field_excerpts
 		);
 	}
 
@@ -328,7 +376,7 @@ function relevanssi_create_excerpt( $content, $terms, $query, $excerpt_length = 
 	$excerpts = relevanssi_create_excerpts( $content, $terms, $query, $excerpt_length, $excerpt_type );
 	usort(
 		$excerpts,
-		function( $a, $b ) {
+		function ( $a, $b ) {
 			return $b['hits'] - $a['hits'];
 		}
 	);
@@ -411,29 +459,33 @@ function relevanssi_create_excerpts( $content, $terms, $query, $excerpt_length =
 			'start' => $start,
 		);
 		$excerpts[] = $excerpt;
+	} elseif ( function_exists( 'relevanssi_extract_multiple_excerpts' ) && get_option( 'relevanssi_max_excerpts', 1 ) > 1 ) {
+		$excerpts = relevanssi_extract_multiple_excerpts(
+			array_keys( $terms ),
+			$content,
+			$excerpt_length
+		);
 	} else {
-		if ( function_exists( 'relevanssi_extract_multiple_excerpts' ) && get_option( 'relevanssi_max_excerpts', 1 ) > 1 ) {
-			$excerpts = relevanssi_extract_multiple_excerpts(
-				array_keys( $terms ),
-				$content,
-				$excerpt_length
-			);
-		} else {
-			list( $excerpt_text, $best_excerpt_term_hits, $start ) =
-			relevanssi_extract_relevant_words(
-				array_keys( $terms ),
-				$content,
-				$excerpt_length
-			);
-			$excerpt    = array(
-				'text'  => $excerpt_text,
-				'hits'  => $best_excerpt_term_hits,
-				'start' => $start,
-			);
-			$excerpts[] = $excerpt;
-		}
+		list( $excerpt_text, $best_excerpt_term_hits, $start ) =
+		relevanssi_extract_relevant_words(
+			array_keys( $terms ),
+			$content,
+			$excerpt_length
+		);
+		$excerpt    = array(
+			'text'  => $excerpt_text,
+			'hits'  => $best_excerpt_term_hits,
+			'start' => $start,
+		);
+		$excerpts[] = $excerpt;
 	}
 
+	array_walk(
+		$excerpts,
+		function ( &$excerpt ) {
+			$excerpt['text'] = str_replace( '*VÄLILYÖNTI*', ' ', $excerpt['text'] );
+		}
+	);
 	return $excerpts;
 }
 
@@ -551,6 +603,17 @@ function relevanssi_highlight_terms( $content, $query, $convert_entities = false
 	 */
 	do_action( 'relevanssi_highlight_tokenize' );
 
+	/**
+	 * Filters the query during highlighting before tokenizing it.
+	 *
+	 * This filter hook allows you to modify the search query when it is used
+	 * in highlighting. You could, for example, remove unwanted words from the
+	 * search term or to force phrase highlighting for non-phrase searches.
+	 *
+	 * @param string $query The search query.
+	 */
+	$query = apply_filters( 'relevanssi_highlight_query', $query );
+
 	// Setting min_word_length to 2, in order to avoid 1-letter highlights.
 	$min_word_length = 2;
 	/**
@@ -582,7 +645,7 @@ function relevanssi_highlight_terms( $content, $query, $convert_entities = false
 
 	$untokenized_terms = array_filter(
 		$query,
-		function( $value ) use ( $min_word_length, $body_stopwords ) {
+		function ( $value ) use ( $min_word_length, $body_stopwords ) {
 			if ( in_array( $value, $body_stopwords, true ) ) {
 				return false;
 			}
@@ -617,7 +680,8 @@ function relevanssi_highlight_terms( $content, $query, $convert_entities = false
 	usort( $terms, 'relevanssi_strlen_sort' );
 
 	$content = strtr( $content, array( "\xC2\xAD" => '' ) );
-	$content = html_entity_decode( $content, ENT_QUOTES, 'UTF-8' );
+	$content = relevanssi_entity_decode( $content, ENT_QUOTES, 'UTF-8' );
+
 	if ( ! $convert_entities ) {
 		$content = str_replace( "\n", ' ', $content );
 	}
@@ -651,6 +715,13 @@ function relevanssi_highlight_terms( $content, $query, $convert_entities = false
 		} else {
 			$replace = $start_emp_token . '\\1' . $end_emp_token;
 		}
+
+		/**
+		 * Filters the regular expression used for highlighting.
+		 *
+		 * @param array  $array   The regex and the replacement.
+		 */
+		$regex = apply_filters( 'relevanssi_highlight_regex', $regex, $pr_term );
 
 		// Add an extra space so that the regex that looks for a non-word
 		// character after the search term will find one, even if the word is
@@ -687,7 +758,7 @@ function relevanssi_highlight_terms( $content, $query, $convert_entities = false
 			$content
 		);
 
-		if ( preg_match_all( '/<.*>/Us', $content, $matches ) > 0 ) {
+		if ( preg_match_all( '/<.*>/Usm', $content, $matches ) > 0 ) {
 			// Remove highlights from inside HTML tags.
 			foreach ( $matches as $match ) {
 				$new_match = str_replace( $start_emp_token, '', $match );
@@ -814,7 +885,7 @@ function relevanssi_fix_entities( $excerpt, $in_docs ) {
 			$matching_tag = $tags[ $i ];
 			$matching_tag = str_replace( '>', '\1>', $matching_tag );
 			$tags[ $i ]   = $matching_tag;
-			$i++;
+			++$i;
 		}
 
 		$closing_tags_entitied_regexped = array();
@@ -903,19 +974,19 @@ function relevanssi_entities_inside( $content, $tag ) {
  * If there are highlights within highlights in a string, this function will
  * clean out the nested highlights, leaving just the outmost highlight tokens.
  *
- * @param string $string The content.
+ * @param string $str    The content.
  * @param string $begin  The beginning highlight token.
  * @param string $end    The ending highlight token.
  *
  * @return string The string with nested highlights cleaned out.
  */
-function relevanssi_remove_nested_highlights( $string, $begin, $end ) {
-	$bits       = explode( $begin, $string );
+function relevanssi_remove_nested_highlights( $str, $begin, $end ) {
+	$bits       = explode( $begin, $str );
 	$new_bits   = array( $bits[0] );
 	$count_bits = count( $bits );
 	$depth      = -1;
 	for ( $i = 1; $i < $count_bits; $i++ ) {
-		$depth++;
+		++$depth;
 		if ( 0 === $depth ) {
 			$new_bits[] = $begin;
 		}
@@ -955,13 +1026,16 @@ function relevanssi_remove_nested_highlights( $string, $begin, $end ) {
 function relevanssi_extract_locations( $words, $fulltext ) {
 	$locations = array();
 	foreach ( $words as $word ) {
+		if ( ! $word ) {
+			continue;
+		}
 		$count_locations = 0;
 		$wordlen         = relevanssi_strlen( $word );
 		$loc             = relevanssi_stripos( $fulltext, $word, 0 );
 		while ( false !== $loc ) {
 			$locations[] = $loc;
 			$loc         = relevanssi_stripos( $fulltext, $word, $loc + $wordlen );
-			$count_locations++;
+			++$count_locations;
 			/**
 			 * Optimizes the excerpt creation.
 			 *
@@ -992,9 +1066,11 @@ function relevanssi_extract_locations( $words, $fulltext ) {
  * @return int Number of times the words appear in the text.
  */
 function relevanssi_count_matches( $words, $complete_text ) {
-	$count          = 0;
-	$lowercase_text = relevanssi_strtolower( $complete_text, 'UTF-8' );
-	$text           = '';
+	$count = 0;
+	$text  = '';
+
+	// Add the space in case the match is the last word in the text.
+	$lowercase_text = relevanssi_strtolower( $complete_text, 'UTF-8' ) . ' ';
 
 	$count_words = count( $words );
 	for ( $t = 0; $t < $count_words; $t++ ) {
@@ -1130,7 +1206,7 @@ function relevanssi_extract_relevant( $words, $fulltext, $excerpt_length = 300, 
 
 	$substr = function_exists( 'mb_substr' ) ? 'mb_substr' : 'substr';
 
-	$excerpt = call_user_func( $substr, $fulltext, $startpos, $excerpt_length );
+	$excerpt = call_user_func( $substr, $fulltext, intval( $startpos ), $excerpt_length );
 
 	$start = false;
 	if ( 0 === $startpos ) {
@@ -1210,7 +1286,7 @@ function relevanssi_extract_relevant_words( $terms, $content, $excerpt_length = 
 				$start = false;
 			}
 		}
-		$tries++;
+		++$tries;
 
 		/**
 		 * Enables the excerpt optimization.
@@ -1288,7 +1364,7 @@ function relevanssi_get_first_match( array $words, array $terms, int $excerpt_le
 			$best_excerpt_term_hits = $count_matches;
 			break;
 		}
-		$offset++;
+		++$offset;
 	}
 
 	return array(
@@ -1324,6 +1400,10 @@ function relevanssi_add_accent_variations( $word ) {
 		)
 	);
 
+	if ( ! $replacement_arrays ) {
+		return $word;
+	}
+
 	$len        = relevanssi_strlen( $word );
 	$word_array = array();
 	$escaped    = false;
@@ -1351,16 +1431,30 @@ function relevanssi_add_accent_variations( $word ) {
  *
  * @param int $post_id The post ID.
  *
- * @return string The custom field content.
+ * @return array The custom field content in an array. The array either has the
+ * the field names as keys (if relevanssi_excerpt_specific_fields is on) or has
+ * everything in one string in index 0 (if relevanssi_excerpt_specific_fields is
+ * off).
  */
-function relevanssi_get_custom_field_content( $post_id ) {
-	$custom_field_content = '';
+function relevanssi_get_custom_field_content( $post_id ): array {
+	$custom_field_content = array();
+	$custom_field_string  = '';
 
 	$custom_fields = relevanssi_generate_list_of_custom_fields( $post_id );
 
+	$child_pdf_content = array();
 	if ( function_exists( 'relevanssi_get_child_pdf_content' ) ) {
-		$custom_field_content .= ' ' . relevanssi_get_child_pdf_content( $post_id );
+		$child_pdf_content = relevanssi_get_child_pdf_content( $post_id );
+		$custom_fields[]   = '_relevanssi_child_pdf_content';
 	}
+
+	/**
+	 * Filters the list of custom fields used for the excerpt.
+	 *
+	 * @param array $custom_fields The list of custom fields.
+	 * @param int   $post_id       The post ID.
+	 */
+	$custom_fields = apply_filters( 'relevanssi_excerpt_custom_fields', $custom_fields, $post_id );
 
 	foreach ( $custom_fields as $field ) {
 		/* Documented in lib/indexing.php. */
@@ -1374,6 +1468,9 @@ function relevanssi_get_custom_field_content( $post_id ) {
 			$field,
 			$post_id
 		);
+		if ( '_relevanssi_child_pdf_content' === $field ) {
+			$values = $child_pdf_content;
+		}
 		if ( empty( $values ) || ! is_array( $values ) ) {
 			continue;
 		}
@@ -1388,7 +1485,7 @@ function relevanssi_get_custom_field_content( $post_id ) {
 				$value_as_string = '';
 				array_walk_recursive(
 					$value,
-					function( $val ) use ( &$value_as_string ) {
+					function ( $val ) use ( &$value_as_string ) {
 						if ( is_string( $val ) ) {
 							// Sometimes this can be something weird.
 							$value_as_string .= ' ' . $val;
@@ -1397,22 +1494,48 @@ function relevanssi_get_custom_field_content( $post_id ) {
 				);
 				$value = $value_as_string;
 			}
-			$custom_field_content .= ' ' . $value;
+			if ( ! isset( $custom_field_content[ $field ] ) ) {
+				$custom_field_content[ $field ] = '';
+			}
+			$value = relevanssi_strip_tags( $value );
+
+			$custom_field_content[ $field ] .= ' ' . $value;
+			$custom_field_string            .= ' ' . $value;
 		}
 	}
-	/**
-	 * Filters the custom field content for excerpt use.
-	 *
-	 * @param string $custom_field_content Custom field content for excerpts.
-	 * @param int    $post_id              The post ID.
-	 * @param array  $custom_fields        The list of custom field names.
-	 */
-	return apply_filters(
-		'relevanssi_excerpt_custom_field_content',
-		$custom_field_content,
-		$post_id,
-		$custom_fields
-	);
+
+	if ( 'off' === get_option( 'relevanssi_excerpt_specific_fields' ) ) {
+		return array(
+			/**
+			 * Filters the custom field content for excerpt use.
+			 *
+			 * @param string $custom_field_content Custom field content for excerpts.
+			 * @param int    $post_id              The post ID.
+			 * @param array  $custom_fields        The list of custom field names.
+			 */
+			apply_filters(
+				'relevanssi_excerpt_custom_field_content',
+				$custom_field_string,
+				$post_id,
+				$custom_fields
+			),
+		);
+	} else {
+		/**
+		 * Filters the custom field content for excerpt use.
+		 *
+		 * Here the custom field content is in an array, with the field names as
+		 * keys.
+		 *
+		 * @param array $custom_field_content Custom field content for excerpts.
+		 * @param int   $post_id              The post ID.
+		 */
+		return apply_filters(
+			'relevanssi_excerpt_specific_custom_field_content',
+			$custom_field_content,
+			$post_id
+		);
+	}
 }
 
 /**
@@ -1500,7 +1623,7 @@ function relevanssi_highlight_post_title( &$post, $query ) {
  * @uses relevanssi_do_excerpt
  */
 function relevanssi_add_excerpt( &$post, $query ) {
-	if ( isset( $post->blog_id ) ) {
+	if ( isset( $post->blog_id ) && function_exists( 'switch_to_blog' ) ) {
 		switch_to_blog( $post->blog_id );
 	}
 	$post->original_excerpt = $post->post_excerpt;
@@ -1525,7 +1648,47 @@ function relevanssi_add_excerpt( &$post, $query ) {
 			$excerpt_type
 		);
 	}
-	if ( isset( $post->blog_id ) ) {
+	if ( isset( $post->blog_id ) && function_exists( 'restore_current_blog' ) ) {
 		restore_current_blog();
 	}
+}
+
+/**
+ * Runs html_entity_decode(), then restores entities inside data attributes.
+ *
+ * First replace all &quot; entities inside data attributes with REL_QUOTE,
+ * then decode, then replace REL_QUOTE with &quot; to restore the data
+ * attributes.
+ *
+ * @uses html_entity_decode
+ *
+ * @param string $content The content to decode.
+ * @param int    $flags   The flags for html_entity_decode, default ENT_QUOTES.
+ * @param string $charset The charset for html_entity_decode, default 'UTF-8'.
+ *
+ * @return string The decoded content.
+ */
+function relevanssi_entity_decode( $content, $flags = ENT_QUOTES, $charset = 'UTF-8' ) {
+	if ( preg_match_all( '/data-[\w-]+?="([^"]*?)"/sm', $content, $matches ) ) {
+		$source  = array();
+		$replace = array();
+		foreach ( $matches[1] as $match ) {
+			$source[]  = $match;
+			$replace[] = str_replace( '&quot;', 'REL_QUOTE', $match );
+		}
+		$content = str_replace( $source, $replace, $content );
+	}
+	$content = html_entity_decode( $content, $flags, $charset );
+	if ( preg_match_all( '/data-[\w-]+?="([^"]*?)"/sm', $content, $matches ) ) {
+		$source  = array();
+		$replace = array();
+		foreach ( $matches[1] as $match ) {
+			$source[]  = $match;
+			$replace[] = htmlentities( $match );
+		}
+		$content = str_replace( $source, $replace, $content );
+	}
+
+	$content = str_replace( 'REL_QUOTE', '&quot;', $content );
+	return $content;
 }
