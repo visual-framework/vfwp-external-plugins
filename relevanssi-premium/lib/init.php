@@ -25,7 +25,12 @@ add_filter( 'relevanssi_prevent_default_request', 'relevanssi_block_on_admin_sea
 add_filter( 'relevanssi_search_ok', 'relevanssi_control_media_queries', 11, 2 );
 
 // Post indexing.
-add_action( 'wp_insert_post', 'relevanssi_insert_edit', 99, 1 );
+global $wp_version;
+if ( version_compare( $wp_version, '5.6', '>=' ) ) {
+	add_action( 'wp_after_insert_post', 'relevanssi_insert_edit', 99, 1 );
+} else {
+	add_action( 'wp_insert_post', 'relevanssi_insert_edit', 99, 1 );
+}
 add_action( 'delete_post', 'relevanssi_remove_doc' );
 
 // Comment indexing.
@@ -43,6 +48,7 @@ add_action( 'edit_attachment', 'relevanssi_insert_edit' );
 add_action( 'transition_post_status', 'relevanssi_update_child_posts', 99, 3 );
 
 // Relevanssi features.
+add_filter( 'relevanssi_remove_punctuation', 'remove_accents', 9 );
 add_filter( 'relevanssi_remove_punctuation', 'relevanssi_remove_punct' );
 add_filter( 'relevanssi_post_ok', 'relevanssi_default_post_ok', 9, 2 );
 add_filter( 'relevanssi_query_filter', 'relevanssi_limit_filter' );
@@ -50,6 +56,8 @@ add_action( 'relevanssi_trim_logs', 'relevanssi_trim_logs' );
 add_action( 'relevanssi_update_counts', 'relevanssi_update_counts' );
 add_action( 'relevanssi_custom_field_value', 'relevanssi_filter_custom_fields', 10, 2 );
 add_filter( 'relevanssi_index_custom_fields', 'relevanssi_remove_metadata_fields' );
+add_filter( 'relevanssi_join', 'relevanssi_post_date_throttle_join', 1 );
+add_filter( 'relevanssi_where', 'relevanssi_post_date_throttle_where', 1 );
 
 // Excerpts and highlights.
 add_action( 'relevanssi_pre_the_content', 'relevanssi_kill_autoembed' );
@@ -61,8 +69,9 @@ add_filter( 'relevanssi_pre_excerpt_content', 'relevanssi_remove_page_builder_sh
 add_filter( 'relevanssi_post_content', 'relevanssi_remove_page_builder_shortcodes', 9 );
 
 // Permalink handling.
-add_filter( 'the_permalink', 'relevanssi_permalink', 10, 2 );
 add_filter( 'post_link', 'relevanssi_permalink', 10, 2 );
+add_filter( 'post_type_link', 'relevanssi_permalink', 10, 2 );
+add_filter( 'attachment_link', 'relevanssi_permalink', 10, 2 );
 add_filter( 'page_link', 'relevanssi_permalink', 10, 2 );
 add_filter( 'relevanssi_permalink', 'relevanssi_permalink' );
 
@@ -98,7 +107,7 @@ function relevanssi_init() {
 			if ( 'indexing' === $_GET['tab'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 				add_action(
 					'admin_notices',
-					function() use ( $restriction_notice ) {
+					function () use ( $restriction_notice ) {
 						echo $restriction_notice; // phpcs:ignore WordPress.Security.EscapeOutput
 					}
 				);
@@ -110,7 +119,7 @@ function relevanssi_init() {
 		if ( 'options-general.php' === $pagenow && $on_relevanssi_page ) {
 			add_action(
 				'admin_notices',
-				function() {
+				function () {
 					printf(
 						"<div id='relevanssi-warning' class='update-nag'><p><strong>%s</strong></p></div>",
 						esc_html__( 'You do not have an index! Remember to build the index (click the "Build the index" button), otherwise searching won\'t work.', 'relevanssi' )
@@ -143,10 +152,8 @@ function relevanssi_init() {
 		if ( ! wp_next_scheduled( 'relevanssi_trim_logs' ) ) {
 			wp_schedule_event( time(), 'daily', 'relevanssi_trim_logs' );
 		}
-	} else {
-		if ( wp_next_scheduled( 'relevanssi_trim_logs' ) ) {
+	} elseif ( wp_next_scheduled( 'relevanssi_trim_logs' ) ) {
 			wp_clear_scheduled_hook( 'relevanssi_trim_logs' );
-		}
 	}
 
 	if ( ! wp_next_scheduled( 'relevanssi_update_counts' ) ) {
@@ -259,7 +266,6 @@ function relevanssi_query_vars( $qv ) {
 	$qv[] = 'highlight';
 	$qv[] = 'posts_per_page';
 	$qv[] = 'post_parent';
-	$qv[] = 'post_status';
 
 	return $qv;
 }
@@ -290,10 +296,8 @@ function relevanssi_create_database_tables( $relevanssi_db_version ) {
 	if ( strpos( $wpdb->collate, '_' ) > 0 ) {
 		$charset_collate_bin_column .= ' COLLATE ' . substr( $wpdb->collate, 0, strpos( $wpdb->collate, '_' ) ) . '_bin';
 		$charset_collate            .= " COLLATE $wpdb->collate";
-	} else {
-		if ( '' === $wpdb->collate && 'utf8' === $wpdb->charset ) {
-			$charset_collate_bin_column .= ' COLLATE utf8_bin';
-		}
+	} elseif ( '' === $wpdb->collate && 'utf8' === $wpdb->charset ) {
+		$charset_collate_bin_column .= ' COLLATE utf8_bin';
 	}
 
 	$relevanssi_table          = $wpdb->prefix . 'relevanssi';
@@ -387,6 +391,7 @@ function relevanssi_create_database_tables( $relevanssi_db_version ) {
 	time timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	user_id bigint(20) NOT NULL DEFAULT '0',
 	ip varchar(40) NOT NULL DEFAULT '',
+	session_id varchar(32) NOT NULL DEFAULT '',
 	PRIMARY KEY id (id)) $charset_collate;";
 
 	dbDelta( $sql );
@@ -394,8 +399,9 @@ function relevanssi_create_database_tables( $relevanssi_db_version ) {
 	$sql     = "SHOW INDEX FROM $relevanssi_log_table";
 	$indices = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
 
-	$query_exists = false;
-	$id_exists    = false;
+	$query_exists      = false;
+	$id_exists         = false;
+	$session_id_exists = false;
 	foreach ( $indices as $index ) {
 		if ( 'query' === $index->Key_name ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName
 			$query_exists = true;
@@ -403,10 +409,18 @@ function relevanssi_create_database_tables( $relevanssi_db_version ) {
 		if ( 'id' === $index->Key_name ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName
 			$id_exists = true;
 		}
+		if ( 'session_id' === $index->Key_name ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName
+			$session_id_exists = true;
+		}
 	}
 
 	if ( ! $query_exists ) {
 		$sql = "CREATE INDEX query ON $relevanssi_log_table (query(190))";
+		$wpdb->query( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+	}
+
+	if ( ! $session_id_exists ) {
+		$sql = "CREATE INDEX session_id ON $relevanssi_log_table (session_id)";
 		$wpdb->query( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
 
@@ -430,7 +444,7 @@ function relevanssi_create_database_tables( $relevanssi_db_version ) {
 
 	$stopwords = relevanssi_fetch_stopwords();
 	if ( empty( $stopwords ) ) {
-		relevanssi_populate_stopwords();
+		relevanssi_populate_stopwords( false, $relevanssi_stopword_table );
 	}
 }
 
@@ -471,14 +485,22 @@ function relevanssi_rest_api_disable() {
 /**
  * Checks if a log export is requested.
  *
- * If the 'relevanssi_export' query variable is set, a log export has been requested
- * and one will be provided by relevanssi_export_log().
+ * If the 'relevanssi_export' query variable is set, a log export has been
+ * requested and one will be provided by relevanssi_export_log(). The click
+ * tracking log export checks 'relevanssi_export_clicks' and uses the function
+ * relevanssi_export_click_log().
  *
  * @see relevanssi_export_log
+ * @see relevanssi_export_click_log
  */
 function relevanssi_export_log_check() {
 	if ( isset( $_REQUEST['relevanssi_export'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification, just checking the parameter exists.
+		check_admin_referer( 'relevanssi_export_logs', '_relevanssi_export_nonce' );
 		relevanssi_export_log();
+	}
+	if ( isset( $_REQUEST['relevanssi_export_clicks'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification, just checking the parameter exists.
+		check_admin_referer( 'relevanssi_export_logs', '_relevanssi_export_nonce' );
+		function_exists( 'relevanssi_export_click_log' ) && relevanssi_export_click_log();
 	}
 }
 
@@ -488,6 +510,7 @@ function relevanssi_export_log_check() {
 function relevanssi_load_compatibility_code() {
 	class_exists( 'acf', false ) && require_once 'compatibility/acf.php';
 	class_exists( 'DGWT_WC_Ajax_Search', false ) && require_once 'compatibility/fibosearch.php';
+	class_exists( 'Jet_Smart_Filters', false ) && require_once 'compatibility/jetsmartfilters.php';
 	class_exists( 'MeprUpdateCtrl', false ) && MeprUpdateCtrl::is_activated() && require_once 'compatibility/memberpress.php';
 	class_exists( 'Obenland_Wp_Search_Suggest', false ) && require_once 'compatibility/wp-search-suggest.php';
 	class_exists( 'Polylang', false ) && require_once 'compatibility/polylang.php';

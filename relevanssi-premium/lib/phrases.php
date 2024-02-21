@@ -48,7 +48,7 @@ function relevanssi_extract_phrases( string $query ) {
 		$phrase = trim( $phrase );
 
 		// Do not count single-word phrases as phrases.
-		if ( ! empty( $phrase ) && count( explode( ' ', $phrase ) ) > 1 ) {
+		if ( relevanssi_is_multiple_words( $phrase ) ) {
 			$phrases[] = $phrase;
 		}
 		$pos = $end + 1;
@@ -83,8 +83,25 @@ function relevanssi_recognize_phrases( $search_query, $operator = 'AND' ) {
 		return $all_queries;
 	}
 
-	$custom_fields  = relevanssi_get_custom_fields();
-	$taxonomies     = get_option( 'relevanssi_index_taxonomies_list', array() );
+	/**
+	 * Filters the custom fields for phrase matching.
+	 *
+	 * If you don't want the phrase matching to target custom fields, you can
+	 * have this filter hook return an empty array.
+	 *
+	 * @param array $custom_fields An array of custom field names.
+	 */
+	$custom_fields = apply_filters( 'relevanssi_phrase_custom_fields', relevanssi_get_custom_fields() );
+
+	/**
+	 * Filters the taxonomies for phrase matching.
+	 *
+	 * If you don't want the phrase matching to target taxonomies, you can have
+	 * this filter hook return an empty array.
+	 *
+	 * @param array $taxonomies An array of taxonomy names.
+	 */
+	$taxonomies     = apply_filters( 'relevanssi_phrase_taxonomies', get_option( 'relevanssi_index_taxonomies_list', array() ) );
 	$excerpts       = get_option( 'relevanssi_index_excerpt', 'off' );
 	$phrase_queries = array();
 	$queries        = array();
@@ -161,8 +178,12 @@ function relevanssi_recognize_phrases( $search_query, $operator = 'AND' ) {
  *
  * @return array An array of queries sorted by phrase.
  */
-function relevanssi_generate_phrase_queries( array $phrases, array $taxonomies,
-$custom_fields, string $excerpts ) : array {
+function relevanssi_generate_phrase_queries(
+	array $phrases,
+	array $taxonomies,
+	$custom_fields,
+	string $excerpts
+): array {
 	global $wpdb;
 
 	$status = relevanssi_valid_status_array();
@@ -175,10 +196,11 @@ $custom_fields, string $excerpts ) : array {
 	$phrase_queries = array();
 
 	foreach ( $phrases as $phrase ) {
-		$queries = array();
-		$phrase  = $wpdb->esc_like( $phrase );
-		$phrase  = str_replace( array( '‘', '’', "'", '"', '”', '“', '“', '„', '´' ), '_', $phrase );
-		$phrase  = htmlspecialchars( $phrase );
+		$queries      = array();
+		$phrase       = $wpdb->esc_like( $phrase );
+		$phrase       = str_replace( array( '‘', '’', "'", '"', '”', '“', '“', '„', '´' ), '_', $phrase );
+		$title_phrase = $phrase;
+		$phrase       = htmlspecialchars( $phrase );
 
 		/**
 		 * Filters each phrase before it's passed through esc_sql() and used in
@@ -198,7 +220,7 @@ $custom_fields, string $excerpts ) : array {
 
 		$query = "(SELECT ID FROM $wpdb->posts
 			WHERE (post_content LIKE '%$phrase%'
-			OR post_title LIKE '%$phrase%' $excerpt)
+			OR post_title LIKE '%$title_phrase%' $excerpt)
 			AND post_status IN ($status))";
 
 		$queries[] = array(
@@ -206,7 +228,7 @@ $custom_fields, string $excerpts ) : array {
 			'target' => 'doc',
 		);
 
-		if ( $taxonomies ) {
+		if ( ! empty( $taxonomies ) ) {
 			$taxonomies_escaped = implode( "','", array_map( 'esc_sql', $taxonomies ) );
 			$taxonomies_sql     = "AND s.taxonomy IN ('$taxonomies_escaped')";
 
@@ -225,7 +247,7 @@ $custom_fields, string $excerpts ) : array {
 			);
 		}
 
-		if ( $custom_fields ) {
+		if ( ! empty( $custom_fields ) ) {
 			$keys = '';
 
 			if ( is_array( $custom_fields ) ) {

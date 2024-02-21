@@ -4,8 +4,8 @@ Donate link: https://www.relevanssi.com/
 Tags: search, relevance, better search
 Requires at least: 4.9
 Requires PHP: 7.0
-Tested up to: 5.9
-Stable tag: 2.17.1
+Tested up to: 6.4
+Stable tag: 2.25.1
 
 Relevanssi Premium replaces the default search with a partial-match search that sorts results by relevance. It also indexes comments and shortcode content.
 
@@ -30,7 +30,7 @@ Relevanssi replaces the standard WordPress search with a better search engine, w
 * Index the contents of shortcodes.
 * Google-style "Did you mean?" suggestions based on successful user searches.
 * Automatic support for [WPML multi-language plugin](http://wpml.org/).
-* Automatic support for [s2member membership plugin](http://www.s2member.com/).
+* Automatic support for various membership plugins.
 * Advanced filtering to help hacking the search results the way you want.
 * Search result throttling to improve performance on large databases.
 * Disable indexing of post content and post titles with a simple filter hook.
@@ -256,98 +256,172 @@ Each document database is full of useless words. All the little words that appea
 * John Calahan for extensive 2.0 beta testing.
 
 == Changelog ==
-= 2.17.1 =
-* New feature: New filter hook `relevanssi_update_translations` lets you disable the translation updates from TranslationsPress. If you only use WordPress in English, you can disable the translation updates with `add_filter( 'relevanssi_update_translations', '__return_false' );`.
-* Changed behaviour: Relevanssi now ignores WordPress metadata custom fields that aren't interesting for Relevanssi indexing.
-* Changed behaviour: Both `relevanssi_get_permalink()` and `relevanssi_the_permalink()` now can take post ID or a post object as a parameter and can thus be used outside the Loop.
-* Changed behaviour: The `relevanssi_hits_filter` hook now gets the WP_Query object as the second parameter.
-* Minor fix: The "Disable outside connections" option did not apply to the TranslationsPress translation updates. Now it does: those are also disabled when this option is enabled.
-* Minor fix: The `mysqlcolumn_detail` feature was completely missing. Nobody has ever asked about it, which suggests nobody actually uses it, but now it works.
-* Minor fix: The 'Ignore post content' checkbox did not show up correctly. Now it works.
+= 2.25.1 =
+* Security fix: Relevanssi had a vulnerability where anyone could access the search logs and click logs. The log export is now protected.
+* Minor fix: Relevanssi had problems with Polylang when a post or term didn't have language specified. Now Relevanssi handles those situations better.
+* Minor fix: Post date throttling had a MySQL error that made it replace JOINs instead of concatenating.
+* Minor fix: The log database table now has an index on session_id, as not having that index can slow down the search a lot.
 
-= 2.17.0 =
-* New feature: 'Ignore post content' checkbox in the Relevanssi post edit sidebar makes Relevanssi ignore post content for that post when indexing.
-* New feature: The action hook `relevanssi_init` runs at the end of the `relevanssi_init()` function.
-* New feature: The $post->relevanssi_hits data now includes more information about custom field, taxonomy and MySQL column matches.
-* New feature: New filter hook `relevanssi_author_query_filter` filters the post author MySQL query.
-* New feature: New filter hook `relevanssi_by_date_query_filter` filters the by_date MySQL query.
-* New feature: New filter hook `relevanssi_date_query_filter` filters the date query MySQL query.
-* New feature: New filter hook `relevanssi_parent_query_filter` filters the post parent MySQL query.
-* New feature: New filter hook `relevanssi_post_query_filter` filters the post__in and post__not_in MySQL query.
-* New feature: New filter hook `relevanssi_post_status_query_filter` filters the post_status MySQL query.
-* New feature: New filter hook `relevanssi_post_type_query_filter` filters the post_type MySQL query.
-* New feature: Relevanssi will now show available Premium updates even when the license is not valid or API key is missing. The updates cannot be installed without a valid API key, but they will be visible.
-* Major fix: The click tracking log table trimming wasn't implemented before. Now it's up and running.
-* Minor fix: The Bricks compatibility was improved, Relevanssi now notices changes to Bricks posts more often. Relevanssi also only reads the text from the `_bricks_page_content_2` custom field.
+= 2.25.0 =
+* New feature: New filter hook `relevanssi_searchform_dropdown_args` filters the arguments for `wp_dropdown_categories()` in search forms.
+* Changed behaviour: Search form shortcode taxonomy dropdowns are now sorted alphabetically and not by term ID.
+* Minor fix: Caught a bug in excerpt-building with empty words.
+* Minor fix: It's now possible to set both `post__in` and `post__not_in` and likewise for `parent__in` and `parent__not_in`.
+* Minor fix: The `post_status` is no longer available as a query parameter.
 
-= 2.16.8 =
-* One trailing comma caused Relevanssi to not work with PHP 7.2 or earlier. That is fixed, and Relevanssi is now again compatible with PHP 7.
+= 2.24.4 =
+* Minor fix: Fixes broken taxonomy indexing.
 
-= 2.16.7 =
-* Minor fix: The `relevanssi_index_taxonomies_args` filter hook should've been removed from use long time ago, but it was still in use in some cases, and thus `relevanssi_hide_empty_terms` didn't always work, depending on how the terms were indexed. Now the filter use is consistent and `relevanssi_hide_empty_terms` is always used.
-* User interface: The synonym settings page now alerts if the synonyms aren't active because of the AND search.
+= 2.24.3 =
+* Security fix: Relevanssi had a vulnerability for SQL injections. Exploiting the vulnerability does require WP admin access. This vulnerability is now fixed.
+* Security fix: Relevanssi had a vulnerability for error log injections. Exploiting this vulnerability requires file upload access to the site. This vulnerability is now fixed.
+* New feature: New filter hook 'relevanssi_get_attachment_posts_query_final' filters the final SQL query for attachment post fetching.
+* Changed behaviour: Relevanssi now skips attachments with 'Server did not respond' errors when reading attachments. This should help with problems coming from attachments that are too big read.
+* Minor fix: Improved server timeout error handling for attachment reading.
+* Minor fix: Relevanssi didn't strip tags from custom field specific excerpts, and could show zero-hit excerpts for the content.
+* Minor fix: Multisite search failed when the search term resolved to nothing in the tokenizer.
 
-= 2.16.6 =
-* Minor fix: The translations would show up as requiring update, even after the update. This is now fixed.
-* Minor fix: Pinning didn't work with numeric keywords.
+= 2.24.2 =
+* Minor fix: Fixes broken WP CLI progress bars.
+* Minor fix: Meta query boolean to array conversion.
+* Minor fix: For indexing, stemmer is always in OR mode so that both stemmed word and the original word is indexed.
 
-= 2.16.5 =
-* Security fix: Extra hardening for AJAX requests. Some AJAX actions in Relevanssi could leak information to site subscribers who knew what to look for.
+= 2.24.1 =
+* New feature: The debugging tab now shows the status of the 'relevanssi_words' option.
+* Changed behaviour: The 'relevanssi_index_content' and 'relevanssi_index_titles' filter hooks now get the post object as a second parameter.
+* Minor fix: Stop Relevanssi from blocking the feed searches.
+* Minor fix: Remove warning from missing blog_id parameter.
+* Minor fix: Improve exact match boosts with accented letters.
+* Minor fix: Entering synonyms in Polylang all languages mode was possible; it shouldn't be.
+* Minor fix: Relevanssi is now blocked in the reusable content block search.
 
-= 2.16.4 =
-* Security fix: Any registered user could empty the Relevanssi index by triggering the index truncate AJAX action. That is no longer possible.
-* New feature: The [searchform] shortcode has a new parameter, 'checklist', which you can use to create taxonomy checklists.
-* New feature: New filter hook `relevanssi_post_type_archive_ok` allows controlling whether individual post type archives are indexed or not.
-* New feature: You can now set the API key with the constant RELEVANSSI_API_KEY. If the constant is set, the API key settings disappear on the Relevanssi settings page.
-* Changed behaviour: The `relevanssi_related_output_objects` filter hook has been removed. It was unnecessary: it simply isn't useful to filter a function return value, because you can modify it without a filter hook.
-* Changed behaviour: The `relevanssi_search_form` filter hook has an additional parameter which has the shortcode attributes.
-* Changed behaviour: The `relevanssi_search_again` parameter array has more parameters the filter can modify.
-* Changed behaviour: The `relevanssi_show_matches` filter hook gets the post object as the second parameter.
-* Changed behaviour: The `relevanssi_term_add_data` filter hook now runs also when individual terms are modified. Previously it only run when all terms were indexed.
-* Translations: Relevanssi Premium is now professionally translated to German and Spanish.
+= 2.24.0 =
+* New feature: New filter hook `relevanssi_highlight_regex` makes it possible to adjust the regex used for highlighting.
+* New feature: New filter hook `relevanssi_excerpt_custom_fields` filters the list of custom fields used for creating the excerpt.
+* New feature: New filter hook `relevanssi_phrase_custom_fields` filters the list of custom fields used for phrase matching. Return an empty array to disable phrase matching in custom fields.
+* New feature: New filter hook `relevanssi_phrase_taxonomies` filters the list of taxonomies used for phrase matching. Return an empty array to disable phrase matching in taxonomies.
+* New feature: If RELEVANSSI_DEBUG, WP_DEBUG and WP_DEBUG_DISPLAY are all true, Relevanssi will print out indexing debugging messages to the error log (PHP error log or whatever is defined in WP_DEBUG_LOG).
+* Changed behaviour: If the `relevanssi_accents_replacement_arrays` returns an empty array, the accent variation feature is disabled.
+* Minor fix: Term indexing with WPML only indexed the terms in the current admin language. Now the terms are indexed in all languages.
+* Minor fix: Some ACF fields change the global $post, leading to indexing problems. Relevanssi tries to prevent that now.
+* Minor fix: Relevanssi couldn't create the click tracking table on subsites during the multisite installation.
+* Minor fix: Safety features for post-part targeting to avoid fatal errors from wrong variable types.
+* Minor fix: Pinning failed in multisite if the search site didn't have any pinned posts.
+* Minor fix: The `relevanssi_custom_field_value` filter hook is now applied to `_relevanssi_pdf_content` field when the PDF content is indexed for the parent post.
+* Minor fix: The `relevanssi_premium_get_post()` now returns a `WP_Error` when the post is not found.
+* Minor fix: The "Did you mean" feature now makes less suggestions for words that are already correct.
+* Minor fix: Trigger reindexing of the parent post when an attachment is attached or detached from the Media Library.
+* Minor fix: Click tracking now works much better in multisite searches and counts the clicks for the correct subsite.
 
-= 2.16.3 =
-* Security fix: User searches page had a XSS vulnerability.
-* Changed behaviour: Click tracking is no longer added to links if the user is on the logging block list or a bot.
-* Minor fix: `relevanssi_orderby` did not always accept an array-format orderby parameter.
-* Minor fix: Removes a highlighting problem stemming from uppercase search terms.
-* Minor fix: When image attachment indexing was disabled, saving image attachments would still index the images. Image attachment blocking is now a `relevanssi_indexing_restriction` filter function, which means it's always active.
-* Minor fix: Enabling click tracking doesn't break anchor links anymore.
-* Minor fix: Relevanssi removes highlights better from inside multiline HTML tags.
+= 2.23.0 =
+* New feature: Relevanssi can now create custom field specific excerpts that come from one custom field only and know which field that is.
+* New feature: You can see the list of indexed custom field names in the indexing and excerpt settings.
+* New feature: New filter hook `relevanssi_excerpt_specific_custom_field_content` filters the excerpt custom field content if `relevanssi_excerpt_specific_fields` is enabled.
+* Changed behaviour: The `relevanssi_get_custom_field_content()` function now returns an array instead of string. If `relevanssi_excerpt_specific_fields` is off, the previous string return value is returned as a single-item array with the string in index 0. If the setting is on, the array keys are the field names.
+* Changed behaviour: The `relevanssi_get_child_pdf_content()` function now returns an array.
+* Minor fix: The "none" value in category dropdowns from the searchform shortcode is changed from -1 to 0.
+* Minor fix: The stopword population during the multisite installation used the wrong database table, leading to failed population.
+* Minor fix: Multisite installation is moved from `wp_insert_site` (priority 10) to `wp_initialize_site` (priority 200) in order to avoid trouble.
+* Minor fix: Wildcard search now works in whole word matching, not only in partial matching.
+* Minor fix: The Gutenberg sidebar translations didn't show up. Now you should be able to see the sidebar in the right language.
 
-= 2.16.2 =
-* Minor fix: Remove unnecessary database calls from admin pages.
-* Minor fix: Improved Oxygen compatibility.
+= 2.22.0 =
+* New feature: Logging now includes a session ID (based on user ID for logged-in users, HTTP user agent for others, and current time, stable for 10 minutes per user). This is used to remove duplicate searches from live searches, keeping only the final search query.
+* Minor fix: The pin weights did not appear in the classic editor Relevanssi metabox, despite being stored in the database.
 
-= 2.16.1 =
-* Fixes an error on the post query insights screen.
+= 2.21.0 =
+* New feature: You can now add weights to pinned terms to control the order of the pinned posts.
+* New feature: New filter hook `relevanssi_add_attachment_scripts` lets you add the attachment javascripts to other post types than `attachment`.
+* New feature: New filter hook `relevanssi_highlight_query` lets you modify the search query for highlighting.
+* Changed behavior: Relevanssi no longer searches in feed searches by default.
+* Minor fix: The filter `relevanssi_get_attachment_url` is now also used when adding the attachment metabox.
+* Minor fix: No more crashes from Polylang forced plugin updates.
+* Minor fix: PHP 8.1 deprecated FILTER_SANITIZE_STRING, those are now replaced.
 
-= 2.16.0 =
-* New feature: Click tracking lets you track the way the users click different posts from the search results pages. Enable the click tracking from the Logging settings to see it in effect.
-* New feature: Proximity sorting lets you sort posts by geographical distance. See the knowledge base for details on how this works.
-* New feature: New filter hook `relevanssi_render_blocks` controls whether Relevanssi renders blocks in a post or not. If you are having problems updating long posts with lots of blocks, having this filter hook return `false` for the post in question will likely help, as rendering the blocks in a long post can take huge amounts of memory.
-* New feature: The [searchform] shortcode has a new parameter, 'post_type_boxes', which creates a checkbox for each post type you list in the value. For example [searchform post_type_boxes='*post,page'] would create a search with a checkbox for 'post' and 'page' post types, with 'post' pre-checked.
-* New feature: You can now have multiple dropdowns in one [searchform] shortcode. Anything that begins with 'dropdown' is considered a dropdown parameter, so you can do [searchform dropdown_1='category' dropdown_2='post_tag'] for example.
-* New feature: New filter hook `relevanssi_search_params` lets you filter search parameters after they've been collected from the WP_Query.
-* New feature: New filter hook `relevanssi_excerpt_post` lets you make Relevanssi skip creating excerpts for specific posts.
-* Changed behaviour: Redirect queries now support regular expressions.
-* Changed behaviour: Filter hooks `relevanssi_1day`, `relevanssi_7days` and `relevanssi_30days` are removed, as the user searches page is now different. The default value for `relevanssi_user_searches_limit` is now 100 instead of 20.
-* Minor fix: Stopwords weren't included in the exported options; they are now.
-* Minor fix: Relevanssi won't let you adjust synonyms and stopwords anymore if you use Polylang and are in 'Show all languages' mode.
-* Minor fix: New parameter for `relevanssi_tokenize()` introduces the context (indexing or search query). The `relevanssi_extract_phrases()` is only used on search queries.
-* Minor fix: When you deactivate the Related posts feature from the settings, the Related post caches for posts are flushed.
-* Minor fix: In some languages, iOS uses „“ for quotes. Relevanssi now understands those for the phrase operator.
-* Minor fix: You can now choose 'user' post type in the admin search post type dropdown.
-* Minor fix: The debugging page now lets you debug user profiles and taxonomy terms.
-* Minor fix: Highlighting is improved by a more precise HTML entity filter, thanks to Jacob Bearce.
-* Minor fix: Fixes problems with the WP-Members compatibility.
-* Minor fix: The `relevanssi_premium_tokenizer` filter hook now gets the context (indexing or searching) as a parameter.
-* Minor fix: Stops Relevanssi from blocking the admin search for WooCommerce coupons and other WooCommerce custom post types.
-* Minor fix: Searching for a stemmed word with the AND search didn't find correct results.
+= 2.20.4 =
+* New feature: New filter hook `relevanssi_blocked_field_types` can be used to control which ACF field types are excluded from the index. By default, this includes 'repeater', 'flexible_content', and 'group'.
+* New feature: New filter hook `relevanssi_acf_field_object` can be used to filter the ACF field object before Relevanssi indexes it. Return false to have Relevanssi ignore the field type.
+* Minor fix: ACF field exclusion is now recursive. If a parent field is excluded, all sub fields will also be excluded.
+* Minor fix: The indexing settings tab now checks if the wp_relevanssi database table exists and will create the table if it doesn't.
+* Minor fix: Pinning code has been foolproofed to cover some situations that would lead to errors.
+* Minor fix: Handling of data attributes in in-document highlighting had a bug that caused problems with third-party plugins.
+
+= 2.20.3 =
+* New feature: Relevanssi now has a debug mode that will help troubleshooting and support.
+* Minor fix: Using the_permalink() caused problems with search result links. That is now fixed. Relevanssi no longer hooks onto `the_permalink` hook and instead uses `post_link` and other similar hooks.
+* Minor fix: Click tracking parameters have more control to avoid problems from malformed click tracking data.
+
+= 2.20.2 =
+* Fixes the persistent update nag.
+
+= 2.20.1 =
+* New feature: New filter hook `relevanssi_add_highlight_and_tracking` can be used to force Relevanssi to add the `highlight` and tracking parameters to permalinks.
+* Changed behaviour: Exclusions now override pinning. If a post is pinned for 'foo' and excluded for 'foo bar', it will now be excluded when someone searches for 'foo bar'. Previously pinning overrode the exclusion.
+* Changed behaviour: The 'relevanssi_wpml_filter' filter function now runs on priority 9 instead of 10 to avoid problems with custom filters on relevanssi_hits_filter.
+* Minor fix: Page links didn't get the click tracking tags. This is fixed now.
+* Minor fix: Including posts in the Related posts could cause duplicates. Now Relevanssi excludes the included posts from the search so that there won't be duplicates.
+* Minor fix: Handle cases of missing posts better; relevanssi_get_post() now returns a WP_Error if no post is found.
+* Minor fix: Avoid a slow query on the searching tab when the throttle is not enabled.
+* Minor fix: Search queries that contain apostrophes and quotes can now be deleted from the log.
+
+= 2.20.0 =
+* New feature: Relevanssi now shows the MySQL `max_allowed_packet` size on the debug tab.
+* New feature: Relevanssi now shows the indexing query on the debug tab.
+* New feature: You can now edit pinning and exclusions from Quick Edit.
+* New feature: You can now remove queries from the search log from the query insights page.
+* New feature: ACF field settings now include a 'Exclude from Relevanssi index' setting. You can use that to exclude ACF fields from the Relevanssi index.
+* Changed behaviour: Click tracking is disabled in multisite searches. It causes problems with wrong links and isn't very reliable in the best case.
+* Changed behaviour: Plugin translation updates are disabled, unless explicitly enabled either from the Overview settings or with the `relevanssi_update_translations` filter hook.
+* Minor fix: Relevanssi was adding extra quotes around search terms in the `highlight` parameter.
+* Minor fix: Metabox fields look nicer on Firefox.
+* Minor fix: Adds the `relevanssi_related_posts_cache_id` filter to the relevanssi_related_posts() function.
+* Minor fix: Yet another update to data attributes in highlighting. Thanks to Faeddur.
+* Minor fix: Taxonomy query handling was improved. This should help in particular Polylang users who've had problems with Relevanssi ignoring Polylang language restrictions.
+* Minor fix: Negative search terms in AND searches caused problems, but now work better.
+* Minor fix: Pinning phrases that had the same word more than once (e.g. 'word by word') didn't work. Now it works better.
 
 == Upgrade notice ==
-= 2.17.1 =
-* Small fixes, actually adds the 'Ignore post content' checkbox.
+= 2.25.1 =
+* Security hardening, better Polylang support.
 
-= 2.17.0 =
-* Fixes click tracking log trimming.
+= 2.25.0 =
+* Improvements to search form shortcode.
+
+= 2.24.4 =
+* Fix broken taxonomy indexing.
+
+= 2.24.3 =
+* Security hardening, attachment handling improvements.
+
+= 2.24.2 =
+* Meta query errors, WP CLI progress bars, stemmer indexing.
+
+= 2.24.1 =
+* Fix for the blog_id bug, small improvements.
+
+= 2.24.0 =
+* Improved debugging, bug fixes and new filter hooks.
+
+= 2.23.0 =
+* Better method for handling custom fields in excerpts, bug fixes.
+
+= 2.22.0 =
+* Logs now include a session ID.
+
+= 2.21.0 =
+* You can now assign weights to pinned keywords.
+
+= 2.20.4 =
+* Better ACF field controls, bug fixes.
+
+= 2.20.3 =
+* Fixes a bug with broken permalinks.
+
+= 2.20.2 =
+* Fixes the persistent update nag.
+
+= 2.20.1 =
+* Bug fixes and small improvements.
+
+= 2.20.0 =
+* New features, performance improvements, bug fixes.

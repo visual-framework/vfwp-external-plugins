@@ -202,7 +202,7 @@ function relevanssi_default_post_ok( $post_ok, $post_id ) {
 		$current_user = wp_get_current_user();
 		if ( ! $post_ok && $current_user->ID > 0 ) {
 			$post = relevanssi_get_post( $post_id );
-			if ( $current_user->ID === (int) $post->post_author ) {
+			if ( ! is_wp_error( $post ) && $current_user->ID === (int) $post->post_author ) {
 				// Allow authors to see their own private posts.
 				$post_ok = true;
 			}
@@ -224,7 +224,7 @@ function relevanssi_default_post_ok( $post_ok, $post_id ) {
 		apply_filters( 'relevanssi_valid_admin_status', array( 'draft', 'pending', 'future' ) ),
 		true
 	)
-	&& is_admin() ) {
+	&& is_admin() && ! relevanssi_is_live_search() ) {
 		// Only show drafts, pending and future posts in admin search.
 		$post_ok = true;
 	}
@@ -490,6 +490,9 @@ function relevanssi_prevent_default_request( $request, $query ) {
 			// ACF stuff, do not touch (eg. a relationship field search).
 			return $request;
 		}
+		if ( isset( $query->is_feed ) && $query->is_feed ) {
+			return $request;
+		}
 
 		$admin_search_ok = true;
 		/**
@@ -535,7 +538,8 @@ function relevanssi_prevent_default_request( $request, $query ) {
 
 		if ( ! is_admin() && $prevent ) {
 			$request = "SELECT * FROM $wpdb->posts WHERE 1=2";
-		} elseif ( 'on' === get_option( 'relevanssi_admin_search' ) && $admin_search_ok ) {
+		}
+		if ( is_admin() && 'on' === get_option( 'relevanssi_admin_search' ) && $admin_search_ok ) {
 			$request = "SELECT * FROM $wpdb->posts WHERE 1=2";
 		}
 	}
@@ -550,7 +554,7 @@ function relevanssi_prevent_default_request( $request, $query ) {
  * source material. If the parameter is an array of string, each string is
  * tokenized separately and the resulting tokens are combined into one array.
  *
- * @param string|array   $string          The string, or an array of strings, to
+ * @param string|array   $str             The string, or an array of strings, to
  *                                        tokenize.
  * @param boolean|string $remove_stops    If true, stopwords are removed. If
  * 'body', also removes the body stopwords. Default true.
@@ -562,14 +566,14 @@ function relevanssi_prevent_default_request( $request, $query ) {
  * @return int[] An array of tokens as the keys and their frequency as the
  * value.
  */
-function relevanssi_tokenize( $string, $remove_stops = true, int $min_word_length = -1, $context = 'indexing' ) : array {
-	if ( ! $string || ( ! is_string( $string ) && ! is_array( $string ) ) ) {
+function relevanssi_tokenize( $str, $remove_stops = true, int $min_word_length = -1, $context = 'indexing' ): array {
+	if ( ! $str || ( ! is_string( $str ) && ! is_array( $str ) ) ) {
 		return array();
 	}
 
 	$phrase_words = array();
 	if ( RELEVANSSI_PREMIUM && 'search_query' === $context ) {
-		$string_for_phrases = is_array( $string ) ? implode( ' ', $string ) : $string;
+		$string_for_phrases = is_array( $str ) ? implode( ' ', $str ) : $str;
 		$phrases            = relevanssi_extract_phrases( $string_for_phrases );
 		$phrase_words       = array();
 		foreach ( $phrases as $phrase ) {
@@ -578,9 +582,9 @@ function relevanssi_tokenize( $string, $remove_stops = true, int $min_word_lengt
 	}
 
 	$tokens = array();
-	if ( is_array( $string ) ) {
+	if ( is_array( $str ) ) {
 		// If we get an array, tokenize each string in the array.
-		foreach ( $string as $substring ) {
+		foreach ( $str as $substring ) {
 			if ( is_string( $substring ) ) {
 				$tokens = array_merge( $tokens, relevanssi_tokenize( $substring, $remove_stops, $min_word_length ) );
 			}
@@ -613,7 +617,7 @@ function relevanssi_tokenize( $string, $remove_stops = true, int $min_word_lengt
 
 	if ( function_exists( 'relevanssi_apply_thousands_separator' ) ) {
 		// A Premium feature.
-		$string = relevanssi_apply_thousands_separator( $string );
+		$str = relevanssi_apply_thousands_separator( $str );
 	}
 
 	/**
@@ -622,13 +626,13 @@ function relevanssi_tokenize( $string, $remove_stops = true, int $min_word_lengt
 	 * The default function on this filter is relevanssi_remove_punct(), which
 	 * removes some punctuation and replaces some with spaces.
 	 *
-	 * @param string $string String with punctuation.
+	 * @param string $str String with punctuation.
 	 */
-	$string = apply_filters( 'relevanssi_remove_punctuation', $string );
+	$str = apply_filters( 'relevanssi_remove_punctuation', $str );
 
-	$string = relevanssi_strtolower( $string );
+	$str = relevanssi_strtolower( $str );
 
-	$token = strtok( $string, "\n\t " );
+	$token = strtok( $str, "\n\t " );
 	while ( false !== $token ) {
 		$token  = strval( $token );
 		$accept = true;
@@ -671,7 +675,7 @@ function relevanssi_tokenize( $string, $remove_stops = true, int $min_word_lengt
 				if ( ! isset( $tokens[ $token ] ) ) {
 					$tokens[ $token ] = 1;
 				} else {
-					$tokens[ $token ]++;
+					++$tokens[ $token ];
 				}
 			}
 		}
@@ -945,11 +949,8 @@ function relevanssi_async_update_doc_count() {
  * @global object $wpdb                 The WordPress database interface.
  *
  * @author Teemu Muikku
- *
- * @param int $new_blog  The new blog ID.
- * @param int $prev_blog The old blog ID.
  */
-function relevanssi_switch_blog( $new_blog, $prev_blog ) {
+function relevanssi_switch_blog() {
 	global $relevanssi_variables, $wpdb;
 
 	if ( ! isset( $relevanssi_variables ) || ! isset( $relevanssi_variables['relevanssi_table'] ) ) {
@@ -981,7 +982,11 @@ function relevanssi_add_highlight( $permalink, $link_post = null ) {
 	$highlight_docs = get_option( 'relevanssi_highlight_docs', 'off' );
 	$query          = get_search_query();
 	if ( isset( $highlight_docs ) && 'off' !== $highlight_docs && ! empty( $query ) ) {
-		if ( ! relevanssi_is_front_page_id( isset( $link_post->ID ) ?? null ) ) {
+		if ( ! relevanssi_is_front_page_id( $link_post->ID ?? null ) ) {
+			global $wp_query;
+			if ( ! empty( $wp_query->query_vars['sentence'] ) && '&quot;' !== substr( $query, 0, 6 ) ) {
+				$query = relevanssi_add_quotes( $query );
+			}
 			$query     = str_replace( '&quot;', '"', $query );
 			$permalink = esc_attr( add_query_arg( array( 'highlight' => rawurlencode( $query ) ), $permalink ) );
 		}
@@ -999,7 +1004,7 @@ function relevanssi_add_highlight( $permalink, $link_post = null ) {
  * $post ID. Default null.
  * @return boolean True if the post ID or global $post matches the front page.
  */
-function relevanssi_is_front_page_id( int $post_id = null ) : bool {
+function relevanssi_is_front_page_id( int $post_id = null ): bool {
 	$frontpage_id = intval( get_option( 'page_on_front' ) );
 	if ( $post_id === $frontpage_id ) {
 		return true;
@@ -1036,8 +1041,14 @@ function relevanssi_permalink( $link, $link_post = null ) {
 		global $post;
 		$link_post = $post;
 	} elseif ( is_int( $link_post ) ) {
-		$link_post = get_post( $link_post );
+		$link_post = relevanssi_get_post( $link_post );
 	}
+	if ( is_object( $link_post ) && ! property_exists( $link_post, 'relevance_score' ) ) {
+		// get_permalink( $post_id ) uses get_post() which eliminates Relevanssi
+		// data from the post, thus we use relevanssi_get_post() to get it.
+		$link_post = relevanssi_get_post( $link_post->ID );
+	}
+
 	// Using property_exists() to avoid troubles from magic variables.
 	if ( is_object( $link_post ) && property_exists( $link_post, 'relevanssi_link' ) ) {
 		// $link_post->relevanssi_link can still be false.
@@ -1046,11 +1057,40 @@ function relevanssi_permalink( $link, $link_post = null ) {
 		}
 	}
 
-	if ( is_search() && is_object( $link_post ) && property_exists( $link_post, 'relevance_score' ) ) {
+	global $wp_query;
+
+	$add_highlight_and_tracking = false;
+	if ( is_search() && ! is_admin() ) {
+		$add_highlight_and_tracking = true;
+	}
+	if ( is_search() && is_admin() &&
+		( isset( $wp_query->query_vars['relevanssi'] ) || isset( $wp_query->query_vars['rlvquery'] ) )
+		) {
+		$add_highlight_and_tracking = true;
+	}
+
+	if ( is_object( $link_post ) && ! property_exists( $link_post, 'relevance_score' ) ) {
+		$add_highlight_and_tracking = false;
+	}
+
+	/**
+	 * Filters whether to add the highlight and tracking parameters to the link.
+	 *
+	 * @param boolean $add_highlight_and_tracking Whether to add the highlight
+	 * and tracking parameters to the link.
+	 * @param object $link_post                   The post object.
+	 */
+	$add_highlight_and_tracking = apply_filters(
+		'relevanssi_add_highlight_and_tracking',
+		$add_highlight_and_tracking,
+		$link_post
+	);
+
+	if ( $add_highlight_and_tracking ) {
 		$link = relevanssi_add_highlight( $link, $link_post );
 	}
 
-	if ( function_exists( 'relevanssi_add_tracking' ) ) {
+	if ( $add_highlight_and_tracking && function_exists( 'relevanssi_add_tracking' ) ) {
 		$link = relevanssi_add_tracking( $link, $link_post );
 	}
 
@@ -1226,6 +1266,16 @@ function relevanssi_get_forbidden_post_types() {
 		'astra_adv_header',     // Astra.
 		'udb_widgets',          // Ultimate Dashboard.
 		'udb_admin_page',       // Ultimate Dashboard.
+		'oxy_user_library',     // Oxygen.
+		'aw_workflow',          // AutomateWoo.
+		'paypal_transaction',   // PayPal for WooCommerce.
+		'scheduled-action',
+		'divi_bars',            // Divi Bars.
+		'br_product_filter',    // BeRocket Product Filters.
+		'br_filters_group',     // BeRocket Product Filters.
+		'wfob_bump',            // WooFunnel.
+		'wfocu_funnel',         // WooFunnel.
+		'wfocu_offer',          // WooFunnel.
 	);
 }
 
@@ -1282,7 +1332,7 @@ function relevanssi_filter_custom_fields( $values, $field ) {
 	}
 
 	$values = array_map(
-		function( $value ) {
+		function ( $value ) {
 			if ( is_string( $value ) && 'field_' === substr( $value, 0, 6 ) ) {
 				return '';
 			}
@@ -1363,6 +1413,7 @@ function relevanssi_remove_page_builder_shortcodes( $content ) {
 function relevanssi_block_on_admin_searches( $allow, $query ) {
 	$blocked_post_types = array(
 		'rc_blocks', // Reusable Content Blocks.
+		'wp_block', // Reusable Content Blocks.
 	);
 	/**
 	 * Filters the post types that are blocked in the admin search.
@@ -1665,7 +1716,7 @@ function relevanssi_generate_list_of_custom_fields( $post_id, $custom_fields = n
 	if ( $remove_underscore_fields ) {
 		$custom_fields = array_filter(
 			$custom_fields,
-			function( $field ) {
+			function ( $field ) {
 				if ( '_relevanssi_pdf_content' === $field || '_' !== substr( $field, 0, 1 ) ) {
 					return $field;
 				}
@@ -1722,7 +1773,7 @@ function relevanssi_update_synonyms_setting() {
  *
  * @return array An array of words with backwards synonym replacement.
  */
-function relevanssi_replace_synonyms_in_terms( array $terms ) : array {
+function relevanssi_replace_synonyms_in_terms( array $terms ): array {
 	$all_synonyms = get_option( 'relevanssi_synonyms', array() );
 	$synonyms     = explode( ';', $all_synonyms[ relevanssi_get_current_language() ] ?? '' );
 
@@ -1730,6 +1781,9 @@ function relevanssi_replace_synonyms_in_terms( array $terms ) : array {
 		function ( $term ) use ( $synonyms ) {
 			$new_term = array();
 			foreach ( $synonyms as $pair ) {
+				if ( empty( $pair ) ) {
+					continue;
+				}
 				list( $key, $value ) = explode( '=', $pair );
 				if ( $value === $term ) {
 					$new_term[] = $key;
@@ -1753,7 +1807,7 @@ function relevanssi_replace_synonyms_in_terms( array $terms ) : array {
  * @return array An array of words with stemmed words replaced with their
  * originals.
  */
-function relevanssi_replace_stems_in_terms( array $terms, array $all_terms = null ) : array {
+function relevanssi_replace_stems_in_terms( array $terms, array $all_terms = null ): array {
 	if ( ! $all_terms ) {
 		$all_terms = $terms;
 	}
@@ -1791,7 +1845,7 @@ function relevanssi_replace_stems_in_terms( array $terms, array $all_terms = nul
  *
  * @return array An array of name => user-agent pairs.
  */
-function relevanssi_bot_block_list() : array {
+function relevanssi_bot_block_list(): array {
 	$bots = array(
 		'Google Mediapartners' => 'Mediapartners-Google',
 		'GoogleBot'            => 'Googlebot',
@@ -1819,7 +1873,7 @@ function relevanssi_bot_block_list() : array {
  *
  * @return @array The custom fields with the excluded fields removed.
  */
-function relevanssi_remove_metadata_fields( array $custom_fields ) : array {
+function relevanssi_remove_metadata_fields( array $custom_fields ): array {
 	$excluded_fields = array(
 		'_edit_last',
 		'_edit_lock',
@@ -1843,4 +1897,41 @@ function relevanssi_remove_metadata_fields( array $custom_fields ) : array {
 		'classic-editor-remember',
 	);
 	return array_diff( $custom_fields, $excluded_fields );
+}
+
+/**
+ * Returns the list of custom fields included in the index.
+ *
+ * This list contains the names of all the custom fields that are assigned to
+ * the posts in the Relevanssi index. This also includes ACF fields excluded
+ * with filters and from ACF field settings.
+ *
+ * @see relevanssi_list_custom_fields()
+ *
+ * @return string A comma-separated list of custom field names.
+ */
+function relevanssi_list_all_indexed_custom_fields() {
+	global $wpdb, $relevanssi_variables;
+
+	$custom_fields = get_option( 'relevanssi_index_fields' );
+
+	if ( 'visible' === $custom_fields ) {
+		$custom_fields = $wpdb->get_col(
+			'SELECT DISTINCT(meta_key) ' .
+			"FROM $wpdb->postmeta AS pm, {$relevanssi_variables['relevanssi_table']} AS r " . // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"WHERE pm.post_id = r.doc AND meta_key NOT LIKE '\_%'
+			ORDER BY meta_key ASC"
+		);
+	} elseif ( 'all' === $custom_fields ) {
+		$custom_fields = $wpdb->get_col(
+			'SELECT DISTINCT(meta_key) ' .
+			"FROM $wpdb->postmeta AS pm, {$relevanssi_variables['relevanssi_table']} AS r " . // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			'WHERE pm.post_id = r.doc
+			ORDER BY meta_key ASC'
+		);
+	} else {
+		$custom_fields = explode( ',', $custom_fields );
+	}
+
+	return implode( ', ', $custom_fields );
 }

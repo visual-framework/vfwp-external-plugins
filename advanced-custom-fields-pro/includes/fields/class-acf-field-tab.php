@@ -28,11 +28,11 @@ if ( ! class_exists( 'acf_field_tab' ) ) :
 			$this->description   = __( 'Allows you to group fields into tabbed sections in the edit screen. Useful for keeping fields organized and structured.', 'acf' );
 			$this->preview_image = acf_get_url() . '/assets/images/field-type-previews/field-preview-tabs.png';
 			$this->doc_url       = acf_add_url_utm_tags( 'https://www.advancedcustomfields.com/resources/tab/', 'docs', 'field-type-selection' );
+			$this->supports      = array( 'required' => false );
 			$this->defaults      = array(
 				'placement' => 'top',
 				'endpoint'  => 0, // added in 5.2.8
 			);
-
 		}
 
 
@@ -66,7 +66,6 @@ if ( ! class_exists( 'acf_field_tab' ) ) :
 			?>
 		<a <?php echo acf_esc_attrs( $atts ); ?>><?php echo acf_esc_html( $field['label'] ); ?></a>
 			<?php
-
 		}
 
 
@@ -128,7 +127,6 @@ if ( ! class_exists( 'acf_field_tab' ) ) :
 					'ui'           => 1,
 				)
 			);
-
 		}
 
 
@@ -161,15 +159,12 @@ if ( ! class_exists( 'acf_field_tab' ) ) :
 
 			// return
 			return $field;
-
 		}
-
 	}
 
 
 	// initialize
 	acf_register_field_type( 'acf_field_tab' );
-
 endif; // class_exists check
 
 ?>

@@ -37,6 +37,7 @@ function relevanssi_uninstall() {
 	delete_option( 'relevanssi_excerpt_allowable_tags' );
 	delete_option( 'relevanssi_excerpt_custom_fields' );
 	delete_option( 'relevanssi_excerpt_length' );
+	delete_option( 'relevanssi_excerpt_specific_fields' );
 	delete_option( 'relevanssi_excerpt_type' );
 	delete_option( 'relevanssi_excerpts' );
 	delete_option( 'relevanssi_exclude_posts' );
@@ -66,6 +67,7 @@ function relevanssi_uninstall() {
 	delete_option( 'relevanssi_index_taxonomies_list' );
 	delete_option( 'relevanssi_index_terms' );
 	delete_option( 'relevanssi_index_user_fields' );
+	delete_option( 'relevanssi_index_user_meta' );
 	delete_option( 'relevanssi_index_users' );
 	delete_option( 'relevanssi_indexed' );
 	delete_option( 'relevanssi_internal_links' );
@@ -105,6 +107,7 @@ function relevanssi_uninstall() {
 	delete_option( 'relevanssi_trim_click_logs' );
 	delete_option( 'relevanssi_trim_logs' );
 	delete_option( 'relevanssi_txt_col' );
+	delete_option( 'relevanssi_update_translations' );
 	delete_option( 'relevanssi_user_count' );
 	delete_option( 'relevanssi_words' );
 	delete_option( 'relevanssi_wpml_only_current' );
@@ -114,6 +117,7 @@ function relevanssi_uninstall() {
 	$wpdb->query( "DELETE FROM $wpdb->postmeta WHERE meta_key = '_relevanssi_hide_content'" );
 	$wpdb->query( "DELETE FROM $wpdb->postmeta WHERE meta_key = '_relevanssi_pin_for_all'" );
 	$wpdb->query( "DELETE FROM $wpdb->postmeta WHERE meta_key = '_relevanssi_pin'" );
+	$wpdb->query( "DELETE FROM $wpdb->postmeta WHERE meta_key = '_relevanssi_pin_weights'" );
 	$wpdb->query( "DELETE FROM $wpdb->postmeta WHERE meta_key = '_relevanssi_unpin'" );
 	$wpdb->query( "DELETE FROM $wpdb->postmeta WHERE meta_key = '_relevanssi_pdf_content'" );
 	$wpdb->query( "DELETE FROM $wpdb->postmeta WHERE meta_key = '_relevanssi_pdf_error'" );

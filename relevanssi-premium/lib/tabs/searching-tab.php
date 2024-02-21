@@ -35,7 +35,9 @@ function relevanssi_searching_tab() {
 	$cat                 = get_option( 'relevanssi_cat' );
 	$excat               = get_option( 'relevanssi_excat' );
 	$exclude_posts       = get_option( 'relevanssi_exclude_posts' );
-	$index_post_types    = get_option( 'relevanssi_index_post_types' );
+	$index_post_types    = get_option( 'relevanssi_index_post_types', array() );
+	$index_users         = get_option( 'relevanssi_index_users' );
+	$index_terms         = get_option( 'relevanssi_index_taxonomies' );
 
 	$throttle            = relevanssi_check( $throttle );
 	$respect_exclude     = relevanssi_check( $respect_exclude );
@@ -58,7 +60,11 @@ function relevanssi_searching_tab() {
 	}
 
 	if ( ! $throttle ) {
-		$docs_count = $wpdb->get_var( 'SELECT COUNT(DISTINCT doc) FROM ' . $relevanssi_variables['relevanssi_table'] . ' WHERE doc != -1' );  // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
+		$docs_count = get_transient( 'relevanssi_docs_count' );
+		if ( ! $docs_count ) {
+			$docs_count = $wpdb->get_var( 'SELECT COUNT(DISTINCT doc) FROM ' . $relevanssi_variables['relevanssi_table'] . ' WHERE doc != -1' );  // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
+			set_transient( 'relevanssi_docs_count', $docs_count, WEEK_IN_SECONDS );
+		}
 	} else {
 		$docs_count = null;
 	}
@@ -110,7 +116,7 @@ function relevanssi_searching_tab() {
 			<?php // Translators: name of the query variable. ?>
 			<p class="description"><?php printf( esc_html__( 'If you want to override this or use multi-layered ordering (eg. first order by relevance, but sort ties by post title), you can use the %s query variable. See Help for more information.', 'relevanssi' ), '<code>orderby</code>' ); ?></p>
 			<?php if ( RELEVANSSI_PREMIUM ) { ?>
-			<p class="description"><?php esc_html_e( ' If you want date-based results, see the recent post bonus in the Weights section.', 'relevanssi' ); ?></p>
+			<p class="description"><?php esc_html_e( 'If you want date-based results, see the recent post bonus in the Weights section.', 'relevanssi' ); ?></p>
 			<?php } // End if ( RELEVANSSI_PREMIUM ). ?>
 		</td>
 	</tr>
@@ -303,22 +309,7 @@ function relevanssi_searching_tab() {
 			<?php esc_html_e( 'Throttle searches', 'relevanssi' ); ?>
 		</th>
 		<td id="throttlesearches">
-		<div id="throttle_disabled"
-		<?php
-		if ( ! $orderby_date ) {
-			echo "class='screen-reader-text'";
-		}
-		?>
-		>
-		<p class="description"><?php esc_html_e( 'Throttling the search does not work when sorting the posts by date.', 'relevanssi' ); ?></p>
-		</div>
-		<div id="throttle_enabled"
-		<?php
-		if ( ! $orderby_relevance ) {
-			echo "class='screen-reader-text'";
-		}
-		?>
-		>
+		<div id="throttle_enabled">
 		<fieldset>
 			<legend class="screen-reader-text"><?php esc_html_e( 'Throttle searches.', 'relevanssi' ); ?></legend>
 			<label for='relevanssi_throttle'>
@@ -330,6 +321,9 @@ function relevanssi_searching_tab() {
 			<p class="description important"><?php esc_html_e( "Your database is so small that you don't need to enable this.", 'relevanssi' ); ?></p>
 		<?php } ?>
 		<p class="description"><?php esc_html_e( 'If this option is checked, Relevanssi will limit search results to at most 500 results per term. This will improve performance, but may cause some relevant documents to go unfound. See Help for more details.', 'relevanssi' ); ?></p>
+		<?php if ( 'post_date' === $orderby && ( 'on' === $index_users || 'on' === $index_terms ) ) { ?>
+			<p class="important"><?php esc_html_e( 'You have the default ordering set to post date and have enabled user or taxonomy term indexing. If you enable the throttle, the search results will only include posts. Users and taxonomy terms will be excluded. Either keep the throttle disabled or set the post ordering to relevance.', 'relevanssi' ); ?></p>
+		<?php } ?>
 		</div>
 		</td>
 	</tr>
