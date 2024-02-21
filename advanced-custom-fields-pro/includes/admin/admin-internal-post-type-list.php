@@ -92,6 +92,9 @@ if ( ! class_exists( 'ACF_Admin_Internal_Post_Type_List' ) ) :
 		 * @return  string
 		 */
 		public function get_admin_url( $params = '' ) {
+			if ( isset( $_GET['paged'] ) ) { //phpcs:ignore WordPress.Security.NonceVerification.Recommended -- used as intval to return a page.
+				$params .= '&paged=' . intval( $_GET['paged'] ); //phpcs:ignore WordPress.Security.NonceVerification.Recommended -- used as intval to return a page.
+			}
 			return admin_url( "edit.php?post_type={$this->post_type}{$params}" );
 		}
 
@@ -935,7 +938,6 @@ if ( ! class_exists( 'ACF_Admin_Internal_Post_Type_List' ) ) :
 				acf_delete_internal_post_type( $post_id, $this->post_type );
 			}
 		}
-
 	}
 
 endif; // Class exists check.
