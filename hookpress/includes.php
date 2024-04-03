@@ -6,37 +6,37 @@ require('hooks.php');
 // OPTIONS
 
 function hookpress_get_fields( $type ) {
-	global $wpdb;
-	$map = array('POST' => array($wpdb->posts),
-							 'PARENT_POST' => array($wpdb->posts),
-							 'COMMENT' => array($wpdb->comments),
-							 'CATEGORY' => array($wpdb->terms,$wpdb->term_taxonomy),
-							 'ATTACHMENT' => array($wpdb->posts),
-							 'LINK' => array($wpdb->links),
-							 'USER' => array($wpdb->users),
-							 'TAG_OBJ' => array($wpdb->terms,$wpdb->term_taxonomy),
-							 'USER_OBJ' => array($wpdb->users),
-							 'OLD_USER_OBJ' => array($wpdb->users));
-	$tables = $map[$type];
-	$fields = array();
-	foreach ( (array) $tables as $table) {
-		if (is_array($table))
-			$fields = array_merge($fields,$table);
-		else
-			$fields = array_merge($fields,$wpdb->get_col("show columns from $table"));
-	}
+    global $wpdb;
+    $map = array('POST' => array($wpdb->posts),
+                             'PARENT_POST' => array($wpdb->posts),
+                             'COMMENT' => array($wpdb->comments),
+                             'CATEGORY' => array($wpdb->terms,$wpdb->term_taxonomy),
+                             'ATTACHMENT' => array($wpdb->posts),
+                             'LINK' => array($wpdb->links),
+                             'USER' => array($wpdb->users),
+                             'TAG_OBJ' => array($wpdb->terms,$wpdb->term_taxonomy),
+                             'USER_OBJ' => array($wpdb->users),
+                             'OLD_USER_OBJ' => array($wpdb->users));
+    $tables = $map[$type];
+    $fields = array();
+    foreach ( (array) $tables as $table) {
+        if (is_array($table))
+            $fields = array_merge($fields,$table);
+        else
+            $fields = array_merge($fields,$wpdb->get_col("show columns from $table"));
+    }
 
-	// if it's a POST, we have a URL for it as well.
-	if ($type == 'POST' || $type == 'PARENT_POST')
-		$fields[] = 'post_url';
+    // if it's a POST, we have a URL for it as well.
+    if ($type == 'POST' || $type == 'PARENT_POST')
+        $fields[] = 'post_url';
 
-	if ($type == 'PARENT_POST')
-		$fields = array_map(create_function('$x','return "parent_$x";'),$fields);
+    if ($type == 'PARENT_POST')
+        $fields = array_map(function($x) { return "parent_$x"; }, $fields);
 
-	if ($type == 'OLD_USER_OBJ')
-		$fields = array_map(create_function('$x','return "old_$x";'),$fields);
+    if ($type == 'OLD_USER_OBJ')
+        $fields = array_map(function($x) { return "old_$x"; }, $fields);
 
-	return array_unique($fields);
+    return array_unique($fields);
 }
 
 function hookpress_print_edit_webhook( $id ){
@@ -222,30 +222,30 @@ function hookpress_print_webhooks_table() {
 // MAGIC
 
 function hookpress_register_hooks() {
-	global $hookpress_callbacks, $hookpress_actions, $hookpress_filters;
-	$hookpress_callbacks = array();
-	
-	$all_hooks = hookpress_get_hooks( );
-	
-	if (!is_array( $all_hooks ) )
-		return;
+    global $hookpress_callbacks, $hookpress_actions, $hookpress_filters;
+    $hookpress_callbacks = array();
+    
+    $all_hooks = hookpress_get_hooks( );
+    
+    if (!is_array( $all_hooks ) )
+        return;
 
-	foreach ( $all_hooks as $id => $desc) {
-		if (count($desc) && $desc['enabled']) {
-			$hookpress_callbacks[$id] = create_function('','
-				$args = func_get_args();
-				return hookpress_generic_action('.$id.',$args);
-			');
+    foreach ( $all_hooks as $id => $desc) {
+        if (count($desc) && $desc['enabled']) {
+            $hookpress_callbacks[$id] = function() use ($id) {
+                $args = func_get_args();
+                return hookpress_generic_action($id, $args);
+            };
 
-			$arg_count = 0;
-			if (isset($desc['type']) && $desc['type'] == 'filter')
-				$arg_count = count($hookpress_filters[$desc['hook']]);
-			else
-				$arg_count = count($hookpress_actions[$desc['hook']]);
+            $arg_count = 0;
+            if (isset($desc['type']) && $desc['type'] == 'filter')
+                $arg_count = count($hookpress_filters[$desc['hook']]);
+            else
+                $arg_count = count($hookpress_actions[$desc['hook']]);
 
-			add_filter($desc['hook'], $hookpress_callbacks[$id], HOOKPRESS_PRIORITY, $arg_count);
-		}
-	}
+            add_filter($desc['hook'], $hookpress_callbacks[$id], HOOKPRESS_PRIORITY, $arg_count);
+        }
+    }
 }
 
 function hookpress_generic_action($id,$args) {
@@ -302,7 +302,7 @@ function hookpress_generic_action($id,$args) {
 			case 'USER_OBJ':
 				$newobj = (array) $arg;
 			case 'OLD_USER_OBJ':
-				$newobj = array_map(create_function('$x','return "old_$x";'), (array) $arg);
+				$newobj = array_map(function($x) { return "old_$x"; }, (array) $arg);
 			default:
 				$newobj[$arg_names[$i]] = $arg;
 		}
