@@ -55,7 +55,7 @@ wpWidgetOpts = {
 
 			//add link to settings page on title
 			if( title.length > 0 ){
-				title.after('<a href="'+ widgetopts10n.opts_page +'" class="page-title-action hide-if-no-customize">'+ widgetopts10n.translation.manage_settings +'</a>');
+				title.after('<a href="'+ widgetopts10n.opts_page +'" class="page-title-action hide-if-no-customize widgetopts-super">'+ widgetopts10n.translation.manage_settings +'</a>');
 			}
 
 			//live search filter
@@ -70,6 +70,8 @@ wpWidgetOpts = {
 			//add sidebar options
 			self.sidebarOptions();
 			self.removeSidebarWidgets();
+			self.initPageDropdown('');
+			self.initTaxonomyDropdown('');
 
 	},
 	loaded : function( widget, action ){
@@ -170,6 +172,9 @@ wpWidgetOpts = {
 				$(this).find( selectedsettings ).val( $(this).tabs('option', 'active') );
 			}
 		});
+
+		this.initPageDropdown(widget_id);
+		this.initTaxonomyDropdown(widget_id);
 	},
 	live_search : function(){
 		if ( typeof $.fn.liveFilter !== 'undefined' && $( '#widgetopts-widgets-search' ).length > 0 ) {
@@ -413,6 +418,71 @@ wpWidgetOpts = {
 
 			e.preventDefault();
 		});
+	},
+	initPageDropdown : function(widget_id) {
+		var args = {
+			ajax: {
+		    	url: widgetopts10n.ajax_url,
+		    	dataType: 'json',
+		    	delay: 250,
+		    	type: 'POST',
+		    	data: function (params) {
+			    	var query = {
+			        	action: 'widgetopts_ajax_page_search',
+			        	term: params.term
+			      	}
+
+			      	return query;
+			    }
+		  	},
+		  	placeholder: 'Search for Pages',
+		  	minimumInputLength: 3,
+		  	language: {
+		        searching: function() {
+		            return 'Searching...';
+		        }
+		    },
+		}
+
+		if ( widget_id != '' ) {
+			$( widget_id ).find( '.extended-widget-opts-select2-page-dropdown' ).select2(args);
+		}
+		else {
+			$( '.widget-liquid-right .extended-widget-opts-select2-page-dropdown' ).select2(args);
+		}
+	},
+	initTaxonomyDropdown : function(widget_id) {
+		var args = {
+			ajax: {
+		    	url: widgetopts10n.ajax_url,
+		    	dataType: 'json',
+		    	delay: 250,
+		    	type: 'POST',
+		    	data: function (params) {
+			    	var query = {
+			        	action: 'widgetopts_ajax_taxonomy_search',
+			        	term: params.term,
+			        	taxonomy: $(this).data('taxonomy')
+			      	}
+
+			      	return query;
+			    }
+		  	},
+		  	placeholder: 'Search for Terms',
+		  	minimumInputLength: 3,
+		  	language: {
+		        searching: function() {
+		            return 'Searching...';
+		        }
+		    },
+		}
+
+		if ( widget_id != '' ) {
+			$( widget_id ).find( '.extended-widget-opts-select2-taxonomy-dropdown' ).select2(args);
+		}
+		else {
+			$( '.widget-liquid-right .extended-widget-opts-select2-taxonomy-dropdown' ).select2(args);
+		}
 	}
 };
 
