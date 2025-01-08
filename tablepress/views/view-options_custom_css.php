@@ -13,6 +13,7 @@ defined( 'ABSPATH' ) || die( 'No direct script access allowed!' );
 
 /**
  * Plugin Options/Save Custom CSS Credentials Form View class
+ *
  * @package TablePress
  * @subpackage Views
  * @author Tobias Bäthge
@@ -25,16 +26,19 @@ class TablePress_Options_Custom_CSS_View extends TablePress_View {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $action Action for this view.
-	 * @param array  $data   Data for this view.
+	 * @param string               $action Action for this view.
+	 * @param array<string, mixed> $data   Data for this view.
 	 */
-	public function setup( $action, array $data ) {
+	#[\Override]
+	public function setup( /* string */ $action, array $data ) /* : void */ {
+		// Don't use type hints in the method declaration to prevent PHP errors, as the method is inherited.
+
 		// Set action manually here, to get correct page title and nav bar entries.
 		$this->action = 'options';
 		$this->data = $data;
 
 		// Set page title.
-		$GLOBALS['title'] = sprintf( __( '%1$s &lsaquo; %2$s', 'tablepress' ), $this->data['view_actions'][ $this->action ]['page_title'], 'TablePress' );
+		$GLOBALS['title'] = sprintf( __( '%1$s &lsaquo; %2$s', 'tablepress' ), $this->data['view_actions'][ $this->action ]['page_title'], 'TablePress' ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 
 		$this->add_header_message( '<strong>' . __( 'Attention: Further action is required to save the changes to your &#8220;Custom CSS&#8221;!', 'tablepress' ) . '</strong>', 'notice-success' );
 
@@ -54,11 +58,15 @@ class TablePress_Options_Custom_CSS_View extends TablePress_View {
 	 *
 	 * @since 1.0.0
 	 */
-	public function render() {
+	#[\Override]
+	public function render(): void {
 		?>
 		<div id="tablepress-page" class="wrap">
 		<?php
-		$this->print_nav_tab_menu();
+			$this->print_nav_tab_menu();
+		?>
+		<div id="tablepress-body">
+		<?php
 		// Print all header messages.
 		foreach ( $this->header_messages as $message ) {
 			echo $message;
@@ -88,8 +96,9 @@ class TablePress_Options_Custom_CSS_View extends TablePress_View {
 					?>
 					</div>
 				</div>
-				<br class="clear" />
+				<br class="clear">
 			</div>
+		</div>
 		</div>
 		<?php
 	}
@@ -99,10 +108,10 @@ class TablePress_Options_Custom_CSS_View extends TablePress_View {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $data Data for this screen.
-	 * @param array $box  Information about the text box.
+	 * @param array<string, mixed> $data Data for this screen.
+	 * @param array<string, mixed> $box  Information about the text box.
 	 */
-	public function textbox_explanation_text( array $data, array $box ) {
+	public function textbox_explanation_text( array $data, array $box ): void {
 		?>
 		<p>
 			<?php _e( 'Due to the configuration of your server, TablePress was not able to automatically save your &#8220;Custom CSS&#8221; to a file.', 'tablepress' ); ?>
@@ -116,10 +125,10 @@ class TablePress_Options_Custom_CSS_View extends TablePress_View {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $data Data for this screen.
-	 * @param array $box  Information about the text box.
+	 * @param array<string, mixed> $data Data for this screen.
+	 * @param array<string, mixed> $box  Information about the text box.
 	 */
-	public function textbox_credentials_form( array $data, array $box ) {
+	public function textbox_credentials_form( array $data, array $box ): void {
 		echo $data['credentials_form'];
 	}
 
@@ -128,17 +137,17 @@ class TablePress_Options_Custom_CSS_View extends TablePress_View {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $data Data for this screen.
-	 * @param array $box  Information about the text box.
+	 * @param array<string, mixed> $data Data for this screen.
+	 * @param array<string, mixed> $box  Information about the text box.
 	 */
-	public function textbox_proceed_no_file_saving( array $data, array $box ) {
+	public function textbox_proceed_no_file_saving( array $data, array $box ): void {
 		?>
 		<h2><?php _e( 'Proceed without saving a file', 'tablepress' ); ?></h2>
 		<p>
 			<?php _e( 'To proceed without trying to save the &#8220;Custom CSS&#8221; to a file, click the button below.', 'tablepress' ); ?>
 			<?php _e( 'Your &#8220;Custom CSS&#8221; will then be loaded inline.', 'tablepress' ); ?>
 		</p><p>
-			<a href="<?php echo TablePress::url( array( 'action' => 'options', 'message' => 'success_save_error_custom_css' ) ); ?>" class="button button-large"><?php _e( 'Proceed without saving &#8220;Custom CSS&#8221; to a file', 'tablepress' ); ?></a>
+			<a href="<?php echo TablePress::url( array( 'action' => 'options', 'message' => 'success_save_error_custom_css' ) ); ?>" class="components-button is-secondary"><?php _e( 'Proceed without saving &#8220;Custom CSS&#8221; to a file', 'tablepress' ); ?></a>
 		</p>
 		<?php
 	}

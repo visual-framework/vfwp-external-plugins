@@ -1,0 +1,250 @@
+/**
+ * TablePress Default CSS - DataTables-related code.
+ *
+ * Attention: Do not modify this file directly, but use the "Custom CSS" textarea
+ * on the "Plugin Options" screen of TablePress.
+ *
+ * @package TablePress
+ * @subpackage Frontend CSS
+ * @author Tobias Bäthge, Allan Jardine
+ * @since 1.0.0
+ */
+
+/* Default toggle variable for LTR and RTL CSS. */
+$direction: "ltr" !default;
+
+/* Import DataTables pagination code. */
+@use "default-datatables-pagination" with ($direction: $direction);
+
+/* Default variables for the LTR CSS. */
+$align-side: left;
+$align-side-opposite: right;
+
+/* Variables for the RTL CSS. */
+@if "rtl" == $direction {
+	$align-side: right;
+	$align-side-opposite: left;
+}
+
+/* Scrolling. */
+.dt-scroll {
+	width: 100%;
+
+	/* Fix for wrong alignment and width. */
+	.tablepress {
+		width: 100% !important;
+	}
+}
+
+div.dt-scroll-body {
+	thead,
+	tfoot {
+		tr {
+			height: 0;
+
+			th {
+				height: 0 !important;
+				padding-top: 0 !important;
+				padding-bottom: 0 !important;
+				border-top-width: 0 !important;
+				border-bottom-width: 0 !important;
+
+				div.dt-scroll-sizing {
+					height: 0 !important;
+					overflow: hidden !important;
+				}
+			}
+		}
+	}
+}
+
+div.dt-scroll-body > table.dataTable > thead > tr > th {
+	overflow: hidden;
+}
+
+/* Sorting. */
+.tablepress {
+	/* Custom properties */
+	--head-active-bg-color: #049cdb;
+	--head-active-text-color: var(--head-text-color);
+	--head-sort-arrow-color: var(--head-active-text-color);
+
+	thead {
+		th:active {
+			outline: none;
+		}
+
+		.dt-orderable-asc,
+		.dt-ordering-asc {
+			.dt-column-order:before {
+				position: absolute;
+				display: block;
+				bottom: 50%;
+				content: "\25b2" / "";
+			}
+		}
+
+		.dt-orderable-desc,
+		.dt-ordering-desc {
+			.dt-column-order:after {
+				position: absolute;
+				display: block;
+				top: 50%;
+				content: "\25bc" / "";
+			}
+		}
+
+		.dt-orderable-asc,
+		.dt-orderable-desc,
+		.dt-ordering-asc,
+		.dt-ordering-desc {
+			position: relative;
+			padding-#{$align-side-opposite}: 24px;
+
+			.dt-column-order {
+				position: absolute;
+				#{$align-side-opposite}: 6px;
+				top: 0;
+				bottom: 0;
+				width: 12px;
+				color: var(--head-sort-arrow-color);
+
+				&:before,
+				&:after {
+					opacity: 0.2;
+					line-height: 12px;
+					font-size: 12px;
+					font-family: sans-serif !important;
+				}
+			}
+		}
+
+		.dt-orderable-asc,
+		.dt-orderable-desc {
+			cursor: pointer;
+			outline-offset: -2px;
+
+			&:hover {
+				background-color: var(--head-active-bg-color);
+				color: var(--head-active-text-color);
+			}
+		}
+
+		.dt-ordering-asc,
+		.dt-ordering-desc {
+			background-color: var(--head-active-bg-color);
+			color: var(--head-active-text-color);
+		}
+
+		.dt-ordering-asc .dt-column-order:before,
+		.dt-ordering-desc .dt-column-order:after {
+			opacity: 0.8;
+		}
+	}
+}
+
+/* Automatic data type alignment. */
+.tablepress:where(.auto-type-alignment) {
+	.dt-type-numeric,
+	.dt-type-date,
+	/* .dt-right is used for custom dates. */
+	.dt-right {
+		text-align: $align-side-opposite;
+	}
+}
+
+/* Element positioning. */
+.dt-container {
+	position: relative;
+	clear: both;
+	margin-bottom: 1rem;
+
+	.tablepress {
+		margin-bottom: 0;
+	}
+
+	.dt-layout-row {
+		display: flex;
+		flex-wrap: wrap;
+		flex-direction: row;
+		justify-content: space-between;
+
+		&.dt-layout-table {
+			.dt-layout-cell {
+				display: block;
+				width: 100%;
+			}
+		}
+	}
+
+	.dt-layout-cell {
+		display: flex;
+		flex-wrap: wrap;
+		flex-direction: row;
+		gap: 1em;
+		padding: 5px 0;
+
+		&.dt-layout-full {
+			justify-content: space-between;
+			align-items: center;
+			width: 100%;
+
+			> *:only-child {
+				margin: auto;
+			}
+		}
+
+		&.dt-layout-start {
+			justify-content: flex-start;
+			align-items: center;
+			margin-right: auto;
+		}
+
+		&.dt-layout-end {
+			justify-content: flex-end;
+			align-items: center;
+			margin-left: auto;
+		}
+
+		&:empty {
+			display: none;
+		}
+	}
+
+	label {
+		display: inline;
+	}
+
+	/* Input and select fields. */
+	.dt-input {
+		display: inline;
+		padding: 5px;
+		width: auto;
+		font-size: inherit;
+	}
+
+	/* Search field. */
+	.dt-search {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: 5px;
+	}
+
+	/* Pagination. */
+	@include default-datatables-pagination.dt-paging;
+}
+
+@media screen and (max-width: 767px) {
+	.dt-container {
+		.dt-layout-row {
+			flex-direction: column;
+		}
+
+		.dt-layout-cell {
+			flex-direction: column;
+			padding: 0.5em 0;
+		}
+	}
+}

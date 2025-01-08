@@ -13,6 +13,7 @@ defined( 'ABSPATH' ) || die( 'No direct script access allowed!' );
 
 /**
  * Admin Page class
+ *
  * @package TablePress
  * @subpackage Views
  * @author Tobias Bäthge
@@ -21,16 +22,15 @@ defined( 'ABSPATH' ) || die( 'No direct script access allowed!' );
 class TablePress_Admin_Page {
 
 	/**
-	 * Enqueue a CSS file.
+	 * Enqueue a CSS file, possibly with dependencies.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $name         Name of the CSS file, without extension.
-	 * @param array  $dependencies Optional. List of names of CSS stylesheets that this stylesheet depends on, and which need to be included before this one.
+	 * @param string   $name         Name of the CSS file, without extension.
+	 * @param string[] $dependencies Optional. List of names of CSS stylesheets that this stylesheet depends on, and which need to be included before this one.
 	 */
-	public function enqueue_style( $name, array $dependencies = array() ) {
-		$suffix = SCRIPT_DEBUG ? '' : '.min';
-		$css_file = "admin/css/{$name}{$suffix}.css";
+	public function enqueue_style( string $name, array $dependencies = array() ): void {
+		$css_file = "admin/css/build/{$name}.css";
 		$css_url = plugins_url( $css_file, TABLEPRESS__FILE__ );
 		wp_enqueue_style( "tablepress-{$name}", $css_url, $dependencies, TablePress::version );
 	}
@@ -40,19 +40,57 @@ class TablePress_Admin_Page {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $name            Name of the JS file, without extension.
-	 * @param array  $dependencies    Optional. List of names of JS scripts that this script depends on, and which need to be included before this one.
-	 * @param array  $localize_script Optional. An array with strings that gets transformed into a JS object and is added to the page before the script is included.
-	 * @param bool   $force_minified  Optional. Always load the minified version, regardless of SCRIPT_DEBUG constant value.
+	 * @param string               $name         Name of the JS file, without extension.
+	 * @param string[]             $dependencies Optional. List of names of JS scripts that this script depends on, and which need to be included before this one.
+	 * @param array<string, mixed> $script_data  Optional. JS data that is printed to the page before the script is included. The array key will be used as the name, the value will be JSON encoded.
 	 */
-	public function enqueue_script( $name, array $dependencies = array(), array $localize_script = array(), $force_minified = false ) {
-		$suffix = ( ! $force_minified && SCRIPT_DEBUG ) ? '' : '.min';
-		$js_file = "admin/js/{$name}{$suffix}.js";
+	public function enqueue_script( string $name, array $dependencies = array(), array $script_data = array() ): void {
+		$js_file = "admin/js/build/{$name}.js";
 		$js_url = plugins_url( $js_file, TABLEPRESS__FILE__ );
-		wp_enqueue_script( "tablepress-{$name}", $js_url, $dependencies, TablePress::version, true );
-		if ( ! empty( $localize_script ) ) {
-			foreach ( $localize_script as $var_name => $var_data ) {
-				wp_localize_script( "tablepress-{$name}", "tablepress_{$var_name}", $var_data );
+
+		$version = TablePress::version;
+
+		// Load dependencies and version from the auto-generated asset PHP file.
+		$script_asset_path = TABLEPRESS_ABSPATH . "admin/js/build/{$name}.asset.php";
+		if ( file_exists( $script_asset_path ) ) {
+			$script_asset = require $script_asset_path;
+			if ( isset( $script_asset['dependencies'] ) ) {
+				$dependencies = array_merge( $dependencies, $script_asset['dependencies'] );
+			}
+			if ( isset( $script_asset['version'] ) ) {
+				$version = $script_asset['version'];
+			}
+		}
+
+		/*
+		 * Register the `react-jsx-runtime` polyfill, if it is not already registered.
+		 * This is needed as a polyfill for WP < 6.6, and can be removed once WP 6.6 is the minimum requirement for TablePress.
+		 */
+		if ( ! wp_script_is( 'react-jsx-runtime', 'registered' ) ) {
+			wp_register_script( 'react-jsx-runtime', plugins_url( 'admin/js/react-jsx-runtime.min.js', TABLEPRESS__FILE__ ), array( 'react' ), TablePress::version, true );
+		}
+
+		/**
+		 * Filters the dependencies of a TablePress script file.
+		 *
+		 * @since 2.0.0
+		 *
+		 * @param string[] $dependencies List of the dependencies that the $name script relies on.
+		 * @param string   $name         Name of the JS script, without extension.
+		 */
+		$dependencies = apply_filters( 'tablepress_admin_page_script_dependencies', $dependencies, $name );
+
+		wp_enqueue_script( "tablepress-{$name}", $js_url, $dependencies, $version, true );
+
+		// Load JavaScript translation files, for all scripts that rely on `wp-i18n`.
+		if ( in_array( 'wp-i18n', $dependencies, true ) ) {
+			wp_set_script_translations( "tablepress-{$name}", 'tablepress' );
+		}
+
+		if ( ! empty( $script_data ) ) {
+			foreach ( $script_data as $var_name => $var_data ) {
+				$var_data = wp_json_encode( $var_data, JSON_FORCE_OBJECT | JSON_HEX_TAG | JSON_UNESCAPED_SLASHES );
+				wp_add_inline_script( "tablepress-{$name}", "const tablepress_{$var_name} = {$var_data};", 'before' );
 			}
 		}
 	}
@@ -62,22 +100,31 @@ class TablePress_Admin_Page {
 	 *
 	 * @since 1.0.0
 	 */
-	public function add_admin_footer_text() {
+	public function add_admin_footer_text(): void {
 		// Show admin footer message (only on TablePress admin screens).
 		add_filter( 'admin_footer_text', array( $this, '_admin_footer_text' ) );
 	}
 
 	/**
-	 * Add a TablePress "Thank You" message to the admin footer content.
+	 * Adds a TablePress "Thank You" message to the admin footer content.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param string $content Current admin footer content.
 	 * @return string New admin footer content.
 	 */
-	public function _admin_footer_text( $content ) {
+	public function _admin_footer_text( /* string */ $content ): string {
+		// Don't use a type hint in the method declaration as many WordPress plugins use the `admin_footer_text` filter in the wrong way.
+
+		// Protect against other plugins not returning a string in their filter callbacks.
+		if ( ! is_string( $content ) ) { // @phpstan-ignore function.alreadyNarrowedType (The `is_string()` check is needed as the input is coming from a filter hook.)
+			$content = '';
+		}
+
 		$content .= ' &bull; ' . sprintf( __( 'Thank you for using <a href="%s">TablePress</a>.', 'tablepress' ), 'https://tablepress.org/' );
-		$content .= ' ' . sprintf( __( 'Support the plugin with your <a href="%s">donation</a>!', 'tablepress' ), 'https://tablepress.org/donate/' );
+		if ( tb_tp_fs()->is_free_plan() ) {
+			$content .= ' ' . sprintf( __( 'Take a look at the <a href="%s">Premium features</a>!', 'tablepress' ), 'https://tablepress.org/premium/?utm_source=plugin&utm_medium=textlink&utm_content=admin-footer' );
+		}
 		return $content;
 	}
 
@@ -86,44 +133,67 @@ class TablePress_Admin_Page {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $pointer_id The pointer ID.
-	 * @param string $selector   The HTML elements, on which the pointer should be attached.
-	 * @param array  $args       Arguments to be passed to the pointer JS (see wp-pointer.js).
+	 * @param string               $pointer_id The pointer ID.
+	 * @param string               $selector   The HTML elements, on which the pointer should be attached.
+	 * @param array<string, mixed> $args       Arguments to be passed to the pointer JS (see wp-pointer.js).
 	 */
-	public function print_wp_pointer_js( $pointer_id, $selector, array $args ) {
+	public function print_wp_pointer_js( string $pointer_id, string $selector, array $args ): void {
 		if ( empty( $pointer_id ) || empty( $selector ) || empty( $args['content'] ) ) {
 			return;
 		}
+
+		/*
+		 * Print JS code for the feature pointers, extended with event handling for opened/closed "Screen Options", so that pointers can
+		 * be repositioned. 210 ms is slightly slower than jQuery's "fast" value, to allow all elements to reach their original position.
+		 */
 		?>
-		<script type="text/javascript">
-		( function( $ ) {
-			var options = <?php echo wp_json_encode( $args, TABLEPRESS_JSON_OPTIONS ); ?>, setup;
+<script>
+( function( $ ) {
+	let options = <?php echo wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 
-			if ( ! options ) {
-				return;
-			}
+	if ( ! options ) {
+		return;
+	}
 
-			options = $.extend( options, {
-				close: function() {
-					$.post( ajaxurl, {
-						pointer: '<?php echo $pointer_id; ?>',
-						action: 'dismiss-wp-pointer'
-					} );
-				}
+	options = $.extend( options, {
+		close: function() {
+			$.post( ajaxurl, {
+				pointer: '<?php echo $pointer_id; ?>',
+				action: 'dismiss-wp-pointer'
 			} );
+			$( this ).pointer( { 'disabled': true } );
+		}
+	} );
 
-			setup = function() {
-				$( '<?php echo $selector; ?>' ).pointer( options ).pointer( 'open' );
-			};
+	$( function () {
+		$( '<?php echo $selector; ?>' ).pointer( options ).pointer( 'open' );
+	} );
 
-			if ( options.position && options.position.defer_loading ) {
-				$( window ).on( 'load.wp-pointers', setup );
-			} else {
-				$( setup );
-			}
-		} )( jQuery );
-		</script>
+	$( document ).on( 'screen:options:open screen:options:close', function () {
+		setTimeout( function () { $( '<?php echo $selector; ?>' ).pointer( 'reposition' ); }, 210 );
+	} );
+} )( jQuery );
+</script>
 		<?php
+	}
+
+	/**
+	 * Returns a safe JSON representation of a variable for printing inside of JavaScript code.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @param mixed $data Variable to convert to JSON.
+	 * @return string Safe JSON representation of a variable for printing inside of JavaScript code.
+	 */
+	public function convert_to_json_parse_output( /* string|array|bool|int|float|null */ $data ): string {
+		$json = wp_json_encode( $data, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES );
+		if ( false === $json ) {
+			// JSON encoding failed, return an error object. Use a prefixed "_error" key to avoid conflicts with intentionally added "error" keys.
+			$json = '{ "_error": "The data could not be encoded to JSON!" }';
+		}
+		// Print the JSON data inside a `JSON.parse()` call in JS for speed gains, with necessary escaping of `\` and `'`.
+		$json = str_replace( array( '\\', "'" ), array( '\\\\', "\'" ), $json );
+		return "JSON.parse( '{$json}' )";
 	}
 
 } // class TablePress_Admin_Page
