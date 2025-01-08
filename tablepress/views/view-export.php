@@ -13,6 +13,7 @@ defined( 'ABSPATH' ) || die( 'No direct script access allowed!' );
 
 /**
  * Export Table View class
+ *
  * @package TablePress
  * @subpackage Views
  * @author Tobias Bäthge
@@ -25,11 +26,16 @@ class TablePress_Export_View extends TablePress_View {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $action Action for this view.
-	 * @param array  $data   Data for this view.
+	 * @param string               $action Action for this view.
+	 * @param array<string, mixed> $data   Data for this view.
 	 */
-	public function setup( $action, array $data ) {
+	#[\Override]
+	public function setup( /* string */ $action, array $data ) /* : void */ {
+		// Don't use type hints in the method declaration to prevent PHP errors, as the method is inherited.
+
 		parent::setup( $action, $data );
+
+		$this->add_text_box( 'no-javascript', array( $this, 'textbox_no_javascript' ), 'header' );
 
 		$this->process_action_messages( array(
 			'error_export'          => __( 'Error: The export failed.', 'tablepress' ),
@@ -42,22 +48,20 @@ class TablePress_Export_View extends TablePress_View {
 		if ( 0 === $data['tables_count'] ) {
 			$this->add_meta_box( 'no-tables', __( 'Export Tables', 'tablepress' ), array( $this, 'postbox_no_tables' ), 'normal' );
 		} else {
-			$this->admin_page->enqueue_script( 'export', array( 'jquery' ) );
+			$this->admin_page->enqueue_script( 'export' );
 			$this->add_meta_box( 'export-form', __( 'Export Tables', 'tablepress' ), array( $this, 'postbox_export_form' ), 'normal' );
-			$this->data['submit_button_caption'] = _x( 'Download Export File', 'button', 'tablepress' );
-			$this->add_text_box( 'submit', array( $this, 'textbox_submit_button' ), 'submit' );
 		}
 	}
 
 	/**
-	 * Print the screen head text.
+	 * Prints the screen head text.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $data Data for this screen.
-	 * @param array $box  Information about the text box.
+	 * @param array<string, mixed> $data Data for this screen.
+	 * @param array<string, mixed> $box  Information about the text box.
 	 */
-	public function textbox_head( array $data, array $box ) {
+	public function textbox_head( array $data, array $box ): void {
 		?>
 		<p>
 			<?php _e( 'Exporting a table allows you to use it in other programs, like spreadsheets applications.', 'tablepress' ); ?>
@@ -66,7 +70,7 @@ class TablePress_Export_View extends TablePress_View {
 		<p>
 			<?php _e( 'To export, select the tables and the desired export format.', 'tablepress' ); ?>
 			<?php _e( 'If you choose more than one table, the exported files will automatically be stored in a ZIP archive file.', 'tablepress' ); ?>
-		<br />
+			<br>
 			<?php _e( 'Be aware that for the CSV and HTML formats only the table data, but no table options are exported!', 'tablepress' ); ?>
 			<?php _e( 'For the JSON format, the table data and the table options are exported.', 'tablepress' ); ?>
 		</p>
@@ -74,14 +78,14 @@ class TablePress_Export_View extends TablePress_View {
 	}
 
 	/**
-	 * Print the content of the "No tables found" post meta box.
+	 * Prints the content of the "No tables found" post meta box.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $data Data for this screen.
-	 * @param array $box  Information about the meta box.
+	 * @param array<string, mixed> $data Data for this screen.
+	 * @param array<string, mixed> $box  Information about the meta box.
 	 */
-	public function postbox_no_tables( array $data, array $box ) {
+	public function postbox_no_tables( array $data, array $box ): void {
 		$add_url = TablePress::url( array( 'action' => 'add' ) );
 		$import_url = TablePress::url( array( 'action' => 'import' ) );
 		?>
@@ -91,102 +95,33 @@ class TablePress_Export_View extends TablePress_View {
 	}
 
 	/**
-	 * Print the content of the "Export Tables" post meta box.
+	 * Prints the content of the "Export Tables" post meta box.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $data Data for this screen.
-	 * @param array $box  Information about the meta box.
+	 * @param array<string, mixed> $data Data for this screen.
+	 * @param array<string, mixed> $box  Information about the meta box.
 	 */
-	public function postbox_export_form( array $data, array $box ) {
-		?>
-<table class="tablepress-postbox-table fixed">
-<tbody>
-	<tr>
-		<th class="column-1 top-align" scope="row">
-			<label for="tables-export"><?php _e( 'Tables to Export', 'tablepress' ); ?>:</label>
-			<?php
-			if ( $data['zip_support_available'] ) {
-				echo '<br /><br /><label for="tables-export-select-all"><input type="checkbox" id="tables-export-select-all"> ' . __( 'Select all', 'tablepress' ) . '</label>';
-			}
-			?>
-		</th>
-		<td class="column-2">
-			<input type="hidden" name="export[tables_list]" id="tables-export-list" value="" />
-			<?php
-				$select_size = $data['tables_count'] + 1; // to show at least one empty row in the select
-				$select_size = max( $select_size, 3 );
-				$select_size = min( $select_size, 12 );
-				$size_multiple = ( $data['zip_support_available'] ) ? " size=\"{$select_size}\" multiple=\"multiple\"" : '';
-			?>
-			<select id="tables-export" name="export[tables][]"<?php echo $size_multiple; ?>>
-			<?php
-			foreach ( $data['table_ids'] as $table_id ) {
-				// Load table, without table data, options, and visibility settings.
-				$table = TablePress::$model_table->load( $table_id, false, false );
-				if ( ! current_user_can( 'tablepress_export_table', $table['id'] ) ) {
-					continue;
-				}
-				if ( '' === trim( $table['name'] ) ) {
-					$table['name'] = __( '(no name)', 'tablepress' );
-				}
-				$text = esc_html( sprintf( __( 'ID %1$s: %2$s', 'tablepress' ), $table['id'], $table['name'] ) );
-				$selected = selected( true, in_array( $table['id'], $data['export_ids'], true ), false );
-				echo "<option{$selected} value=\"{$table['id']}\">{$text}</option>";
-			}
-			?>
-			</select>
-			<?php
-			if ( $data['zip_support_available'] ) {
-				echo '<br /><span class="description">' . __( 'You can select multiple tables by holding down the &#8220;Ctrl&#8221; key (Windows) or the &#8220;Command&#8221; key (Mac).', 'tablepress' ) . '</span>';
-			}
-			?>
-		</td>
-	</tr>
-	<tr>
-		<th class="column-1" scope="row"><label for="tables-export-format"><?php _e( 'Export Format', 'tablepress' ); ?>:</label></th>
-		<td class="column-2">
-			<select id="tables-export-format" name="export[format]">
-			<?php
-			foreach ( $data['export_formats'] as $format => $name ) {
-				$selected = selected( $format, $data['export_format'], false );
-				echo "<option{$selected} value=\"{$format}\">{$name}</option>";
-			}
-			?>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<th class="column-1" scope="row"><label for="tables-export-csv-delimiter"><?php _e( 'CSV Delimiter', 'tablepress' ); ?>:</label></th>
-		<td class="column-2">
-			<select id="tables-export-csv-delimiter" name="export[csv_delimiter]">
-			<?php
-			foreach ( $data['csv_delimiters'] as $delimiter => $name ) {
-				$selected = selected( $delimiter, $data['csv_delimiter'], false );
-				echo "<option{$selected} value=\"{$delimiter}\">{$name}</option>";
-			}
-			?>
-			</select> <span id="tables-export-csv-delimiter-description" class="description hide-if-js"><?php _e( '(Only needed for CSV export.)', 'tablepress' ); ?></span>
-		</td>
-	</tr>
-	<tr>
-		<th class="column-1" scope="row"><?php _e( 'ZIP file', 'tablepress' ); ?>:</th>
-		<td class="column-2">
-		<?php
-		if ( $data['zip_support_available'] ) {
-			?>
-		<input type="checkbox" id="tables-export-zip-file" name="export[zip_file]" value="true" />
-		<label for="tables-export-zip-file"><?php _e( 'Create a ZIP archive.', 'tablepress' ); ?> <span id="tables-export-zip-file-description" class="description hide-if-js"><?php _e( '(Mandatory if more than one table is selected.)', 'tablepress' ); ?></span></label>
-			<?php
-		} else {
-			_e( 'Note: Support for ZIP file creation seems not to be available on this server.', 'tablepress' );
+	public function postbox_export_form( array $data, array $box ): void {
+		$script_data = array(
+			'tables'              => $this->admin_page->convert_to_json_parse_output( $data['tables'] ),
+			'exportFormats'       => $this->admin_page->convert_to_json_parse_output( $data['export_formats'] ),
+			'csvDelimiters'       => $this->admin_page->convert_to_json_parse_output( $data['csv_delimiters'] ),
+			'zipSupportAvailable' => $this->admin_page->convert_to_json_parse_output( $data['zip_support_available'] ),
+			'selectedTables'      => $this->admin_page->convert_to_json_parse_output( $data['export_ids'] ),
+			'exportFormat'        => $this->admin_page->convert_to_json_parse_output( $data['export_format'] ),
+			'csvDelimiter'        => $this->admin_page->convert_to_json_parse_output( $data['csv_delimiter'] ),
+		);
+
+		echo "<script>\n";
+		echo "window.tp = window.tp || {};\n";
+		echo "tp.export = {};\n";
+		foreach ( $script_data as $variable => $value ) {
+			echo "tp.export.{$variable} = {$value};\n";
 		}
-		?>
-		</td>
-	</tr>
-</tbody>
-</table>
-		<?php
+		echo "</script>\n";
+
+		echo '<div id="tablepress-export-screen"></div>';
 	}
 
 } // class TablePress_Export_View
