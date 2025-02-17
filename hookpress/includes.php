@@ -183,12 +183,20 @@ function hookpress_print_webhook_row( $id ) {
 	$activeornot = $desc['enabled'] ? 'active' : 'inactive';
 
 	$html_safe['hook'] = esc_html( $desc['hook'] );
+	if( count( $desc['post_type'] ) > 1 ) {
+		$desc['post_type'] = array_map( 'esc_html', $desc['post_type'] );
+		$html_safe['post_type'] = implode(',', $desc['post_type'] );
+	} else{
+		$html_safe['post_type'] = esc_html( $desc['post_type'][0] );
+	}
+	
 	$html_safe['url'] = esc_html( $desc['url'] );
 
 	echo "
 <tr id='$id' class='$activeornot'>
 	<td class='webhook-title'><strong>{$html_safe['hook']}</strong>
 	<div class='row-actions'>$nonce_action $nonce_delete<span class='edit'>$edit | <span class='delete'>$delete | </span><span class='action'>$action</span></div></td>
+	<td class='desc'><p>{$html_safe['post_type']}</p></td>
 	<td class='desc'><p>{$html_safe['url']}</p></td>
 	<td class='desc'><code ".($desc['type'] == 'filter' ? " style='background-color:#ECEC9D' title='".__('The data in the highlighted field is expected to be returned from the webhook, with modification.','hookpress')."'":"").">$fields</code></td>
 </tr>\n";
@@ -205,6 +213,7 @@ function hookpress_print_webhooks_table() {
 	<thead>
 	<tr>
 		<th scope="col" class="manage-column" style="width:15%"><?php _e("Hook","hookpress");?></th>
+		<th scope="col" class="manage-column" style="width:25%"><?php _e("Post Type","hookpress");?></th>
 		<th scope="col" class="manage-column" style="width:25%"><?php _e("URL","hookpress");?></th>
 		<th scope="col" class="manage-column"><?php _e("Fields","hookpress");?></th>
 	</tr>
@@ -213,6 +222,7 @@ function hookpress_print_webhooks_table() {
 	<tfoot>
 	<tr>
 		<th scope="col" class="manage-column"><?php _e("Hook","hookpress");?></th>
+		<th scope="col" class="manage-column"><?php _e("Post Type","hookpress");?></th>
 		<th scope="col" class="manage-column"><?php _e("URL","hookpress");?></th>
 		<th scope="col" class="manage-column"><?php _e("Fields","hookpress");?></th>
 	</tr>
