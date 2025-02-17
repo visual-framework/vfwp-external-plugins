@@ -109,12 +109,13 @@ var editSubmit = function editSubmit() {
 	}
 
 	tb.find('#editindicator').html('<div class="webhooks-spinner">&nbsp;</div>');
-
+	
 	id = tb.find('#edit-hook-id').val();
 	
 	$.ajax({type: 'POST',
 		url:'admin-ajax.php',
 		data:'action=hookpress_add_fields'
+				 +'&post_type='+tb.find('#post_type').val().join()
 				 +'&fields='+tb.find('#editfields').val().join()
 				 +'&url='+tb.find('#editurl').val()
 				 +'&type='+tb.find('.newtype:checked').attr('id')
@@ -170,6 +171,7 @@ var newSubmit = function newSubmit() {
 	$.ajax({type: 'POST',
 		url:'admin-ajax.php',
 		data:'action=hookpress_add_fields'
+				+'&post_type='+tb.find('#post_type').val().join()
 				 +'&fields='+tb.find('#newfields').val().join()
 				 +'&url='+tb.find('#newurl').val()
 				 +'&type='+tb.find('.newtype:checked').attr('id')
@@ -349,6 +351,7 @@ var setEvents = function setEvents() {
       $pos = strpos($display_version,'.')+2;
       $display_version = substr($display_version,0,$pos).'.'.substr($display_version,$pos);
     }
+	$post_types = get_post_types(['public'=> true ]);
     echo $display_version;
     ?></small>
   </h2>	
@@ -365,6 +368,21 @@ var setEvents = function setEvents() {
       <tr>
         <td><label style='font-weight: bold' for='newhook'><?php _e("WordPress hook type",'hookpress');?>: </label></td><td><input type='radio' id='action' class='newtype' name='newtype' checked='checked'> <?php _e("action","hookpress");?></input> <input type='radio' id='filter' class='newtype' name='newtype'> <?php _e("filter","hookpress");?></input></td>
       </tr>
+	  <tr>
+		<td><label style='font-weight: bold' for='edithook'><?php _e("Post type",'hookpress');?>: </label></td>
+		<td>
+		<select name="post_type" id="post_type" multiple>
+		<?php 
+		sort($post_types);
+		foreach ($post_types as $post_type) {
+			if($desc['post_type']){
+				$selected = in_array($post_type,$desc['post_type'])?'selected="true"':'';
+			}
+			$post_type = esc_html( $post_type );
+			echo "<option value='$post_type' $selected>$post_type</option>";
+		}?>
+		</select>
+	</td></tr>
       <tr>
         <td><label style='font-weight: bold' for='newhook' id='action_or_filter'></label></td>
         <td><select name='newhook' id='newhook'></select></td>

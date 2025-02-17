@@ -46,6 +46,7 @@ function hookpress_ajax_add_fields() {
         'type' => sanitize_text_field($_POST['type']),
         'hook' => sanitize_text_field($_POST['hook']),
         'enabled' => sanitize_text_field($_POST['enabled']),
+		'post_type' => explode(',', sanitize_text_field($_POST['post_type'])),
         'fields' => explode(',', sanitize_text_field($_POST['fields']))
       );
       hookpress_update_hook( $id, $edithook );
@@ -57,6 +58,7 @@ function hookpress_ajax_add_fields() {
         'type' => sanitize_text_field($_POST['type']),
         'hook' => sanitize_text_field($_POST['hook']),
         'fields' => explode(',', sanitize_text_field($_POST['fields'])),
+		'post_type' => explode(',', sanitize_text_field($_POST['post_type'])),
         'enabled' => true
       );
       $id = hookpress_add_hook($newhook);
