@@ -46,11 +46,13 @@ function hookpress_print_edit_webhook( $id ){
 	
 	$webhooks = hookpress_get_hooks( );
 	$desc = $webhooks[$id];
-		
+	
 	if ($desc['type'] == 'action')
 		$hooks = array_keys($hookpress_actions);	
 	if ($desc['type'] == 'filter')
 		$hooks = array_keys($hookpress_filters);
+	$post_types = get_post_types(['public'=> true ]);
+	
 ?>
 <div id='hookpress-webhook' style='display:block;'>
 <form id='editform'>
@@ -60,6 +62,21 @@ function hookpress_print_edit_webhook( $id ){
 <tr><td><label style='font-weight: bold' for='edithook'><?php _e("WordPress hook type",'hookpress');?>: </label></td>
 <td><input type='radio' id='action' class='newtype' name='newtype' <?php checked('action',$desc['type']);?>> <?php _e("action","hookpress");?></input> 
 <input type='radio' id='filter' class='newtype' name='newtype' <?php checked('filter',$desc['type']);?>> <?php _e("filter","hookpress");?></input></td></tr>
+<tr>
+<tr><td><label style='font-weight: bold' for='edithook'><?php _e("Post type",'hookpress');?>: </label></td>
+<td>
+<select name="post_type" id="post_type" multiple>
+<?php 
+sort($post_types);
+foreach ($post_types as $post_type) {
+	if($desc['post_type']){
+		$selected = in_array($post_type,$desc['post_type'])?'selected="true"':'';
+	}
+	$post_type = esc_html( $post_type );
+	echo "<option value='$post_type' $selected>$post_type</option>";
+}?>
+</select>
+</td></tr>
 <tr>
 <td><label style='font-weight: bold' for='edithook' id='action_or_filter'>
 <?php
@@ -166,12 +183,20 @@ function hookpress_print_webhook_row( $id ) {
 	$activeornot = $desc['enabled'] ? 'active' : 'inactive';
 
 	$html_safe['hook'] = esc_html( $desc['hook'] );
+	if( count( $desc['post_type'] ) > 1 ) {
+		$desc['post_type'] = array_map( 'esc_html', $desc['post_type'] );
+		$html_safe['post_type'] = implode(',', $desc['post_type'] );
+	} else{
+		$html_safe['post_type'] = esc_html( $desc['post_type'][0] );
+	}
+	
 	$html_safe['url'] = esc_html( $desc['url'] );
 
 	echo "
 <tr id='$id' class='$activeornot'>
 	<td class='webhook-title'><strong>{$html_safe['hook']}</strong>
 	<div class='row-actions'>$nonce_action $nonce_delete<span class='edit'>$edit | <span class='delete'>$delete | </span><span class='action'>$action</span></div></td>
+	<td class='desc'><p>{$html_safe['post_type']}</p></td>
 	<td class='desc'><p>{$html_safe['url']}</p></td>
 	<td class='desc'><code ".($desc['type'] == 'filter' ? " style='background-color:#ECEC9D' title='".__('The data in the highlighted field is expected to be returned from the webhook, with modification.','hookpress')."'":"").">$fields</code></td>
 </tr>\n";
@@ -188,6 +213,7 @@ function hookpress_print_webhooks_table() {
 	<thead>
 	<tr>
 		<th scope="col" class="manage-column" style="width:15%"><?php _e("Hook","hookpress");?></th>
+		<th scope="col" class="manage-column" style="width:25%"><?php _e("Post Type","hookpress");?></th>
 		<th scope="col" class="manage-column" style="width:25%"><?php _e("URL","hookpress");?></th>
 		<th scope="col" class="manage-column"><?php _e("Fields","hookpress");?></th>
 	</tr>
@@ -196,6 +222,7 @@ function hookpress_print_webhooks_table() {
 	<tfoot>
 	<tr>
 		<th scope="col" class="manage-column"><?php _e("Hook","hookpress");?></th>
+		<th scope="col" class="manage-column"><?php _e("Post Type","hookpress");?></th>
 		<th scope="col" class="manage-column"><?php _e("URL","hookpress");?></th>
 		<th scope="col" class="manage-column"><?php _e("Fields","hookpress");?></th>
 	</tr>
@@ -268,6 +295,10 @@ function hookpress_generic_action($id,$args) {
 		$newobj = array();
 		switch($arg_names[$i]) {
 			case 'POST':
+				
+				if(in_array($args[1]->post_type,$desc['post_type']) != 1){
+					return;
+				}
 			case 'ATTACHMENT':
 				$newobj = get_post($arg,ARRAY_A);
 
