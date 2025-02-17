@@ -107,6 +107,10 @@ var editSubmit = function editSubmit() {
 		tb.find('#editindicator').html('<small><?php _e("Please enter a valid URL.","hookpress");?></small>');
 		return;
 	}
+	if (tb.find('#post_type').val() == '') {
+		tb.find('#editindicator').html('<small><?php _e("You must select at least one post type.","hookpress");?></small>');
+		return;
+	}
 
 	tb.find('#editindicator').html('<div class="webhooks-spinner">&nbsp;</div>');
 	
@@ -163,6 +167,10 @@ var newSubmit = function newSubmit() {
 	}
 	if (!/^https?:\/\/\w+/.test(tb.find('#newurl').val())) {
 		tb.find('#newindicator').html('<small><?php _e("Please enter a valid URL.","hookpress");?></small>');
+		return;
+	}
+	if (tb.find('#post_type').val() == '') {
+		tb.find('#newindicator').html('<small><?php _e("You must select at least one post type.","hookpress");?></small>');
 		return;
 	}
 

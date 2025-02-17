@@ -285,6 +285,10 @@ function hookpress_generic_action($id,$args) {
 		$newobj = array();
 		switch($arg_names[$i]) {
 			case 'POST':
+				
+				if(in_array($args[1]->post_type,$desc['post_type']) != 1){
+					return;
+				}
 			case 'ATTACHMENT':
 				$newobj = get_post($arg,ARRAY_A);
 
