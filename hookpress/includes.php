@@ -183,11 +183,15 @@ function hookpress_print_webhook_row( $id ) {
 	$activeornot = $desc['enabled'] ? 'active' : 'inactive';
 
 	$html_safe['hook'] = esc_html( $desc['hook'] );
-	if( count( $desc['post_type'] ) > 1 ) {
-		$desc['post_type'] = array_map( 'esc_html', $desc['post_type'] );
-		$html_safe['post_type'] = implode(',', $desc['post_type'] );
-	} else{
-		$html_safe['post_type'] = esc_html( $desc['post_type'][0] );
+	if( isset($desc['post_type'])) {
+		if( count( $desc['post_type'] ) > 1 ) {
+			$desc['post_type'] = array_map( 'esc_html', $desc['post_type'] );
+			$post_type = implode(',', $desc['post_type'] );
+		} else{
+			$post_type = esc_html( $desc['post_type'][0] );
+		}
+	}else{
+		$post_type = '';
 	}
 	
 	$html_safe['url'] = esc_html( $desc['url'] );
@@ -196,7 +200,7 @@ function hookpress_print_webhook_row( $id ) {
 <tr id='$id' class='$activeornot'>
 	<td class='webhook-title'><strong>{$html_safe['hook']}</strong>
 	<div class='row-actions'>$nonce_action $nonce_delete<span class='edit'>$edit | <span class='delete'>$delete | </span><span class='action'>$action</span></div></td>
-	<td class='desc'><p>{$html_safe['post_type']}</p></td>
+	<td class='desc'><p>{$post_type}</p></td>
 	<td class='desc'><p>{$html_safe['url']}</p></td>
 	<td class='desc'><code ".($desc['type'] == 'filter' ? " style='background-color:#ECEC9D' title='".__('The data in the highlighted field is expected to be returned from the webhook, with modification.','hookpress')."'":"").">$fields</code></td>
 </tr>\n";
