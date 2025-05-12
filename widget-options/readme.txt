@@ -4,7 +4,7 @@ Tags: widgets control, blocks, blocks control, gutenberg widgets, classic widget
 Requires at least: 5.6
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 4.0.8
+Stable tag: 4.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -192,6 +192,26 @@ Widget Options is a featured pack fully lightweight plugin. Using Query Monitor 
 14. Elementor Pagebuilder Integration
 
 == Changelog ==
+
+= 4.1.1 =
+
+* Fix: Fixed vulnerability that could lead to Arbitrary Code Execution (ACE)
+
+= 4.1.0 =
+
+* Tweak: Improved conditional logic queue for better functionality
+* Fix: Resolved preg_match(): Unknown modifier '/' error in includes/extras.php (line 599)
+* Fix: Fixed vulnerability that could lead to Remote Code Execution (RCE)
+
+= 4.0.9 =
+
+* Tweak: Improved rendering when resizing the window, removing the need for auto-refresh
+* Tweak: Enhanced column display for better rendering on small screens
+* Fix: Resolved conflict with Flatsome UX Builder
+* Fix: Fixed vulnerability issue related to the "proc_open" function
+* Fix: Addressed conflict with Divi Theme Builder
+* Fix: Restored missing Widget Options settings on the Posts editor sidebar
+* Fix: Corrected issues related to time zone conflicts
 
 = 4.0.8 =
 
