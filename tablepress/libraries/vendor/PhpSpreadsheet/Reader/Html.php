@@ -16,6 +16,7 @@ use TablePress\PhpOffice\PhpSpreadsheet\Exception as SpreadsheetException;
 use TablePress\PhpOffice\PhpSpreadsheet\Helper\Dimension as CssDimension;
 use TablePress\PhpOffice\PhpSpreadsheet\Helper\Html as HelperHtml;
 use TablePress\PhpOffice\PhpSpreadsheet\Reader\Security\XmlScanner;
+use TablePress\PhpOffice\PhpSpreadsheet\Shared\StringHelper;
 use TablePress\PhpOffice\PhpSpreadsheet\Spreadsheet;
 use TablePress\PhpOffice\PhpSpreadsheet\Style\Border;
 use TablePress\PhpOffice\PhpSpreadsheet\Style\Color;
@@ -35,7 +36,7 @@ class Html extends BaseReader
 
 	private const STARTS_WITH_BOM = '/^(?:\xfe\xff|\xff\xfe|\xEF\xBB\xBF)/';
 
-	private const DECLARES_CHARSET = '/\\bcharset=/i';
+	private const DECLARES_CHARSET = '/\bcharset=/i';
 
 	/**
 	 * Input encoding.
@@ -210,8 +211,7 @@ class Html extends BaseReader
 	 */
 	public function loadSpreadsheetFromFile(string $filename): Spreadsheet
 	{
-		// Create new Spreadsheet
-		$spreadsheet = new Spreadsheet();
+		$spreadsheet = $this->newSpreadsheet();
 		$spreadsheet->setValueBinder($this->valueBinder);
 
 		// Load into this instance
@@ -250,11 +250,13 @@ class Html extends BaseReader
 	}
 
 	/**
-	 * Flush cell.
-	 * @param int|string $row
-	 * @param mixed $cellContent
-	 */
-	protected function flushCell(Worksheet $sheet, string $column, $row, &$cellContent, array $attributeArray): void
+				 * Flush cell.
+				 *
+				 * @param-out string $cellContent In one case, it can be bool
+				 * @param int|string $row
+				 * @param mixed $cellContent
+				 */
+				protected function flushCell(Worksheet $sheet, string $column, $row, &$cellContent, array $attributeArray): void
 	{
 		if (is_string($cellContent)) {
 			//    Simple String content
@@ -275,7 +277,8 @@ class Html extends BaseReader
 						}
 					}
 					if ($datatype === DataType::TYPE_BOOL) {
-						$cellContent = self::convertBoolean($cellContent);
+						// This is the case where we can set cellContent to bool rather than string
+						$cellContent = self::convertBoolean($cellContent); //* @phpstan-ignore-line
 						if (!is_bool($cellContent)) {
 							$attributeArray['data-type'] = DataType::TYPE_STRING;
 						}
@@ -295,7 +298,7 @@ class Html extends BaseReader
 		} else {
 			//    We have a Rich Text run
 			//    TODO
-			$this->dataArray[$row][$column] = 'RICH TEXT: ' . $cellContent;
+			$this->dataArray[$row][$column] = 'RICH TEXT: ' . StringHelper::convertToString($cellContent);
 		}
 		$cellContent = (string) '';
 	}
@@ -304,9 +307,9 @@ class Html extends BaseReader
 	private static array $falseTrueArray = [];
 
 	/**
-	 * @return bool|string
-	 */
-	private static function convertBoolean(?string $cellContent)
+				 * @return bool|string
+				 */
+				private static function convertBoolean(?string $cellContent)
 	{
 		if ($cellContent === '1') {
 			return true;
@@ -378,7 +381,7 @@ class Html extends BaseReader
 				}
 				if (isset($attributeArray['style'])) {
 					$alignStyle = $attributeArray['style'];
-					if (preg_match('/\\btext-align:\\s*(left|right|center|justify)\\b/', $alignStyle, $matches) === 1) {
+					if (preg_match('/\btext-align:\s*(left|right|center|justify)\b/', $alignStyle, $matches) === 1) {
 						$sheet->getComment($column . $row)->setAlignment($matches[1]);
 					}
 				}
@@ -530,7 +533,7 @@ class Html extends BaseReader
 			$this->processDomElement($child, $sheet, $row, $column, $cellContent);
 			$column = $this->releaseTableStartColumn();
 			if ($this->tableLevel > 1) {
-				++$column;
+				++$column; //* @phpstan-ignore-line
 			} else {
 				++$row;
 			}
@@ -620,13 +623,15 @@ class Html extends BaseReader
 	private function processDomElementThTd(Worksheet $sheet, int &$row, string &$column, string &$cellContent, DOMElement $child, array &$attributeArray): void
 	{
 		while (isset($this->rowspan[$column . $row])) {
-			++$column;
+			++$column; //* @phpstan-ignore-line
 		}
-		$this->processDomElement($child, $sheet, $row, $column, $cellContent);
+		//* @phpstan-ignore-next-line
+		$this->processDomElement($child, $sheet, $row, $column, $cellContent); // ++$column above confuses Phpstan
 
 		// apply inline style
 		$this->applyInlineStyle($sheet, $row, $column, $attributeArray);
 
+		/** @var string $cellContent */
 		$this->flushCell($sheet, $column, $row, $cellContent, $attributeArray);
 
 		$this->processDomElementBgcolor($sheet, $row, $column, $attributeArray);
@@ -647,7 +652,8 @@ class Html extends BaseReader
 				$this->rowspan[$value] = true;
 			}
 			$sheet->mergeCells($range);
-			$column = $columnTo;
+			//* @phpstan-ignore-next-line
+			$column = $columnTo; // ++$columnTo above confuses phpstan
 		} elseif (isset($attributeArray['rowspan'])) {
 			//create merging rowspan
 			$range = $column . $row . ':' . $column . ($row + (int) $attributeArray['rowspan'] - 1);
@@ -662,7 +668,8 @@ class Html extends BaseReader
 				++$columnTo;
 			}
 			$sheet->mergeCells($column . $row . ':' . $columnTo . $row);
-			$column = $columnTo;
+			//* @phpstan-ignore-next-line
+			$column = $columnTo; // ++$columnTo above confuses phpstan
 		}
 
 		++$column;
@@ -676,10 +683,8 @@ class Html extends BaseReader
 				if ($domText === "\u{a0}") {
 					$domText = '';
 				}
-				if (is_string($cellContent)) {
-					//    simply append the text if the cell content is a plain text string
-					$cellContent .= $domText;
-				}
+				//    simply append the text if the cell content is a plain text string
+				$cellContent .= $domText;
 				//    but if we have a rich text run instead, we need to append it correctly
 				//    TODO
 			} elseif ($child instanceof DOMElement) {
@@ -776,22 +781,22 @@ class Html extends BaseReader
 					default:
 						if (preg_match('/^custom[.](bool|date|float|int|string)[.](.+)$/', $metaName, $matches) === 1) {
 							switch ($matches[1]) {
-								case 'bool':
-									$properties->setCustomProperty($matches[2], (bool) $metaContent, Properties::PROPERTY_TYPE_BOOLEAN);
-									break;
-								case 'float':
-									$properties->setCustomProperty($matches[2], (float) $metaContent, Properties::PROPERTY_TYPE_FLOAT);
-									break;
-								case 'int':
-									$properties->setCustomProperty($matches[2], (int) $metaContent, Properties::PROPERTY_TYPE_INTEGER);
-									break;
-								case 'date':
-									$properties->setCustomProperty($matches[2], $metaContent, Properties::PROPERTY_TYPE_DATE);
-									break;
-								default:
-									$properties->setCustomProperty($matches[2], $metaContent, Properties::PROPERTY_TYPE_STRING);
-									break;
-							}
+																													case 'bool':
+																														$properties->setCustomProperty($matches[2], (bool) $metaContent, Properties::PROPERTY_TYPE_BOOLEAN);
+																														break;
+																													case 'float':
+																														$properties->setCustomProperty($matches[2], (float) $metaContent, Properties::PROPERTY_TYPE_FLOAT);
+																														break;
+																													case 'int':
+																														$properties->setCustomProperty($matches[2], (int) $metaContent, Properties::PROPERTY_TYPE_INTEGER);
+																														break;
+																													case 'date':
+																														$properties->setCustomProperty($matches[2], $metaContent, Properties::PROPERTY_TYPE_DATE);
+																														break;
+																													default:
+																														$properties->setCustomProperty($matches[2], $metaContent, Properties::PROPERTY_TYPE_STRING);
+																														break;
+																												}
 						}
 				}
 			}
@@ -839,7 +844,7 @@ class Html extends BaseReader
 		if ($loaded === false) {
 			throw new Exception('Failed to load content as a DOM Document', 0, $e ?? null);
 		}
-		$spreadsheet = $spreadsheet ?? new Spreadsheet();
+		$spreadsheet = $spreadsheet ?? $this->newSpreadsheet();
 		$spreadsheet->setValueBinder($this->valueBinder);
 		self::loadProperties($dom, $spreadsheet);
 
@@ -934,7 +939,7 @@ class Html extends BaseReader
 		$styles = explode(';', $attributeArray['style']);
 		foreach ($styles as $st) {
 			$value = explode(':', $st);
-			$styleName = isset($value[0]) ? trim($value[0]) : null;
+			$styleName = trim($value[0]);
 			$styleValue = isset($value[1]) ? trim($value[1]) : null;
 			$styleValueString = (string) $styleValue;
 
@@ -1238,7 +1243,7 @@ class Html extends BaseReader
 	public function listWorksheetInfo(string $filename): array
 	{
 		$info = [];
-		$spreadsheet = new Spreadsheet();
+		$spreadsheet = $this->newSpreadsheet();
 		$this->loadIntoExisting($filename, $spreadsheet);
 		foreach ($spreadsheet->getAllSheets() as $sheet) {
 			$newEntry = ['worksheetName' => $sheet->getTitle()];
@@ -1246,6 +1251,7 @@ class Html extends BaseReader
 			$newEntry['lastColumnIndex'] = Coordinate::columnIndexFromString($sheet->getHighestDataColumn()) - 1;
 			$newEntry['totalRows'] = $sheet->getHighestDataRow();
 			$newEntry['totalColumns'] = $newEntry['lastColumnIndex'] + 1;
+			$newEntry['sheetState'] = Worksheet::SHEETSTATE_VISIBLE;
 			$info[] = $newEntry;
 		}
 		$spreadsheet->disconnectWorksheets();

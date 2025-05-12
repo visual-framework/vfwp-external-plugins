@@ -9,19 +9,19 @@ use TablePress\PhpOffice\PhpSpreadsheet\Calculation\Information\ExcelError;
 class Single
 {
 	/**
-	 * FVSCHEDULE.
-	 *
-	 * Returns the future value of an initial principal after applying a series of compound interest rates.
-	 * Use FVSCHEDULE to calculate the future value of an investment with a variable or adjustable rate.
-	 *
-	 * Excel Function:
-	 *        FVSCHEDULE(principal,schedule)
-	 *
-	 * @param mixed $principal the present value
-	 * @param float[] $schedule an array of interest rates to apply
-	 * @return float|string
-	 */
-	public static function futureValue($principal, array $schedule)
+				 * FVSCHEDULE.
+				 *
+				 * Returns the future value of an initial principal after applying a series of compound interest rates.
+				 * Use FVSCHEDULE to calculate the future value of an investment with a variable or adjustable rate.
+				 *
+				 * Excel Function:
+				 *        FVSCHEDULE(principal,schedule)
+				 *
+				 * @param mixed $principal the present value
+				 * @param float[] $schedule an array of interest rates to apply
+				 * @return float|string
+				 */
+				public static function futureValue($principal, array $schedule)
 	{
 		$principal = Functions::flattenSingleValue($principal);
 		$schedule = Functions::flattenArray($schedule);
@@ -78,9 +78,9 @@ class Single
 	 *
 	 * Calculates the interest rate required for an investment to grow to a specified future value .
 	 *
-	 * @param array|float $periods The number of periods over which the investment is made
-	 * @param array|float $presentValue Present Value
-	 * @param array|float $futureValue Future Value
+	 * @param mixed $periods The number of periods over which the investment is made, expect array|float
+	 * @param mixed $presentValue Present Value, expect array|float
+	 * @param mixed $futureValue Future Value, expect array|float
 	 *
 	 * @return float|string Result, or a string containing an error
 	 */

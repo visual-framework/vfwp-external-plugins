@@ -29,7 +29,7 @@ final class StructuredReference implements Operand
 		self::ITEM_SPECIFIER_TOTALS,
 	];
 
-	private const TABLE_REFERENCE = '/([\p{L}_\\\\][\p{L}\p{N}\._]+)?(\[(?:[^\]\[]+|(?R))*+\])/miu';
+	private const TABLE_REFERENCE = '/([\p{L}_\\\][\p{L}\p{N}\._]+)?(\[(?:[^\]\[]+|(?R))*+\])/miu';
 
 	private string $value;
 
@@ -274,31 +274,31 @@ final class StructuredReference implements Operand
 	private function getMinimumRow(string $reference): int
 	{
 		switch ($reference) {
-			case self::ITEM_SPECIFIER_ALL:
-			case self::ITEM_SPECIFIER_HEADERS:
-				return $this->headersRow ?? $this->firstDataRow;
-			case self::ITEM_SPECIFIER_DATA:
-				return $this->firstDataRow;
-			case self::ITEM_SPECIFIER_TOTALS:
-				return $this->totalsRow ?? $this->lastDataRow;
-			default:
-				return $this->headersRow ?? $this->firstDataRow;
-		}
+									case self::ITEM_SPECIFIER_ALL:
+									case self::ITEM_SPECIFIER_HEADERS:
+										return $this->headersRow ?? $this->firstDataRow;
+									case self::ITEM_SPECIFIER_DATA:
+										return $this->firstDataRow;
+									case self::ITEM_SPECIFIER_TOTALS:
+										return $this->totalsRow ?? $this->lastDataRow;
+									default:
+										return $this->headersRow ?? $this->firstDataRow;
+								}
 	}
 
 	private function getMaximumRow(string $reference): int
 	{
 		switch ($reference) {
-			case self::ITEM_SPECIFIER_HEADERS:
-				return $this->headersRow ?? $this->firstDataRow;
-			case self::ITEM_SPECIFIER_DATA:
-				return $this->lastDataRow;
-			case self::ITEM_SPECIFIER_ALL:
-			case self::ITEM_SPECIFIER_TOTALS:
-				return $this->totalsRow ?? $this->lastDataRow;
-			default:
-				return $this->totalsRow ?? $this->lastDataRow;
-		}
+									case self::ITEM_SPECIFIER_HEADERS:
+										return $this->headersRow ?? $this->firstDataRow;
+									case self::ITEM_SPECIFIER_DATA:
+										return $this->lastDataRow;
+									case self::ITEM_SPECIFIER_ALL:
+									case self::ITEM_SPECIFIER_TOTALS:
+										return $this->totalsRow ?? $this->lastDataRow;
+									default:
+										return $this->totalsRow ?? $this->lastDataRow;
+								}
 	}
 
 	public function value(): string

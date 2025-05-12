@@ -26,7 +26,7 @@ class LoadSpreadsheet extends Xls
 		$xls->loadOLE($filename);
 
 		// Initialisations
-		$xls->spreadsheet = new Spreadsheet();
+		$xls->spreadsheet = $this->newSpreadsheet();
 		$xls->spreadsheet->setValueBinder($this->valueBinder);
 		$xls->spreadsheet->removeSheetByIndex(0); // remove 1st sheet
 		if (!$xls->readDataOnly) {
@@ -64,64 +64,64 @@ class LoadSpreadsheet extends Xls
 			$code = self::getUInt2d($xls->data, $xls->pos);
 
 			switch ($code) {
-				case self::XLS_TYPE_BOF:
-					$xls->readBof();
-					break;
-				case self::XLS_TYPE_FILEPASS:
-					$xls->readFilepass();
-					break;
-				case self::XLS_TYPE_CODEPAGE:
-					$xls->readCodepage();
-					break;
-				case self::XLS_TYPE_DATEMODE:
-					$xls->readDateMode();
-					break;
-				case self::XLS_TYPE_FONT:
-					$xls->readFont();
-					break;
-				case self::XLS_TYPE_FORMAT:
-					$xls->readFormat();
-					break;
-				case self::XLS_TYPE_XF:
-					$xls->readXf();
-					break;
-				case self::XLS_TYPE_XFEXT:
-					$xls->readXfExt();
-					break;
-				case self::XLS_TYPE_STYLE:
-					$xls->readStyle();
-					break;
-				case self::XLS_TYPE_PALETTE:
-					$xls->readPalette();
-					break;
-				case self::XLS_TYPE_SHEET:
-					$xls->readSheet();
-					break;
-				case self::XLS_TYPE_EXTERNALBOOK:
-					$xls->readExternalBook();
-					break;
-				case self::XLS_TYPE_EXTERNNAME:
-					$xls->readExternName();
-					break;
-				case self::XLS_TYPE_EXTERNSHEET:
-					$xls->readExternSheet();
-					break;
-				case self::XLS_TYPE_DEFINEDNAME:
-					$xls->readDefinedName();
-					break;
-				case self::XLS_TYPE_MSODRAWINGGROUP:
-					$xls->readMsoDrawingGroup();
-					break;
-				case self::XLS_TYPE_SST:
-					$xls->readSst();
-					break;
-				case self::XLS_TYPE_EOF:
-					$xls->readDefault();
-					break;
-				default:
-					$xls->readDefault();
-					break;
-			}
+													case self::XLS_TYPE_BOF:
+														$xls->readBof();
+														break;
+													case self::XLS_TYPE_FILEPASS:
+														$xls->readFilepass();
+														break;
+													case self::XLS_TYPE_CODEPAGE:
+														$xls->readCodepage();
+														break;
+													case self::XLS_TYPE_DATEMODE:
+														$xls->readDateMode();
+														break;
+													case self::XLS_TYPE_FONT:
+														$xls->readFont();
+														break;
+													case self::XLS_TYPE_FORMAT:
+														$xls->readFormat();
+														break;
+													case self::XLS_TYPE_XF:
+														$xls->readXf();
+														break;
+													case self::XLS_TYPE_XFEXT:
+														$xls->readXfExt();
+														break;
+													case self::XLS_TYPE_STYLE:
+														$xls->readStyle();
+														break;
+													case self::XLS_TYPE_PALETTE:
+														$xls->readPalette();
+														break;
+													case self::XLS_TYPE_SHEET:
+														$xls->readSheet();
+														break;
+													case self::XLS_TYPE_EXTERNALBOOK:
+														$xls->readExternalBook();
+														break;
+													case self::XLS_TYPE_EXTERNNAME:
+														$xls->readExternName();
+														break;
+													case self::XLS_TYPE_EXTERNSHEET:
+														$xls->readExternSheet();
+														break;
+													case self::XLS_TYPE_DEFINEDNAME:
+														$xls->readDefinedName();
+														break;
+													case self::XLS_TYPE_MSODRAWINGGROUP:
+														$xls->readMsoDrawingGroup();
+														break;
+													case self::XLS_TYPE_SST:
+														$xls->readSst();
+														break;
+													case self::XLS_TYPE_EOF:
+														$xls->readDefault();
+														break;
+													default:
+														$xls->readDefault();
+														break;
+												}
 
 			if ($code === self::XLS_TYPE_EOF) {
 				break;
@@ -518,6 +518,7 @@ class LoadSpreadsheet extends Xls
 						case 0x08:
 							// picture
 							// get index to BSE entry (1-based)
+							/** @var int */
 							$BSEindex = $spContainer->getOPT(0x0104);
 
 							// If there is no BSE Index, we will fail here and other fields are not read.
@@ -581,7 +582,7 @@ class LoadSpreadsheet extends Xls
 				foreach ($xls->sharedFormulaParts as $cell => $baseCell) {
 					/** @var int $row */
 					[$column, $row] = Coordinate::coordinateFromString($cell);
-					if (($xls->getReadFilter() !== null) && $xls->getReadFilter()->readCell($column, $row, $xls->phpSheet->getTitle())) {
+					if ($xls->getReadFilter()->readCell($column, $row, $xls->phpSheet->getTitle())) {
 						$formula = $xls->getFormulaFromStructure($xls->sharedFormulas[$baseCell], $cell);
 						$xls->phpSheet->getCell($cell)->setValueExplicit('=' . $formula, DataType::TYPE_FORMULA);
 					}
@@ -626,8 +627,8 @@ class LoadSpreadsheet extends Xls
 							// $range should look like one of these
 							//        Foo!$C$7:$J$66
 							//        Bar!$A$1:$IV$2
-							$explodes = Worksheet::extractSheetTitle($range, true);
-							$sheetName = trim($explodes[0], "'");
+							$explodes = Worksheet::extractSheetTitle($range, true, true);
+							$sheetName = (string) $explodes[0];
 							if (!str_contains($explodes[1], ':')) {
 								$explodes[1] = $explodes[1] . ':' . $explodes[1];
 							}
@@ -655,8 +656,9 @@ class LoadSpreadsheet extends Xls
 							//        Sheet!$A$1:$B$65536
 							//        Sheet!$A$1:$IV$2
 							if (str_contains($range, '!')) {
-								$explodes = Worksheet::extractSheetTitle($range, true);
-								if ($docSheet = $xls->spreadsheet->getSheetByName($explodes[0])) {
+								$explodes = Worksheet::extractSheetTitle($range, true, true);
+								$docSheet = $xls->spreadsheet->getSheetByName($explodes[0]);
+								if ($docSheet) {
 									$extractedRange = $explodes[1];
 									$extractedRange = str_replace('$', '', $extractedRange);
 
@@ -684,11 +686,9 @@ class LoadSpreadsheet extends Xls
 				/** @var non-empty-string $formula */
 				$formula = $definedName['formula'];
 				if (str_contains($formula, '!')) {
-					$explodes = Worksheet::extractSheetTitle($formula, true);
-					if (
-						($docSheet = $xls->spreadsheet->getSheetByName($explodes[0]))
-						|| ($docSheet = $xls->spreadsheet->getSheetByName(trim($explodes[0], "'")))
-					) {
+					$explodes = Worksheet::extractSheetTitle($formula, true, true);
+					$docSheet = $xls->spreadsheet->getSheetByName($explodes[0]);
+					if ($docSheet) {
 						$extractedRange = $explodes[1];
 
 						$localOnly = ($definedName['scope'] === 0) ? false : true;

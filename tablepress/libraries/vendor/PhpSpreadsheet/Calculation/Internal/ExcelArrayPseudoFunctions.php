@@ -12,13 +12,13 @@ use TablePress\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class ExcelArrayPseudoFunctions
 {
 	/**
-	 * @return mixed
-	 */
-	public static function single(string $cellReference, Cell $cell)
+				 * @return mixed
+				 */
+				public static function single(string $cellReference, Cell $cell)
 	{
 		$worksheet = $cell->getWorksheet();
 
-		[$referenceWorksheetName, $referenceCellCoordinate] = Worksheet::extractSheetTitle($cellReference, true);
+		[$referenceWorksheetName, $referenceCellCoordinate] = Worksheet::extractSheetTitle($cellReference, true, true);
 		if (preg_match('/^([$]?[a-z]{1,3})([$]?([0-9]{1,7})):([$]?[a-z]{1,3})([$]?([0-9]{1,7}))$/i', "$referenceCellCoordinate", $matches) === 1) {
 			$ourRow = $cell->getRow();
 			$firstRow = (int) $matches[3];
@@ -43,14 +43,14 @@ class ExcelArrayPseudoFunctions
 	}
 
 	/**
-	 * @return mixed[]|string
-	 */
-	public static function anchorArray(string $cellReference, Cell $cell)
+				 * @return mixed[]|string
+				 */
+				public static function anchorArray(string $cellReference, Cell $cell)
 	{
 		//$coordinate = $cell->getCoordinate();
 		$worksheet = $cell->getWorksheet();
 
-		[$referenceWorksheetName, $referenceCellCoordinate] = Worksheet::extractSheetTitle($cellReference, true);
+		[$referenceWorksheetName, $referenceCellCoordinate] = Worksheet::extractSheetTitle($cellReference, true, true);
 		$referenceCell = ($referenceWorksheetName === '')
 			? $worksheet->getCell((string) $referenceCellCoordinate)
 			: $worksheet->getParentOrThrow()

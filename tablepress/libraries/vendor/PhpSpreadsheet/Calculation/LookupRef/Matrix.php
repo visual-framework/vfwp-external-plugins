@@ -40,6 +40,7 @@ class Matrix
 		}
 
 		$column = 0;
+		/** @var iterable $matrixData */
 		foreach ($matrixData as $matrixRow) {
 			$row = 0;
 			foreach ($matrixRow as $matrixCell) {
@@ -82,6 +83,15 @@ class Matrix
 
 		$rowNum = $rowNum ?? 0;
 		$columnNum = $columnNum ?? 0;
+		if (is_scalar($matrix)) {
+			if ($rowNum === 0 || $rowNum === 1) {
+				if ($columnNum === 0 || $columnNum === 1) {
+					if ($columnNum === 1 || $rowNum === 1) {
+						return $matrix;
+					}
+				}
+			}
+		}
 
 		try {
 			$rowNum = LookupRefValidations::validatePositiveInt($rowNum);
@@ -106,7 +116,7 @@ class Matrix
 		}
 
 		$rowKeys = array_keys($matrix);
-		$columnKeys = @array_keys($matrix[$rowKeys[0]]);
+		$columnKeys = @array_keys($matrix[$rowKeys[0]]); //* @phpstan-ignore-line
 
 		if ($columnNum > count($columnKeys)) {
 			return ExcelError::REF();
@@ -124,14 +134,15 @@ class Matrix
 			);
 		}
 		$rowNum = $rowKeys[--$rowNum];
+		/** @var array[] $matrix */
 
 		return $matrix[$rowNum][$columnNum];
 	}
 
 	/**
-	 * @return mixed
-	 */
-	private static function extractRowValue(array $matrix, array $rowKeys, int $rowNum)
+				 * @return mixed
+				 */
+				private static function extractRowValue(array $matrix, array $rowKeys, int $rowNum)
 	{
 		if ($rowNum === 0) {
 			return $matrix;

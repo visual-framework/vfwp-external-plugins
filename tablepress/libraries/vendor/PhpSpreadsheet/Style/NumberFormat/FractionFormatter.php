@@ -7,7 +7,7 @@ use TablePress\PhpOffice\PhpSpreadsheet\Calculation\MathTrig;
 class FractionFormatter extends BaseFormatter
 {
 	/** @param mixed $value value to be formatted */
-	public static function format($value, string $format): string
+				public static function format($value, string $format): string
 	{
 		$format = self::stripQuotes($format);
 		$value = (float) $value;
@@ -61,7 +61,7 @@ class FractionFormatter extends BaseFormatter
 	private static function getDecimal(string $value): string
 	{
 		$decimalPart = '0';
-		if (preg_match('/^\\d*[.](\\d*[1-9])0*$/', $value, $matches) === 1) {
+		if (preg_match('/^\d*[.](\d*[1-9])0*$/', $value, $matches) === 1) {
 			$decimalPart = $matches[1];
 		}
 

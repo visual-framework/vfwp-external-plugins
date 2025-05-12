@@ -40,12 +40,16 @@ abstract class IOFactory
 	 */
 	public static function createReader(string $readerType): IReader
 	{
-		if (!isset(self::$readers[$readerType])) {
-			throw new Reader\Exception("No reader found for type $readerType");
-		}
+		/** @var class-string<IReader> */
+		$className = $readerType;
+		if (!in_array($readerType, self::$readers, true)) {
+			if (!isset(self::$readers[$readerType])) {
+				throw new Reader\Exception("No reader found for type $readerType");
+			}
 
-		// Instantiate reader
-		$className = self::$readers[$readerType];
+			// Instantiate reader
+			$className = self::$readers[$readerType];
+		}
 
 		return new $className();
 	}
@@ -75,12 +79,14 @@ abstract class IOFactory
 	/**
 	 * Identify file type using automatic IReader resolution.
 	 */
-	public static function identify(string $filename, ?array $readers = null): string
+	public static function identify(string $filename, ?array $readers = null, bool $fullClassName = false): string
 	{
 		$reader = self::createReaderForFile($filename, $readers);
 		$className = get_class($reader);
+		if ($fullClassName) {
+			return $className;
+		}
 		$classType = explode('\\', $className);
-		unset($reader);
 
 		return array_pop($classType);
 	}
@@ -145,35 +151,37 @@ abstract class IOFactory
 		}
 
 		switch (strtolower($pathinfo['extension'])) {
-			case 'xlsx':
-			case 'xlsm':
-			case 'xltx':
-			case 'xltm':
-				return 'Xlsx';
-			case 'xls':
-			case 'xlt':
-				return 'Xls';
-			case 'ods':
-			case 'ots':
-				return 'Ods';
-			case 'slk':
-				return 'Slk';
-			case 'xml':
-				return 'Xml';
-			case 'gnumeric':
-				return 'Gnumeric';
-			case 'htm':
-			case 'html':
-				return 'Html';
-			case 'csv':
-				return null;
-			default:
-				return null;
-		}
+									case 'xlsx':
+									case 'xlsm':
+									case 'xltx':
+									case 'xltm':
+										return 'Xlsx';
+									case 'xls':
+									case 'xlt':
+										return 'Xls';
+									case 'ods':
+									case 'ots':
+										return 'Ods';
+									case 'slk':
+										return 'Slk';
+									case 'xml':
+										return 'Xml';
+									case 'gnumeric':
+										return 'Gnumeric';
+									case 'htm':
+									case 'html':
+										return 'Html';
+									case 'csv':
+										return null;
+									default:
+										return null;
+								}
 	}
 
 	/**
 	 * Register a reader with its type and class name.
+	 *
+	 * @param class-string<IReader> $readerClass
 	 */
 	public static function registerReader(string $readerType, string $readerClass): void
 	{

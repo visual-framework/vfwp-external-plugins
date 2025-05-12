@@ -44,7 +44,7 @@ class AutoFilter
 	/**
 	 * Create a new AutoFilter.
 	 *
-	 * @param AddressRange<CellAddress>|array{0: int, 1: int, 2: int, 3: int}|array{0: int, 1: int}|string $range
+	 * @param AddressRange<CellAddress>|AddressRange<int>|AddressRange<string>|array{0: int, 1: int, 2: int, 3: int}|array{0: int, 1: int}|string $range
 	 *            A simple string containing a Cell range like 'A1:E10' is permitted
 	 *              or passing in an array of [$fromColumnIndex, $fromRow, $toColumnIndex, $toRow] (e.g. [3, 5, 6, 8]),
 	 *              or an AddressRange object.
@@ -133,7 +133,7 @@ class AutoFilter
 		$this->evaluated = false;
 		if ($this->workSheet !== null) {
 			$thisrange = $this->range;
-			$range = (string) preg_replace('/\\d+$/', (string) $this->workSheet->getHighestRow(), $thisrange);
+			$range = (string) preg_replace('/\d+$/', (string) $this->workSheet->getHighestRow(), $thisrange);
 			if ($range !== $thisrange) {
 				$this->setRange($range);
 			}
@@ -275,7 +275,7 @@ class AutoFilter
 		$fromColumn = strtoupper($fromColumn);
 		$toColumn = strtoupper($toColumn);
 
-		if (($fromColumn !== null) && (isset($this->columns[$fromColumn])) && ($toColumn !== null)) {
+		if (isset($this->columns[$fromColumn])) {
 			$this->columns[$fromColumn]->setParent();
 			$this->columns[$fromColumn]->setColumnIndex($toColumn);
 			$this->columns[$toColumn] = $this->columns[$fromColumn];
@@ -297,7 +297,7 @@ class AutoFilter
 	{
 		$dataSetValues = $dataSet['filterValues'];
 		$blanks = $dataSet['blanks'];
-		if (($cellValue == '') || ($cellValue === null)) {
+		if (($cellValue === '') || ($cellValue === null)) {
 			return $blanks;
 		}
 
@@ -313,7 +313,7 @@ class AutoFilter
 	{
 		$dateSet = $dataSet['filterValues'];
 		$blanks = $dataSet['blanks'];
-		if (($cellValue == '') || ($cellValue === null)) {
+		if (($cellValue === '') || ($cellValue === null)) {
 			return $blanks;
 		}
 		$timeZone = new DateTimeZone('UTC');
@@ -359,7 +359,7 @@ class AutoFilter
 
 		if (!$customRuleForBlanks) {
 			//    Blank cells are always ignored, so return a FALSE
-			if (($cellValue == '') || ($cellValue === null)) {
+			if (($cellValue === '') || ($cellValue === null)) {
 				return false;
 			}
 		}
@@ -404,16 +404,16 @@ class AutoFilter
 				}
 			} elseif ($ruleValue == '') {
 				switch ($ruleOperator) {
-					case Rule::AUTOFILTER_COLUMN_RULE_EQUAL:
-						$retVal = ($cellValue == '') || ($cellValue === null);
-						break;
-					case Rule::AUTOFILTER_COLUMN_RULE_NOTEQUAL:
-						$retVal = ($cellValue != '') && ($cellValue !== null);
-						break;
-					default:
-						$retVal = true;
-						break;
-				}
+														case Rule::AUTOFILTER_COLUMN_RULE_EQUAL:
+															$retVal = ($cellValue === '') || ($cellValue === null);
+															break;
+														case Rule::AUTOFILTER_COLUMN_RULE_NOTEQUAL:
+															$retVal = $cellValue != '';
+															break;
+														default:
+															$retVal = true;
+															break;
+													}
 			} else {
 				//    String values are always tested for equality, factoring in for wildcards (hence a regexp test)
 				switch ($ruleOperator) {
@@ -472,7 +472,7 @@ class AutoFilter
 	protected static function filterTestInPeriodDateSet($cellValue, array $monthSet): bool
 	{
 		//    Blank cells are always ignored, so return a FALSE
-		if (($cellValue == '') || ($cellValue === null)) {
+		if (($cellValue === '') || ($cellValue === null)) {
 			return false;
 		}
 
@@ -698,7 +698,7 @@ class AutoFilter
 		//    Val is lowest permitted value.
 		//    Maxval is greater than highest permitted value
 		$val = $maxval = 0;
-		if (is_callable($callBack)) {
+		if (is_callable($callBack)) { //* @phpstan-ignore-line
 			[$val, $maxval] = $callBack();
 		}
 		$val = Date::dateTimeToExcel($val);
@@ -1035,7 +1035,7 @@ class AutoFilter
 				//    The columns array of \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet\AutoFilter objects
 				$this->{$key} = [];
 				foreach ($value as $k => $v) {
-					$this->{$key}[$k] = clone $v;
+					$this->{$key}[$k] = clone $v; //* @phpstan-ignore-line
 					// attach the new cloned Column to this new cloned Autofilter object
 					$this->{$key}[$k]->setParent($this);
 				}

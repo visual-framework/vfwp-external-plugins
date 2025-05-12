@@ -81,6 +81,11 @@ class Cells
 		return ($cellCoordinate === $this->currentCoordinate) || isset($this->index[$cellCoordinate]);
 	}
 
+	public function has2(string $cellCoordinate): bool
+	{
+		return isset($this->index[$cellCoordinate]);
+	}
+
 	/**
 	 * Add or update a cell in the collection.
 	 *
@@ -274,10 +279,10 @@ class Cells
 	}
 
 	/**
-	 * Clone the cell collection.
-	 * @return static
-	 */
-	public function cloneCellCollection(Worksheet $worksheet)
+				 * Clone the cell collection.
+				 * @return static
+				 */
+				public function cloneCellCollection(Worksheet $worksheet)
 	{
 		$this->storeCurrentCell();
 		$newCollection = clone $this;
