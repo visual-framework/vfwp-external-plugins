@@ -229,6 +229,7 @@ class Xml extends BaseReader
 
 			$tmpInfo['lastColumnLetter'] = Coordinate::stringFromColumnIndex($tmpInfo['lastColumnIndex'] + 1);
 			$tmpInfo['totalColumns'] = $tmpInfo['lastColumnIndex'] + 1;
+			$tmpInfo['sheetState'] = Worksheet::SHEETSTATE_VISIBLE;
 
 			$worksheetInfo[] = $tmpInfo;
 			++$worksheetID;
@@ -242,8 +243,7 @@ class Xml extends BaseReader
 	 */
 	public function loadSpreadsheetFromString(string $contents): Spreadsheet
 	{
-		// Create new Spreadsheet
-		$spreadsheet = new Spreadsheet();
+		$spreadsheet = $this->newSpreadsheet();
 		$spreadsheet->setValueBinder($this->valueBinder);
 		$spreadsheet->removeSheetByIndex(0);
 
@@ -256,8 +256,7 @@ class Xml extends BaseReader
 	 */
 	protected function loadSpreadsheetFromFile(string $filename): Spreadsheet
 	{
-		// Create new Spreadsheet
-		$spreadsheet = new Spreadsheet();
+		$spreadsheet = $this->newSpreadsheet();
 		$spreadsheet->setValueBinder($this->valueBinder);
 		$spreadsheet->removeSheetByIndex(0);
 
@@ -404,12 +403,10 @@ class Xml extends BaseReader
 							$arrayRef = AddressHelper::convertFormulaToA1($arrayRange, $rowID, Coordinate::columnIndexFromString($columnID));
 						}
 
-						if ($this->getReadFilter() !== null) {
-							if (!$this->getReadFilter()->readCell($columnID, $rowID, $worksheetName)) {
-								++$columnID;
+						if (!$this->getReadFilter()->readCell($columnID, $rowID, $worksheetName)) {
+							++$columnID;
 
-								continue;
-							}
+							continue;
 						}
 
 						if (isset($cell_ss['HRef'])) {

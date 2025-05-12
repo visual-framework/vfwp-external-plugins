@@ -2,11 +2,13 @@
 
 namespace TablePress\PhpOffice\PhpSpreadsheet\Calculation\TextData;
 
+use TablePress\Composer\Pcre\Preg;
 use TablePress\PhpOffice\PhpSpreadsheet\Calculation\ArrayEnabled;
 use TablePress\PhpOffice\PhpSpreadsheet\Calculation\Calculation;
 use TablePress\PhpOffice\PhpSpreadsheet\Calculation\Exception as CalcExp;
 use TablePress\PhpOffice\PhpSpreadsheet\Calculation\Functions;
 use TablePress\PhpOffice\PhpSpreadsheet\Calculation\Information\ErrorValue;
+use TablePress\PhpOffice\PhpSpreadsheet\Shared\StringHelper;
 
 class Text
 {
@@ -112,7 +114,7 @@ class Text
 	{
 		$text = Functions::flattenSingleValue($text);
 		if (ErrorValue::isError($text, true)) {
-			return $text;
+			return StringHelper::convertToString($text);
 		}
 
 		$flags = self::matchFlags($matchMode);
@@ -121,12 +123,11 @@ class Text
 			$delimiter = self::buildDelimiter($rowDelimiter);
 			$rows = ($delimiter === '()')
 				? [$text]
-				: preg_split("/{$delimiter}/{$flags}", $text);
+				: Preg::split("/{$delimiter}/{$flags}", StringHelper::convertToString($text));
 		} else {
 			$rows = [$text];
 		}
 
-		/** @var array $rows */
 		if ($ignoreEmpty === true) {
 			$rows = array_values(array_filter(
 				$rows,
@@ -141,8 +142,7 @@ class Text
 				function (&$row) use ($delimiter, $flags, $ignoreEmpty): void {
 					$row = ($delimiter === '()')
 						? [$row]
-						: preg_split("/{$delimiter}/{$flags}", $row);
-					/** @var array $row */
+						: Preg::split("/{$delimiter}/{$flags}", StringHelper::convertToString($row));
 					if ($ignoreEmpty === true) {
 						$row = array_values(array_filter(
 							$row,
@@ -163,9 +163,9 @@ class Text
 	}
 
 	/**
-	 * @param mixed $padding
-	 */
-	private static function applyPadding(array $rows, $padding): array
+				 * @param mixed $padding
+				 */
+				private static function applyPadding(array $rows, $padding): array
 	{
 		$columnCount = array_reduce(
 			$rows,
@@ -174,11 +174,9 @@ class Text
 		);
 
 		return array_map(
-			function (array $row) use ($columnCount, $padding): array {
-				return (count($row) < $columnCount)
+			fn (array $row): array => (count($row) < $columnCount)
 					? array_merge($row, array_fill(0, $columnCount - count($row), $padding))
-					: $row;
-			},
+					: $row,
 			$rows
 		);
 	}
@@ -201,7 +199,7 @@ class Text
 			return '(' . $delimiters . ')';
 		}
 
-		return '(' . preg_quote(Functions::flattenSingleValue($delimiter), '/') . ')';
+		return '(' . preg_quote(StringHelper::convertToString(Functions::flattenSingleValue($delimiter)), '/') . ')';
 	}
 
 	private static function matchFlags(bool $matchMode): string
@@ -227,21 +225,21 @@ class Text
 	}
 
 	/**
-	 * @param mixed $cellValue
-	 */
-	private static function formatValueMode0($cellValue): string
+				 * @param mixed $cellValue
+				 */
+				private static function formatValueMode0($cellValue): string
 	{
 		if (is_bool($cellValue)) {
 			return Calculation::getLocaleBoolean($cellValue ? 'TRUE' : 'FALSE');
 		}
 
-		return (string) $cellValue;
+		return StringHelper::convertToString($cellValue);
 	}
 
 	/**
-	 * @param mixed $cellValue
-	 */
-	private static function formatValueMode1($cellValue): string
+				 * @param mixed $cellValue
+				 */
+				private static function formatValueMode1($cellValue): string
 	{
 		if (is_string($cellValue) && ErrorValue::isError($cellValue) === false) {
 			return Calculation::FORMULA_STRING_QUOTE . $cellValue . Calculation::FORMULA_STRING_QUOTE;
@@ -249,6 +247,6 @@ class Text
 			return Calculation::getLocaleBoolean($cellValue ? 'TRUE' : 'FALSE');
 		}
 
-		return (string) $cellValue;
+		return StringHelper::convertToString($cellValue);
 	}
 }

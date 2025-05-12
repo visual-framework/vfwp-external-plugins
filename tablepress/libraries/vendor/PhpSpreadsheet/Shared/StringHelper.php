@@ -2,6 +2,10 @@
 
 namespace TablePress\PhpOffice\PhpSpreadsheet\Shared;
 
+use TablePress\PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+use TablePress\PhpOffice\PhpSpreadsheet\Exception as SpreadsheetException;
+use Stringable;
+
 class StringHelper
 {
 	/**
@@ -34,7 +38,7 @@ class StringHelper
 	/**
 	 * Is iconv extension avalable?
 	 */
-	private static ?bool $isIconvEnabled;
+	private static ?bool $isIconvEnabled = null;
 
 	/**
 	 * iconv options.
@@ -638,5 +642,43 @@ class StringHelper
 		$v = (float) $textValue;
 
 		return (is_numeric(substr($textValue, 0, strlen((string) $v)))) ? $v : $textValue;
+	}
+
+	public static function strlenAllowNull(?string $string): int
+	{
+		return strlen("$string");
+	}
+
+	/** @param bool $convertBool If true, convert bool to locale-aware TRUE/FALSE rather than 1/null-string
+				 * @param mixed $value */
+				public static function convertToString($value, bool $throw = true, string $default = '', bool $convertBool = false): string
+	{
+		if ($convertBool && is_bool($value)) {
+			return $value ? Calculation::getTRUE() : Calculation::getFALSE();
+		}
+		if ($value === null || is_scalar($value) || (is_object($value) && method_exists($value, '__toString'))) {
+			return (string) $value;
+		}
+
+		if ($throw) {
+			throw new SpreadsheetException('Unable to convert to string');
+		}
+
+		return $default;
+	}
+
+	/**
+	 * Assist with POST items when samples are run in browser.
+	 * Never run as part of unit tests, which are command line.
+	 *
+	 * @codeCoverageIgnore
+	 */
+	public static function convertPostToString(string $index, string $default = ''): string
+	{
+		if (isset($_POST[$index])) {
+			return htmlentities(self::convertToString($_POST[$index], false, $default));
+		}
+
+		return $default;
 	}
 }

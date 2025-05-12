@@ -125,6 +125,7 @@ class ConditionalStyles
 	{
 		$conditionType = (string) $attributes->type;
 		$operatorType = (string) $attributes->operator;
+		$priority = (int) (string) $attributes->priority;
 
 		$operands = [];
 		foreach ($cfRuleXml->children($this->ns['xm']) as $cfRuleOperandsXml) {
@@ -134,6 +135,7 @@ class ConditionalStyles
 		$conditional = new Conditional();
 		$conditional->setConditionType($conditionType);
 		$conditional->setOperatorType($operatorType);
+		$conditional->setPriority($priority);
 		if (
 			$conditionType === Conditional::CONDITION_CONTAINSTEXT
 			|| $conditionType === Conditional::CONDITION_NOTCONTAINSTEXT
@@ -184,13 +186,20 @@ class ConditionalStyles
 	private function setConditionalStyles(Worksheet $worksheet, array $conditionals, SimpleXMLElement $xmlExtLst): void
 	{
 		foreach ($conditionals as $cellRangeReference => $cfRules) {
-			ksort($cfRules);
+			ksort($cfRules); // no longer needed for Xlsx, but helps Xls
 			$conditionalStyles = $this->readStyleRules($cfRules, $xmlExtLst);
 
 			// Extract all cell references in $cellRangeReference
 			// N.B. In Excel UI, intersection is space and union is comma.
 			// But in Xml, intersection is comma and union is space.
 			$cellRangeReference = str_replace(['$', ' ', ',', '^'], ['', '^', ' ', ','], strtoupper($cellRangeReference));
+
+			foreach ($conditionalStyles as $cs) {
+				$scale = $cs->getColorScale();
+				if ($scale !== null) {
+					$scale->setSqRef($cellRangeReference, $worksheet);
+				}
+			}
 			$worksheet->getStyle($cellRangeReference)->setConditionalStyles($conditionalStyles);
 		}
 	}
@@ -205,6 +214,7 @@ class ConditionalStyles
 			$objConditional = new Conditional();
 			$objConditional->setConditionType((string) $cfRule['type']);
 			$objConditional->setOperatorType((string) $cfRule['operator']);
+			$objConditional->setPriority((int) (string) $cfRule['priority']);
 			$objConditional->setNoFormatSet(!isset($cfRule['dxfId']));
 
 			if ((string) $cfRule['text'] != '') {
@@ -284,9 +294,9 @@ class ConditionalStyles
 	}
 
 	/**
-	 * @param \SimpleXMLElement|\stdClass $cfRule
-	 */
-	private function readColorScale($cfRule): ConditionalColorScale
+				 * @param \SimpleXMLElement|\stdClass $cfRule
+				 */
+				private function readColorScale($cfRule): ConditionalColorScale
 	{
 		$colorScale = new ConditionalColorScale();
 		$count = count($cfRule->colorScale->cfvo);

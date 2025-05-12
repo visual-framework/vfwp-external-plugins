@@ -41,10 +41,10 @@ class DefaultValueBinder implements IValueBinder
 	}
 
 	/**
-	 * DataType for value.
-	 * @param mixed $value
-	 */
-	public static function dataTypeForValue($value): string
+				 * DataType for value.
+				 * @param mixed $value
+				 */
+				public static function dataTypeForValue($value): string
 	{
 		// Match the value against a few data types
 		if ($value === null) {
@@ -90,7 +90,7 @@ class DefaultValueBinder implements IValueBinder
 
 			return DataType::TYPE_FORMULA;
 		}
-		if (preg_match('/^[\+\-]?(\d+\\.?\d*|\d*\\.?\d+)([Ee][\-\+]?[0-2]?\d{1,3})?$/', $value)) {
+		if (preg_match('/^[\+\-]?(\d+\.?\d*|\d*\.?\d+)([Ee][\-\+]?[0-2]?\d{1,3})?$/', $value)) {
 			$tValue = ltrim($value, '+-');
 			if (strlen($tValue) > 1 && $tValue[0] === '0' && $tValue[1] !== '.') {
 				return DataType::TYPE_STRING;

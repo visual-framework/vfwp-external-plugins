@@ -27,13 +27,15 @@ class MemoryDrawing extends BaseDrawing
 	];
 
 	/**
-	 * Image resource.
-	 * @var null|\GdImage
-	 */
-	private $imageResource = null;
+				 * Image resource.
+				 * @var null|\GdImage
+				 */
+				private $imageResource = null;
 
 	/**
 	 * Rendering function.
+	 *
+	 * @var callable-string
 	 */
 	private string $renderingFunction;
 
@@ -162,18 +164,19 @@ class MemoryDrawing extends BaseDrawing
 		return $drawing;
 	}
 
+	/** @return callable-string */
 	private static function identifyRenderingFunction(string $mimeType): string
 	{
 		switch ($mimeType) {
-			case self::MIMETYPE_PNG:
-				return self::RENDERING_PNG;
-			case self::MIMETYPE_JPEG:
-				return self::RENDERING_JPEG;
-			case self::MIMETYPE_GIF:
-				return self::RENDERING_GIF;
-			default:
-				return self::RENDERING_DEFAULT;
-		}
+									case self::MIMETYPE_PNG:
+										return self::RENDERING_PNG;
+									case self::MIMETYPE_JPEG:
+										return self::RENDERING_JPEG;
+									case self::MIMETYPE_GIF:
+										return self::RENDERING_GIF;
+									default:
+										return self::RENDERING_DEFAULT;
+								}
 	}
 
 	/**
@@ -266,6 +269,8 @@ class MemoryDrawing extends BaseDrawing
 
 	/**
 	 * Get rendering function.
+	 *
+	 * @return callable-string
 	 */
 	public function getRenderingFunction(): string
 	{
@@ -275,7 +280,7 @@ class MemoryDrawing extends BaseDrawing
 	/**
 	 * Set rendering function.
 	 *
-	 * @param string $value see self::RENDERING_*
+	 * @param callable-string $value see self::RENDERING_*
 	 *
 	 * @return $this
 	 */

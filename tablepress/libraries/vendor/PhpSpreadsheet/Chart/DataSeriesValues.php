@@ -73,12 +73,12 @@ class DataSeriesValues extends Properties
 	private array $trendLines = [];
 
 	/**
-	 * Create a new DataSeriesValues object.
-	 *
-	 * @param null|ChartColor|ChartColor[]|string|string[] $fillColor
-	 * @param int|string $pointSize
-	 */
-	public function __construct(
+				 * Create a new DataSeriesValues object.
+				 *
+				 * @param null|ChartColor|ChartColor[]|string|string[] $fillColor
+				 * @param int|string $pointSize
+				 */
+				public function __construct(
 		string $dataType = self::DATASERIES_TYPE_NUMBER,
 		?string $dataSource = null,
 		?string $formatCode = null,
@@ -344,21 +344,21 @@ class DataSeriesValues extends Properties
 	}
 
 	/**
-	 * Get line width for series.
-	 * @return float|int|null
-	 */
-	public function getLineWidth()
+				 * Get line width for series.
+				 * @return float|int|null
+				 */
+				public function getLineWidth()
 	{
 		return $this->lineStyleProperties['width'];
 	}
 
 	/**
-	 * Set line width for the series.
-	 *
-	 * @return $this
-	 * @param null|float|int $width
-	 */
-	public function setLineWidth($width)
+				 * Set line width for the series.
+				 *
+				 * @return $this
+				 * @param null|float|int $width
+				 */
+				public function setLineWidth($width)
 	{
 		$this->lineStyleProperties['width'] = $width;
 
@@ -399,10 +399,10 @@ class DataSeriesValues extends Properties
 	}
 
 	/**
-	 * Get the first Series Data value.
-	 * @return mixed
-	 */
-	public function getDataValue()
+				 * Get the first Series Data value.
+				 * @return mixed
+				 */
+				public function getDataValue()
 	{
 		if ($this->dataValues === null) {
 			return null;
@@ -450,7 +450,7 @@ class DataSeriesValues extends Properties
 				}
 				unset($dataValue);
 			} else {
-				[$worksheet, $cellRange] = Worksheet::extractSheetTitle($this->dataSource, true);
+				[, $cellRange] = Worksheet::extractSheetTitle($this->dataSource, true);
 				$dimensions = Coordinate::rangeDimension(str_replace('$', '', $cellRange ?? ''));
 				if (($dimensions[0] == 1) || ($dimensions[1] == 1)) {
 					$this->dataValues = Functions::flattenArray($newDataValues);
