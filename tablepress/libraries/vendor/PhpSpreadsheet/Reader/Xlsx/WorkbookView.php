@@ -14,6 +14,7 @@ class WorkbookView
 		$this->spreadsheet = $spreadsheet;
 	}
 
+	/** @param array<int, ?int> $mapSheetId */
 	public function viewSettings(SimpleXMLElement $xmlWorkbook, string $mainNS, array $mapSheetId, bool $readDataOnly): void
 	{
 		// Default active sheet index to the first loaded worksheet from the file
@@ -58,7 +59,7 @@ class WorkbookView
 	/**
 	 * Convert an 'xsd:boolean' XML value to a PHP boolean value.
 	 * A valid 'xsd:boolean' XML value can be one of the following
-	 * four values: 'true', 'false', '1', '0'.  It is case sensitive.
+	 * four values: 'true', 'false', '1', '0'.  It is case-sensitive.
 	 *
 	 * Note that just doing '(bool) $xsdBoolean' is not safe,
 	 * since '(bool) "false"' returns true.

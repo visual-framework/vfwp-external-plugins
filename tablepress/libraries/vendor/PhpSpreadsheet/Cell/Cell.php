@@ -15,6 +15,7 @@ use TablePress\PhpOffice\PhpSpreadsheet\Style\ConditionalFormatting\CellStyleAss
 use TablePress\PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use TablePress\PhpOffice\PhpSpreadsheet\Style\Protection;
 use TablePress\PhpOffice\PhpSpreadsheet\Style\Style;
+use TablePress\PhpOffice\PhpSpreadsheet\Worksheet\BaseDrawing;
 use TablePress\PhpOffice\PhpSpreadsheet\Worksheet\Table;
 use TablePress\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Stringable;
@@ -221,19 +222,39 @@ class Cell
 	 */
 	public function setValue($value, ?IValueBinder $binder = null): self
 	{
+		if ($this->hadHyperlink) {
+			$this->clearHyperlink();
+		}
 		// Cells?->Worksheet?->Spreadsheet
-		$binder ??= (($nullsafeVariable3 = ($nullsafeVariable4 = ($nullsafeVariable5 = $this->parent) ? $nullsafeVariable5->getParent() : null) ? $nullsafeVariable4->getParent() : null) ? $nullsafeVariable3->getValueBinder() : null) ?? self::getValueBinder();
+		$binder ??= (($nullsafeVariable3 = ($nullsafeVariable13 = ($nullsafeVariable17 = $this->parent) ? $nullsafeVariable17->getParent() : null) ? $nullsafeVariable13->getParent() : null) ? $nullsafeVariable3->getValueBinder() : null) ?? self::getValueBinder();
 		if (!$binder->bindValue($this, $value)) {
 			throw new SpreadsheetException('Value could not be bound to cell.');
 		}
 
 		return $this;
 	}
+	private bool $hadHyperlink = false;
+	/** @internal */
+	public function setHadHyperlink(bool $hadHyperlink): void
+	{
+		$this->hadHyperlink = $hadHyperlink;
+	}
+	private function clearHyperlink(): void
+	{
+		$worksheet = $this->getWorksheetOrNull();
+		if ($worksheet !== null) {
+			$coordinate = $this->getCoordinate();
+			$worksheet->setHyperlink($coordinate, null);
+		}
+		$this->hadHyperlink = false;
+	}
 	/**
 	 * Set the value for a cell, with the explicit data type passed to the method (bypassing any use of the value binder).
 	 *
 	 * @param mixed $value Value
 	 * @param string $dataType Explicit data type, see DataType::TYPE_*
+	 *        This parameter is currently optional (default = string).
+	 *        Omitting it is ***DEPRECATED***, and the default will be removed in a future release.
 	 *        Note that PhpSpreadsheet does not validate that the value and datatype are consistent, in using this
 	 *             method, then it is your responsibility as an end-user developer to validate that the value and
 	 *             the datatype match.
@@ -244,6 +265,9 @@ class Cell
 	 */
 	public function setValueExplicit($value, string $dataType = DataType::TYPE_STRING): self
 	{
+		if ($this->hadHyperlink) {
+			$this->clearHyperlink();
+		}
 		$oldValue = $this->value;
 		$quotePrefix = false;
 
@@ -265,7 +289,14 @@ class Cell
 			case DataType::TYPE_INLINE:
 				// Rich text
 				$value2 = StringHelper::convertToString($value, true);
-				$this->value = DataType::checkString(($value instanceof RichText) ? $value : $value2);
+				// Cells?->Worksheet?->Spreadsheet
+				$binder = ($nullsafeVariable4 = ($nullsafeVariable5 = ($nullsafeVariable14 = $this->parent) ? $nullsafeVariable14->getParent() : null) ? $nullsafeVariable5->getParent() : null) ? $nullsafeVariable4->getValueBinder() : null;
+				$preserveCr = false;
+				if ($binder !== null && method_exists($binder, 'getPreserveCr')) {
+					/** @var bool */
+					$preserveCr = $binder->getPreserveCr();
+				}
+				$this->value = DataType::checkString(($value instanceof RichText) ? $value : $value2, $preserveCr);
 
 				break;
 			case DataType::TYPE_NUMERIC:
@@ -286,6 +317,14 @@ class Cell
 			case DataType::TYPE_ISO_DATE:
 				$this->value = SharedDate::convertIsoDate($value);
 				$dataType = DataType::TYPE_NUMERIC;
+
+				break;
+			case DataType::TYPE_DRAWING_IN_CELL:
+				if ($value instanceof BaseDrawing) {
+					$this->value = $value;
+				} else {
+					throw new SpreadsheetException('Item is not a drawing');
+				}
 
 				break;
 			case DataType::TYPE_ERROR:
@@ -372,7 +411,7 @@ class Cell
 			$value = array_shift($value);
 		}
 
-		return StringHelper::convertToString($value, false);
+		return StringHelper::convertToString($value, false, '', true);
 	}
 	/**
 	 * Get calculated cell value.
@@ -434,6 +473,7 @@ class Cell
 				}
 				$newColumn = $this->getColumn();
 				if (is_array($result)) {
+					$result = self::convertSpecialArray($result);
 					$this->formulaAttributes['t'] = 'array';
 					$this->formulaAttributes['ref'] = $maxCoordinate = $coordinate;
 					$newRow = $row = $this->getRow();
@@ -452,7 +492,8 @@ class Cell
 										}
 									}
 								}
-								++$newColumn;
+								/** @var string $newColumn */
+								StringHelper::stringIncrement($newColumn);
 							}
 							++$newRow;
 						} else {
@@ -464,7 +505,7 @@ class Cell
 									}
 								}
 							}
-							++$newColumn;
+							StringHelper::stringIncrement($newColumn);
 						}
 						if ($spill) {
 							break;
@@ -482,15 +523,15 @@ class Cell
 							$coordinate = $this->getCoordinate();
 							$ref = $oldAttributesRef;
 							if (preg_match('/^([A-Z]{1,3})([0-9]{1,7})(:([A-Z]{1,3})([0-9]{1,7}))?$/', $ref, $matches) === 1) {
-								if (isset($matches[3])) {
+								if (isset($matches[5])) {
 									$minCol = $matches[1];
 									$minRow = (int) $matches[2];
-									// https://github.com/phpstan/phpstan/issues/11602
-									$maxCol = $matches[4]; // @phpstan-ignore-line
-									++$maxCol;
-									$maxRow = (int) $matches[5]; // @phpstan-ignore-line
+									$maxCol = $matches[4];
+									StringHelper::stringIncrement($maxCol);
+									$maxRow = (int) $matches[5];
 									for ($row = $minRow; $row <= $maxRow; ++$row) {
-										for ($col = $minCol; $col !== $maxCol; ++$col) {
+										for ($col = $minCol; $col !== $maxCol; StringHelper::stringIncrement($col)) {
+											/** @var string $col */
 											if ("$col$row" !== $coordinate) {
 												$thisworksheet->getCell("$col$row")->setValue(null);
 											}
@@ -513,16 +554,18 @@ class Cell
 							$newColumn = $column;
 							foreach ($resultRow as $resultValue) {
 								if ($row !== $newRow || $column !== $newColumn) {
-									$thisworksheet->getCell($newColumn . $newRow)->setValue($resultValue);
+									$thisworksheet
+										->getCell($newColumn . $newRow)
+										->setValue($resultValue);
 								}
-								++$newColumn;
+								StringHelper::stringIncrement($newColumn);
 							}
 							++$newRow;
 						} else {
 							if ($row !== $newRow || $column !== $newColumn) {
 								$thisworksheet->getCell($newColumn . $newRow)->setValue($resultRow);
 							}
-							++$newColumn;
+							StringHelper::stringIncrement($newColumn);
 						}
 					}
 					$thisworksheet->getCell($column . $row);
@@ -557,6 +600,35 @@ class Cell
 		}
 
 		return $this->convertDateTimeInt($this->value);
+	}
+	/**
+	 * Convert array like the following (preserve values, lose indexes):
+	 * [
+	 *   rowNumber1 => [colLetter1 => value, colLetter2 => value ...],
+	 *   rowNumber2 => [colLetter1 => value, colLetter2 => value ...],
+	 *   ...
+	 * ].
+	 *
+	 * @param mixed[] $array
+	 *
+	 * @return mixed[]
+	 */
+	private static function convertSpecialArray(array $array): array
+	{
+		$newArray = [];
+		foreach ($array as $rowIndex => $row) {
+			if (!is_int($rowIndex) || $rowIndex <= 0 || !is_array($row)) {
+				return $array;
+			}
+			$keys = array_keys($row);
+			$key0 = $keys[0] ?? '';
+			if (!is_string($key0)) {
+				return $array;
+			}
+			$newArray[] = array_values($row);
+		}
+
+		return $newArray;
 	}
 	/**
 	 * Set old calculated value (cached).
@@ -683,7 +755,8 @@ class Cell
 			throw new SpreadsheetException('Cannot get hyperlink for cell that is not bound to a worksheet');
 		}
 
-		return $this->getWorksheet()->getHyperlink($this->getCoordinate());
+		return $this->getWorksheet()
+			->getHyperlink($this->getCoordinate());
 	}
 	/**
 	 * Set Hyperlink.
@@ -696,7 +769,8 @@ class Cell
 			throw new SpreadsheetException('Cannot set hyperlink for cell that is not bound to a worksheet');
 		}
 
-		$this->getWorksheet()->setHyperlink($this->getCoordinate(), $hyperlink);
+		$this->getWorksheet()
+			->setHyperlink($this->getCoordinate(), $hyperlink);
 
 		return $this->updateInCollection();
 	}
@@ -895,9 +969,7 @@ class Cell
 	/**
 	 * Set the formula attributes.
 	 *
-	 * @param $attributes null|array<string, string>
-	 *
-	 * @return $this
+	 * @param null|array<string, string> $attributes
 	 */
 	public function setFormulaAttributes(?array $attributes): self
 	{
@@ -910,7 +982,7 @@ class Cell
 	 *
 	 * @return null|array<string, string>
 	 */
-	public function getFormulaAttributes(): ?array
+	public function getFormulaAttributes()
 	{
 		return $this->formulaAttributes;
 	}
@@ -929,7 +1001,7 @@ class Cell
 	}
 	public function isLocked(): bool
 	{
-		$protected = ($nullsafeVariable9 = ($nullsafeVariable10 = ($nullsafeVariable11 = $this->parent) ? $nullsafeVariable11->getParent() : null) ? $nullsafeVariable10->getProtection() : null) ? $nullsafeVariable9->getSheet() : null;
+		$protected = ($nullsafeVariable9 = ($nullsafeVariable10 = ($nullsafeVariable15 = $this->parent) ? $nullsafeVariable15->getParent() : null) ? $nullsafeVariable10->getProtection() : null) ? $nullsafeVariable9->getSheet() : null;
 		if ($protected !== true) {
 			return false;
 		}
@@ -942,7 +1014,7 @@ class Cell
 		if ($this->getDataType() !== DataType::TYPE_FORMULA) {
 			return false;
 		}
-		$protected = ($nullsafeVariable12 = ($nullsafeVariable13 = ($nullsafeVariable14 = $this->parent) ? $nullsafeVariable14->getParent() : null) ? $nullsafeVariable13->getProtection() : null) ? $nullsafeVariable12->getSheet() : null;
+		$protected = ($nullsafeVariable11 = ($nullsafeVariable12 = ($nullsafeVariable16 = $this->parent) ? $nullsafeVariable16->getParent() : null) ? $nullsafeVariable12->getProtection() : null) ? $nullsafeVariable11->getSheet() : null;
 		if ($protected !== true) {
 			return false;
 		}

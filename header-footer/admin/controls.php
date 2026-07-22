@@ -1,4 +1,5 @@
 <?php
+
 defined('ABSPATH') || exit;
 
 function hefo_request($name, $default = null) {
@@ -21,7 +22,18 @@ function hefo_field_checkbox_only($name, $tips = '', $attrs = '', $link = null) 
     global $options;
     echo '<td><input type="checkbox" name="options[' . esc_attr($name) . ']" value="1" ' .
     (isset($options[$name]) ? 'checked' : '') . '/>';
-    echo ' ' . $tips;
+    echo ' ' . wp_kses_post($tips);
+    if ($link) {
+        echo '<br><a href="' . esc_attr($link) . '" target="_blank">Read more</a>.';
+    }
+    echo '</td>';
+}
+
+function hefo_field_checkbox_only2($name, $tips = '', $attrs = '', $link = null) {
+    global $options;
+    echo '<td><input type="checkbox" name="options[' . esc_attr($name) . ']" value="1" ' .
+    (!empty($options[$name]) ? 'checked' : '') . '/>';
+    echo ' ' . wp_kses_post($tips);
     if ($link) {
         echo '<br><a href="' . esc_attr($link) . '" target="_blank">Read more</a>.';
     }
@@ -39,7 +51,7 @@ function hefo_field_text($name, $label = '', $tips = '') {
     echo '<label>' . esc_html($label) . '</label></th>';
     echo '<td><input type="text" name="options[' . esc_attr($name) . ']" value="' .
     esc_attr($options[$name]) . '" size="50"/>';
-    echo '<br /> ' . $tips;
+    echo '<br /> ' . wp_kses_post($tips);
     echo '</td>';
 }
 
@@ -79,7 +91,7 @@ function hefo_base_textarea_cm($name, $type = '', $tips = '') {
     if (!empty($type)) {
         $type = '-' . $type;
     }
-    
+
     if (!isset($options[$name])) {
         $options[$name] = '';
     }
@@ -91,20 +103,33 @@ function hefo_base_textarea_cm($name, $type = '', $tips = '') {
     echo '<textarea class="hefo-cm' . esc_attr($type) . '" name="options[' . esc_attr($name) . ']" onfocus="hefo_cm_on(this)">';
     echo esc_html($options[$name]);
     echo '</textarea>';
-    echo '<p class="description">' . $tips . '</p>';
+    echo '<p class="description">', wp_kses_post($tips), '</p>';
+}
+
+function hefo_field_select($name, $items) {
+    global $options;
+    echo '<select name="options[', esc_attr($name), ']">';
+    foreach ($items as $k => $v) {
+        echo '<option value="', esc_attr($k), '"';
+        if (isset($options[$name]) && $options[$name] === $k) {
+            echo ' selected';
+        }
+        echo '>', esc_attr($v), '</option>';
+    }
+    echo '</select>';
 }
 
 function hefo_rule($number) {
     global $options;
-    
+
     if (!isset($options['inner_pos_' . $number])) {
         $options['inner_pos_' . $number] = 'after';
     }
-    
+
     if (!isset($options['inner_skip_' . $number])) {
         $options['inner_skip_' . $number] = 0;
     }
-    
+
     if (!isset($options['inner_tag_' . $number])) {
         $options['inner_tag_' . $number] = '';
     }
@@ -113,32 +138,30 @@ function hefo_rule($number) {
     echo '<div style="float: left">Inject</div>';
     echo '<select style="float: left" name="options[inner_pos_' . esc_attr($number) . ']">';
     echo '<option value="after"';
-    echo $options['inner_pos_' . $number] == 'after' ? ' selected' : '';
+    echo ($options['inner_pos_' . $number] ?? '') == 'after' ? ' selected' : '';
     echo '>after</option>';
     echo '<option value="before"';
-    echo $options['inner_pos_' . $number] == 'before' ? ' selected' : '';
+    echo ($options['inner_pos_' . $number] ?? '') == 'before' ? ' selected' : '';
     echo '>before</option>';
     echo '</select>';
     echo '<input style="float: left" type="text" placeholder="marker" name="options[inner_tag_' . esc_attr($number) . ']" value="';
-    echo esc_attr($options['inner_tag_' . $number]);
+    echo esc_attr($options['inner_tag_' . $number] ?? '');
     echo '">';
     echo '<div style="float: left">skipping</div>';
     echo '<input style="float: left" type="text" size="5" name="options[inner_skip_' . esc_attr($number) . ']" value="';
-    echo esc_attr($options['inner_skip_' . $number]);
+    echo esc_attr($options['inner_skip_' . $number] ?? '');
     echo '">';
     echo '<div style="float: left">chars, on failure inject</div>';
     echo '<select style="float: left" name="options[inner_alt_' . esc_attr($number) . ']">';
     echo '<option value=""';
-    echo $options['inner_alt_' . $number] == 'after' ? ' selected' : '';
+    echo ($options['inner_alt_' . $number] ?? '') == 'after' ? ' selected' : '';
     echo '>nowhere</option>';
     echo '<option value="after"';
-    echo $options['inner_alt_' . $number] == 'after' ? ' selected' : '';
+    echo ($options['inner_alt_' . $number] ?? '') == 'after' ? ' selected' : '';
     echo '>after the content</option>';
     echo '<option value="before"';
-    echo $options['inner_alt_' . $number] == 'before' ? ' selected' : '';
+    echo ($options['inner_alt_' . $number] ?? '') == 'before' ? ' selected' : '';
     echo '>before the content</option>';
     echo '</select>';
     echo '<div class="clearfix"></div></div>';
 }
-
-

@@ -42,6 +42,8 @@ class TablePress_About_View extends TablePress_View {
 
 		parent::setup( $action, $data );
 
+		TablePress::enqueue_script( 'common', array( 'jquery-core', 'postbox' ) );
+
 		$this->add_text_box( 'spacer', array( $this, 'textbox_spacer' ), 'normal' );
 		$this->add_text_box( 'spacer', array( $this, 'textbox_spacer' ), 'side' );
 		$this->add_meta_box( 'plugin-purpose', __( 'Plugin Purpose', 'tablepress' ), array( $this, 'postbox_plugin_purpose' ), 'normal' );
@@ -154,14 +156,21 @@ class TablePress_About_View extends TablePress_View {
 	public function postbox_author_license( array $data, array $box ): void {
 		?>
 	<p>
-		<?php printf( __( 'This plugin was written and developed by <a href="%s">Tobias Bäthge</a>.', 'tablepress' ), 'https://tobias.baethge.com/' ); ?>
+		<?php
+		/* translators: %s: Author's website URL */
+		printf( __( 'This plugin was written and developed by <a href="%s">Tobias Bäthge</a>.', 'tablepress' ), 'https://tobias.baethge.com/' );
+		?>
 		<?php _e( 'It is licensed as Free Software under GNU General Public License 2 (GPL 2).', 'tablepress' ); ?>
 	</p>
 	<p>
-		<?php printf( __( 'Please rate and review the plugin in the <a href="%s">WordPress Plugin Directory</a>.', 'tablepress' ), 'https://wordpress.org/support/view/plugin-reviews/tablepress' ); ?>
+		<?php
+		/* translators: %s: WordPress Plugin Directory URL */
+		printf( __( 'Please rate and review the plugin in the <a href="%s">WordPress Plugin Directory</a>.', 'tablepress' ), 'https://wordpress.org/support/view/plugin-reviews/tablepress' );
+		?>
 	</p>
 		<?php
 		if ( tb_tp_fs()->is_free_plan() ) {
+			/* translators: %s: TablePress Premium website URL */
 			echo '<p><strong>' . sprintf( __( 'I would like to invite you to check out the <a href="%s">Premium versions of TablePress</a>.', 'tablepress' ), 'https://tablepress.org/premium/?utm_source=plugin&utm_medium=textlink&utm_content=about-screen' ) . ' '
 			. __( 'The available Pro and Max plans offer user support and many exciting and helpful features for your tables.', 'tablepress' ) . '</strong></p>';
 		}
@@ -216,10 +225,10 @@ class TablePress_About_View extends TablePress_View {
 			<li>TablePress table scheme: <?php echo TablePress::table_scheme_version; ?></li>
 			<li>Plan: Free</li>
 			<li>Plugin installed: <?php echo wp_date( 'Y/m/d H:i:s', $data['first_activation'] ); ?></li>
-			<li>WordPress: <?php echo $GLOBALS['wp_version']; ?></li>
+			<li>WordPress: <?php echo wp_get_wp_version(); ?></li>
 			<li>Multisite: <?php echo is_multisite() ? 'yes' : 'no'; ?></li>
 			<li>PHP: <?php echo PHP_VERSION; ?></li>
-			<li>mySQL (Server): <?php echo ( isset( $GLOBALS['wpdb']->dbh ) && function_exists( 'mysqli_get_server_info' ) ) ? mysqli_get_server_info( $GLOBALS['wpdb']->dbh ) : 'no mySQL server'; // phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_server_info ?></li>
+			<li>mySQL (Server): <?php echo ( isset( $GLOBALS['wpdb']->dbh ) && 'mysqli' === get_class( $GLOBALS['wpdb']->dbh ) && function_exists( 'mysqli_get_server_info' ) ) ? mysqli_get_server_info( $GLOBALS['wpdb']->dbh ) : 'no mySQL server'; // phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_server_info ?></li>
 			<li>mySQL (Client): <?php echo function_exists( 'mysqli_get_client_info' ) ? mysqli_get_client_info() : 'no mySQL client'; // phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_client_info ?></li>
 			<li>mbstring: <?php echo extension_loaded( 'mbstring' ) ? 'yes' : '<span style="color:#800000;font-weight:bold;">no</span>'; ?></li>
 			<li>ZipArchive: <?php echo class_exists( 'ZipArchive', false ) ? 'yes' : '<span style="color:#800000;font-weight:bold;">no</span>'; ?></li>

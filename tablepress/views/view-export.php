@@ -35,6 +35,8 @@ class TablePress_Export_View extends TablePress_View {
 
 		parent::setup( $action, $data );
 
+		TablePress::enqueue_script( 'common', array( 'jquery-core', 'postbox' ) );
+
 		$this->add_text_box( 'no-javascript', array( $this, 'textbox_no_javascript' ), 'header' );
 
 		$this->process_action_messages( array(
@@ -48,7 +50,7 @@ class TablePress_Export_View extends TablePress_View {
 		if ( 0 === $data['tables_count'] ) {
 			$this->add_meta_box( 'no-tables', __( 'Export Tables', 'tablepress' ), array( $this, 'postbox_no_tables' ), 'normal' );
 		} else {
-			$this->admin_page->enqueue_script( 'export' );
+			TablePress::enqueue_script( 'export' );
 			$this->add_meta_box( 'export-form', __( 'Export Tables', 'tablepress' ), array( $this, 'postbox_export_form' ), 'normal' );
 		}
 	}
@@ -90,7 +92,12 @@ class TablePress_Export_View extends TablePress_View {
 		$import_url = TablePress::url( array( 'action' => 'import' ) );
 		?>
 		<p><?php _e( 'No tables found.', 'tablepress' ); ?></p>
-		<p><?php printf( __( 'You should <a href="%1$s">add</a> or <a href="%2$s">import</a> a table to get started!', 'tablepress' ), $add_url, $import_url ); ?></p>
+		<p>
+			<?php
+			/* translators: %1$s: URL to add table page, %2$s: URL to import table page */
+			printf( __( 'You should <a href="%1$s">add</a> or <a href="%2$s">import</a> a table to get started!', 'tablepress' ), $add_url, $import_url );
+			?>
+		</p>
 		<?php
 	}
 

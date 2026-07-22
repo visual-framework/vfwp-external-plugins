@@ -42,7 +42,7 @@ class TablePress_List_View extends TablePress_View {
 
 		parent::setup( $action, $data );
 
-		$this->admin_page->enqueue_script( 'list' );
+		TablePress::enqueue_script( 'list' );
 
 		if ( $data['messages']['superseded_extensions'] ) {
 			$superseded_extensions = array(
@@ -147,7 +147,7 @@ class TablePress_List_View extends TablePress_View {
 			if ( ! empty( $active_incompatible_superseded_extensions ) ) {
 				$notice_css_classes .= ' is-error';
 
-				$message .= '<p style="font-size:16px;">' . __( 'You are using <strong>TablePress Extension plugins</strong> on this website that have been retired more than 2 years ago.', 'tablepress' ) . '<br>' . __( 'For technical reasons, some or all features of these outdated plugins <strong>do no longer work with TablePress 3</strong>:', 'tablepress' ) . '</p>';
+				$message .= '<p style="font-size:16px;">' . __( 'You are using <strong>TablePress Extension plugins</strong> on this website that have been retired many years ago.', 'tablepress' ) . '<br>' . __( 'For technical reasons, some or all features of these outdated plugins <strong>do no longer work</strong>:', 'tablepress' ) . '</p>';
 				$message .= '<ul style="list-style:disc;margin:0.5em 1em;font-size:16px;">';
 				foreach ( $active_incompatible_superseded_extensions as $extension ) {
 					$message .= '<li>' . esc_html( $extension ) . '</li>';
@@ -203,6 +203,7 @@ class TablePress_List_View extends TablePress_View {
 
 		if ( $data['messages']['first_visit'] ) {
 			$message = '<p style="font-size:14px;"><strong>' . __( 'Thank you for choosing TablePress, the most popular table plugin for WordPress!', 'tablepress' ) . '</strong></p>';
+			/* translators: %1$s: URL to FAQ, %2$s: URL to Documentation, %3$s: URL to Support, %4$s: URL to plugin website */
 			$message .= '<p>' . sprintf( __( 'If you encounter any questions or problems, please visit the <a href="%1$s">FAQ</a>, the <a href="%2$s">Documentation</a>, and the <a href="%3$s">Support</a> section on the <a href="%4$s">plugin website</a>.', 'tablepress' ), 'https://tablepress.org/faq/', 'https://tablepress.org/documentation/', 'https://tablepress.org/support/', 'https://tablepress.org/' ) . '</p>';
 
 			if ( tb_tp_fs()->is_free_plan() ) {
@@ -213,7 +214,7 @@ class TablePress_List_View extends TablePress_View {
 
 			$title = '<em>' . __( 'Welcome!', 'tablepress' ) . '</em>';
 
-			$this->add_header_message( $message, 'is-info not-dismissible', $title );
+			$this->add_header_message( $message, 'notice-info not-dismissible', $title );
 		}
 
 		if ( $data['messages']['donation_nag'] ) {
@@ -221,8 +222,10 @@ class TablePress_List_View extends TablePress_View {
 				. __( 'Hi, my name is Tobias, I&#8217;m the developer of the TablePress plugin.', 'tablepress' ) . '</p>';
 			$message .= '<p style="font-size:14px;">' . __( 'Thank you for using it!', 'tablepress' ) . ' ';
 			if ( $data['table_count'] > 0 ) {
+				/* translators: %s: Number of tables */
 				$message .= sprintf( _n( 'I hope that everything works and that you are satisfied with the results of managing your %s table.', 'I hope that everything works and that you are satisfied with the results of managing your %s tables.', $data['table_count'], 'tablepress' ), $data['table_count'] );
 			} else {
+				/* translators: %s: URL to TablePress website */
 				$message .= sprintf( __( 'It looks like you haven’t added a table yet. If you need help to get started, please find more information in the FAQ and Documentation on the <a href="%s">TablePress website</a>.', 'tablepress' ), 'https://tablepress.org/' );
 			}
 			$message .= '</p>';
@@ -248,7 +251,7 @@ class TablePress_List_View extends TablePress_View {
 
 			$title = '<em>' . sprintf( __( 'Thank you for updating to TablePress %s!', 'tablepress' ), TablePress::version ) . '</em>';
 
-			$this->add_header_message( $message, 'is-info not-dismissible', $title );
+			$this->add_header_message( $message, 'notice-info not-dismissible', $title );
 		}
 
 		$this->process_action_messages( array(
@@ -258,7 +261,7 @@ class TablePress_List_View extends TablePress_View {
 			'success_copy'                => _n( 'The table was copied successfully.', 'The tables were copied successfully.', 1, 'tablepress' )
 				. ( ( false !== $data['table_id'] )
 					? ' ' . ( current_user_can( 'tablepress_edit_table', $data['table_id'] )
-						? sprintf( __( 'You can now <a href="%1$s">edit the copied table</a>, which has the table ID “%2$s”.', 'tablepress' ), esc_url( TablePress::url( array( 'action' => 'edit', 'table_id' => $data['table_id'] ) ) ), $data['table_id'] )
+						? sprintf( __( 'You can now <a href="%1$s">edit the copied table</a>, which has the table ID “%2$s”.', 'tablepress' ), esc_url( TablePress::url( array( 'action' => 'edit', 'table_id' => $data['table_id'] ) ) ), esc_html( $data['table_id'] ) )
 						: sprintf( __( 'The copied table has the table ID &#8220;%s&#8221;.', 'tablepress' ), esc_html( $data['table_id'] ) ) )
 					: ''
 				),

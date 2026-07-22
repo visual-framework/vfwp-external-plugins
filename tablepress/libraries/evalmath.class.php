@@ -303,7 +303,7 @@ class EvalMath {
 
 				// Are we putting an operator on the stack?
 			} elseif ( ( in_array( $op, $ops, true ) || $ex ) && $expecting_operator ) {
-				// Are we expecting an operator but have a number/variable/function/opening parethesis?
+				// Are we expecting an operator but have a number/variable/function/opening parenthesis?
 				if ( $ex ) {
 					// It's an implicit multiplication.
 					$op = '*';
@@ -311,7 +311,7 @@ class EvalMath {
 				}
 				// Heart of the algorithm: .
 				// phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition
-				while ( $stack->count > 0 && ( $o2 = $stack->last() ) && in_array( $o2, $ops, true ) && ( $ops_r[ $op ] ? $ops_p[ $op ] < $ops_p[ $o2 ] : $ops_p[ $op ] <= $ops_p[ $o2 ] ) ) {
+				while ( $stack->count > 0 && ( $o2 = $stack->last() ) && in_array( $o2, $ops, true ) && ( $ops_r[ $op ] ? $ops_p[ $op ] < $ops_p[ $o2 ] : $ops_p[ $op ] <= $ops_p[ $o2 ] ) ) { // @phpstan-ignore offsetAccess.notFound
 					// Pop stuff off the stack into the output.
 					$output[] = $stack->pop();
 				}
@@ -399,7 +399,7 @@ class EvalMath {
 				++$index;
 
 				// Do we now have a function/variable/number?
-			} elseif ( $ex && ! $expecting_operator ) {
+			} elseif ( $ex && ! $expecting_operator ) { // @phpstan-ignore booleanNot.alwaysTrue
 				$expecting_operator = true;
 				$value = $match[1];
 				// May be a function, or variable with implicit multiplication against parentheses...
@@ -963,7 +963,7 @@ class EvalMath_Functions { // phpcs:ignore Generic.Files.OneObjectStructurePerFi
 	 * @return double|int Mode of the passed arguments.
 	 */
 	public static function mode( ...$args ) /* : float|int */ {
-		$values = array_count_values( $args ); // @phpstan-ignore argument.type
+		$values = array_count_values( $args ); // @phpstan-ignore argument.type, argument.type
 		asort( $values );
 		return array_key_last( $values ); // @phpstan-ignore return.type
 	}

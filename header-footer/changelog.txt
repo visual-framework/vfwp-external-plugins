@@ -1,0 +1,82 @@
+= 3.3.0 =
+
+* Fixed readme
+
+= 3.2.9 =
+
+* WP 6.7.1 check
+
+= 3.2.8 =
+
+* WP 6.5.2 check
+
+= 3.2.7 =
+
+* Added Custom Post Types
+
+= 3.2.6 =
+
+* Fixed PHP short open tag
+
+= 3.2.5 =
+
+* Removed obsolete code
+* Escaped added to fixed and translated strings
+
+= 3.2.4 =
+
+* Possible security fix
+
+= 3.2.3 =
+
+* Updated meta information
+
+= 3.2.2 =
+
+* Fixed a couple of links in readme.txt
+* Updated compatibility with WP 5.7
+
+= 3.2.1 =
+
+* Fixed a PHP notice on admin side when creating a new page
+
+= 3.2.0 =
+
+* Restored controls of per post injection
+* Compatibility check with latest WP
+* Moved to PHP 5.6 syntax
+
+= 3.1.6 =
+
+* Fixed check_admin_referrer action
+
+= 3.1.5 =
+
+* Fixed wrong injection in amp pages
+
+= 3.1.4 =
+
+* Performance optimization
+* Removed obsolete code
+* Improved AMP support
+* (Temporary) removed metaboxes (they were not working anyway)
+
+= 3.1.3 =
+
+* General compatibility check with latest WP
+
+= 3.1.2 =
+
+* Fixed a debug notice
+
+= 3.1.1 =
+
+* Privacy section in the readme.txt
+
+= 3.1.0 =
+
+* Removed the Facebook setting (move to a specialized plugin to have the Facebook Open Graph Meta)
+* Removed bbPress setting (please use bbpress ads)
+* Label fix
+* Removed notices
+* 5 post injections and 5 generic injections

@@ -14,6 +14,7 @@ import { __, sprintf } from '@wordpress/i18n';
 import ServerSideRender from '@wordpress/server-side-render';
 import { useBlockProps, InspectorControls, InspectorAdvancedControls } from '@wordpress/block-editor';
 import { ComboboxControl, ExternalLink, Icon, PanelBody, Placeholder, TextControl } from '@wordpress/components';
+import { createInterpolateElement } from '@wordpress/element';
 import shortcode from '@wordpress/shortcode';
 
 /**
@@ -36,6 +37,7 @@ import './editor.scss';
 const ComboboxControlOptions = Object.entries( tp.tables ).map( ( [ id, name ] ) => {
 	return {
 		value: id,
+		/* translators: %1$s: Table ID, %2$s: Table name */
 		label: sprintf( __( 'ID %1$s: “%2$s”', 'tablepress' ), id, name ),
 	};
 } );
@@ -79,6 +81,7 @@ const TablePressTableEdit = ( { attributes, setAttributes } ) => {
 					/>
 				}
 				<div className="table-overlay">
+					{/* translators: %1$s: Table ID, %2$s: Table name */}
 					{ sprintf( __( 'TablePress table %1$s: “%2$s”', 'tablepress' ), attributes.id, tp.tables[ attributes.id ] ) }
 				</div>
 			</div>
@@ -87,6 +90,7 @@ const TablePressTableEdit = ( { attributes, setAttributes } ) => {
 		let instructions = 0 < ComboboxControlOptions.length ? __( 'Select the TablePress table that you want to embed in the Settings sidebar.', 'tablepress' ) : __( 'There are no TablePress tables on this site yet.', 'tablepress' );
 		if ( attributes.id ) {
 			// Show an error message if a table could not be found (e.g. after a table was deleted). The tp.tables.hasOwnProperty( attributes.id ) check happens above.
+			/* translators: %1$s: Table ID */
 			instructions = sprintf( __( 'There is a problem: The TablePress table with the ID “%1$s” could not be found.', 'tablepress' ), attributes.id ) + ' ' + instructions;
 		}
 		blockMarkup = (
@@ -143,7 +147,16 @@ const TablePressTableEdit = ( { attributes, setAttributes } ) => {
 						__nextHasNoMarginBottom
 						__next40pxDefaultSize
 						label={ __( 'Configuration parameters:', 'tablepress' ) }
-						help={ __( 'These additional parameters can be used to modify specific table features.', 'tablepress' ) + ' ' + __( 'See the TablePress Documentation for more information.', 'tablepress' ) }
+						help={
+							createInterpolateElement(
+								__( 'These additional parameters can be used to modify specific table features.', 'tablepress' )
+								+ ' '
+								+ __( 'See the <a>TablePress Documentation</a> for more information.', 'tablepress' ),
+								{
+									a: <a href="https://tablepress.org/faq/configuration-parameter-reference/" />, // eslint-disable-line jsx-a11y/anchor-has-content
+								},
+							)
+						}
 						value={ attributes.parameters }
 						onChange={ ( parameters ) => {
 							parameters = shortcode.replace(

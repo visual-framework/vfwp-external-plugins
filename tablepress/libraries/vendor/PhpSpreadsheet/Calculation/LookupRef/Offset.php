@@ -40,7 +40,7 @@ class Offset
 	 * @param ?int $width The width, in number of columns, that you want the returned reference to be.
 	 *                         Width must be a positive number.
 	 *
-	 * @return array|string An array containing a cell or range of cells, or a string on error
+	 * @return array<mixed>|string An array containing a cell or range of cells, or a string on error
 	 */
 	public static function OFFSET(?string $cellAddress = null, $rows = 0, $columns = 0, $height = null, $width = null, ?Cell $cell = null)
 	{
@@ -84,7 +84,7 @@ class Offset
 		$endCellColumn = self::adjustEndCellColumnForWidth($endCellColumn, $width, $startCellColumn, $columns);
 		$startCellColumn = Coordinate::stringFromColumnIndex($startCellColumn + 1);
 
-		$endCellRow = self::adustEndCellRowForHeight($height, $startCellRow, $rows, $endCellRow);
+		$endCellRow = self::adjustEndCellRowForHeight($height, $startCellRow, $rows, $endCellRow);
 
 		if (($endCellRow <= 0) || ($endCellColumn < 0)) {
 			return ExcelError::REF();
@@ -99,12 +99,14 @@ class Offset
 		return self::extractRequiredCells($worksheet, $cellAddress);
 	}
 
+	/** @return mixed[] */
 	private static function extractRequiredCells(?Worksheet $worksheet, string $cellAddress): array
 	{
-		return Calculation::getInstance($worksheet !== null ? $worksheet->getParent() : null)
+		return Calculation::getInstance(($nullsafeVariable2 = $worksheet) ? $nullsafeVariable2->getParent() : null)
 			->extractCellRange($cellAddress, $worksheet, false);
 	}
 
+	/** @return array{string, ?Worksheet} */
 	private static function extractWorksheet(?string $cellAddress, Cell $cell): array
 	{
 		$cellAddress = self::assessCellAddress($cellAddress ?? '', $cell);
@@ -150,7 +152,7 @@ class Offset
 	 * @param null|object|scalar $height
 	 * @param scalar $rows
 	 */
-	private static function adustEndCellRowForHeight($height, int $startCellRow, $rows, int $endCellRow): int
+	private static function adjustEndCellRowForHeight($height, int $startCellRow, $rows, int $endCellRow): int
 	{
 		if (($height !== null) && (!is_object($height))) {
 			$endCellRow = $startCellRow + (int) $height - 1;

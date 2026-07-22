@@ -38,15 +38,14 @@ class TablePress_Options_Custom_CSS_View extends TablePress_View {
 		$this->data = $data;
 
 		// Set page title.
+		/* translators: %1$s: Page title, %2$s: Plugin name */
 		$GLOBALS['title'] = sprintf( __( '%1$s &lsaquo; %2$s', 'tablepress' ), $this->data['view_actions'][ $this->action ]['page_title'], 'TablePress' ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+
+		add_filter( 'admin_footer_text', array( $this, 'add_admin_footer_text' ) );
 
 		$this->add_header_message( '<strong>' . __( 'Attention: Further action is required to save the changes to your &#8220;Custom CSS&#8221;!', 'tablepress' ) . '</strong>', 'is-success' );
 
-		// Admin page helpers, like script/style loading, could be moved to view.
-		$this->admin_page = TablePress::load_class( 'TablePress_Admin_Page', 'class-admin-page-helper.php', 'classes' );
-		$this->admin_page->enqueue_style( 'common', array( 'wp-components' ) );
-
-		$this->admin_page->add_admin_footer_text();
+		TablePress::enqueue_style( 'common', array( 'wp-components' ) );
 
 		$this->add_text_box( 'explanation-text', array( $this, 'textbox_explanation_text' ), 'normal' );
 		$this->add_text_box( 'credentials-form', array( $this, 'textbox_credentials_form' ), 'normal' );
@@ -116,7 +115,10 @@ class TablePress_Options_Custom_CSS_View extends TablePress_View {
 		?>
 		<p>
 			<?php _e( 'Due to the configuration of your server, TablePress was not able to automatically save your &#8220;Custom CSS&#8221; to a file.', 'tablepress' ); ?>
-			<?php printf( __( 'To try again with the same method that you use for updating plugins or themes, please fill out the &#8220;%s&#8221; form below.', 'tablepress' ), __( 'Connection Information', 'default' ) ); ?>
+			<?php
+			/* translators: %s: Connection information form label */
+			printf( __( 'To try again with the same method that you use for updating plugins or themes, please fill out the &#8220;%s&#8221; form below.', 'tablepress' ), __( 'Connection Information', 'default' ) );
+			?>
 		</p>
 		<?php
 	}

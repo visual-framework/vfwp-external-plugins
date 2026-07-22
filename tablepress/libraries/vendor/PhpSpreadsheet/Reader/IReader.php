@@ -33,6 +33,16 @@ interface IReader
 	 */
 	public const IGNORE_ROWS_WITH_NO_CELLS = 8;
 
+	/**
+	 * Allow external images. Use with caution.
+	 * Improper specification of these within a spreadsheet
+	 * can subject the caller to security exploits.
+	 */
+	public const ALLOW_EXTERNAL_IMAGES = 16;
+	public const DONT_ALLOW_EXTERNAL_IMAGES = 32;
+
+	public const CREATE_BLANK_SHEET_IF_NONE_READ = 64;
+
 	public function __construct();
 
 	/**
@@ -56,7 +66,7 @@ interface IReader
 	 *
 	 * @return $this
 	 */
-	public function setReadDataOnly(bool $readDataOnly): self;
+	public function setReadDataOnly(bool $readDataOnly);
 
 	/**
 	 * Read empty cells?
@@ -72,7 +82,7 @@ interface IReader
 	 *
 	 * @return $this
 	 */
-	public function setReadEmptyCells(bool $readEmptyCells): self;
+	public function setReadEmptyCells(bool $readEmptyCells);
 
 	/**
 	 * Read charts in workbook?
@@ -90,25 +100,27 @@ interface IReader
 	 *
 	 * @return $this
 	 */
-	public function setIncludeCharts(bool $includeCharts): self;
+	public function setIncludeCharts(bool $includeCharts);
 
 	/**
 	 * Get which sheets to load
 	 * Returns either an array of worksheet names (the list of worksheets that should be loaded), or a null
 	 *        indicating that all worksheets in the workbook should be loaded.
+	 *
+	 * @return null|string[]
 	 */
 	public function getLoadSheetsOnly(): ?array;
 
 	/**
 	 * Set which sheets to load.
 	 *
-	 * @param null|array|string $value This should be either an array of worksheet names to be loaded,
+	 * @param null|string|string[] $value This should be either an array of worksheet names to be loaded,
 	 *          or a string containing a single worksheet name. If NULL, then it tells the Reader to
 	 *          read all worksheets in the workbook
 	 *
 	 * @return $this
 	 */
-	public function setLoadSheetsOnly($value): self;
+	public function setLoadSheetsOnly($value);
 
 	/**
 	 * Set all sheets to load
@@ -116,7 +128,7 @@ interface IReader
 	 *
 	 * @return $this
 	 */
-	public function setLoadAllSheets(): self;
+	public function setLoadAllSheets();
 
 	/**
 	 * Read filter.
@@ -128,7 +140,22 @@ interface IReader
 	 *
 	 * @return $this
 	 */
-	public function setReadFilter(IReadFilter $readFilter): self;
+	public function setReadFilter(IReadFilter $readFilter);
+
+	/**
+	 * Allow external images. Use with caution.
+	 * Improper specification of these within a spreadsheet
+	 * can subject the caller to security exploits.
+	 */
+	public function setAllowExternalImages(bool $allowExternalImages);
+
+	public function getAllowExternalImages(): bool;
+
+	/**
+	 * Create a blank sheet if none are read,
+	 * possibly due to a typo when using LoadSheetsOnly.
+	 */
+	public function setCreateBlankSheetIfNoneRead(bool $createBlankSheetIfNoneRead);
 
 	/**
 	 * Loads PhpSpreadsheet from file.
@@ -139,6 +166,10 @@ interface IReader
 	 *            self::READ_DATA_ONLY      Read only data, not style or structure information, from the file
 	 *            self::IGNORE_EMPTY_CELLS  Don't read empty cells (cells that contain a null value,
 	 *                                      empty string, or a string containing only whitespace characters)
+	 *            self::IGNORE_ROWS_WITH_NO_CELLS    Don't load any rows that contain no cells.
+	 *            self::ALLOW_EXTERNAL_IMAGES    Attempt to fetch images stored outside the spreadsheet.
+	 *            self::DONT_ALLOW_EXTERNAL_IMAGES    Don't attempt to fetch images stored outside the spreadsheet.
+	 *            self::CREATE_BLANK_SHEET_IF_NONE_READ    If no sheets are read, create a blank one.
 	 */
 	public function load(string $filename, int $flags = 0): Spreadsheet;
 }

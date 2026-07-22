@@ -7,9 +7,6 @@ use SimpleXMLElement;
 
 class Fill extends StyleBase
 {
-	/**
-	 * @var array
-	 */
 	public const FILL_MAPPINGS = [
 		'fillType' => [
 			'solid' => FillStyles::FILL_SOLID,
@@ -33,20 +30,36 @@ class Fill extends StyleBase
 		],
 	];
 
+	/** @return array{
+	 *      fill?: array{
+	 *          endColor?: array{rgb:string},
+	 *          startColor?: array{rgb:string},
+	 *          fillType?: string,
+	 *      }
+	 *   }
+	 */
 	public function parseStyle(SimpleXMLElement $styleAttributes): array
 	{
+		/** @var array{
+		 *      fill?: array{
+		 *          endColor?: array{rgb:string},
+		 *          startColor?: array{rgb:string},
+		 *          fillType?: string,
+		 *      }
+		 *  }
+		 */
 		$style = [];
 
 		foreach ($styleAttributes as $styleAttributeKey => $styleAttributeValuex) {
 			$styleAttributeValue = (string) $styleAttributeValuex;
 			switch ($styleAttributeKey) {
 				case 'Color':
-					$style['fill']['endColor']['rgb'] = substr($styleAttributeValue, 1);
-					$style['fill']['startColor']['rgb'] = substr($styleAttributeValue, 1);
+					$style['fill']['endColor']['rgb'] = (string) substr($styleAttributeValue, 1);
+					$style['fill']['startColor']['rgb'] = (string) substr($styleAttributeValue, 1);
 
 					break;
 				case 'PatternColor':
-					$style['fill']['startColor']['rgb'] = substr($styleAttributeValue, 1);
+					$style['fill']['startColor']['rgb'] = (string) substr($styleAttributeValue, 1);
 
 					break;
 				case 'Pattern':
