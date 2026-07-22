@@ -554,8 +554,25 @@ if (!function_exists('widgetopts_display_callback')) :
         }
 
         if ('activate' == $widget_options['logic']) {
-            // display widget logic
-            if (isset($opts['class']) && isset($opts['class']['logic']) && !empty($opts['class']['logic'])) {
+            // Display widget logic - New snippet-based system
+            if (isset($opts['class']['logic_snippet_id']) && !empty($opts['class']['logic_snippet_id'])) {
+                $snippet_id = $opts['class']['logic_snippet_id'];
+                
+                // Use the API to process snippet logic
+                if (class_exists('WidgetOpts_Snippets_API')) {
+                    $result = WidgetOpts_Snippets_API::execute_snippet($snippet_id);
+                    if ($result === false) {
+                        return false;
+                    }
+                }
+            }
+            // Legacy support for old inline logic (backup during migration)
+            elseif (isset($opts['class']['logic']) && !empty($opts['class']['logic'])) {
+                // Flag that legacy migration is needed
+                if (!get_option('wopts_display_logic_migration_required', false)) {
+                    update_option('wopts_display_logic_migration_required', true);
+                }
+
                 $display_logic = stripslashes(trim($opts['class']['logic']));
                 $display_logic = apply_filters('widget_options_logic_override', $display_logic);
                 $display_logic = apply_filters('extended_widget_options_logic_override', $display_logic);
@@ -565,11 +582,8 @@ if (!function_exists('widgetopts_display_callback')) :
                 if ($display_logic === true) {
                     return true;
                 }
-                // if (stristr($display_logic, "return") === false) {
-                //     $display_logic = "return (" . $display_logic . ");";
-                // }
                 $display_logic = htmlspecialchars_decode($display_logic, ENT_QUOTES);
-                if (!widgetopts_safe_eval($display_logic)) {
+                if (!widgetopts_safe_eval_trusted($display_logic)) {
                     return false;
                 }
             }
@@ -653,6 +667,7 @@ if (!function_exists('widgetopts_add_classes')) :
             //don't add the IDs when the setting is set to NO
             if (isset($widget_options['settings']['classes']['id'])) {
                 if (is_array($custom_class) && isset($custom_class['id']) && !empty($custom_class['id'])) {
+                    $custom_class['id'] = sanitize_html_class($custom_class['id']);
                     $params[0]['before_widget'] = preg_replace('/id="[^"]*/', "id=\"{$custom_class['id']}", $params[0]['before_widget'], 1);
                     $widget_id_set = $custom_class['id'];
                 }
