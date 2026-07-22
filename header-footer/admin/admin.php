@@ -14,14 +14,23 @@ add_action('admin_init', function () {
     }
 });
 
-
-
-add_action('admin_menu', function() {
-    add_options_page('Header and Footer', 'Header and Footer', 'manage_options', 'header-footer/admin/options.php');
+add_action('admin_menu', function () {
+    add_options_page('Head and Footer', 'Head and Footer', 'manage_options', 'hefo', function () {
+        $subpage = $_GET['subpage'] ?? '';
+        switch ($subpage) {
+            case 'settings':
+                include __DIR__ . '/options.php';
+                break;
+            case 'more':
+                include __DIR__ . '/more.php';
+                break;
+            default:
+                include __DIR__ . '/options.php';
+        }
+    });
 });
 
-
-if (isset($_GET['page']) && strpos($_GET['page'], 'header-footer/') === 0) {
+if (isset($_GET['page']) && $_GET['page'] === 'hefo') {
     header('X-XSS-Protection: 0');
     add_action('admin_enqueue_scripts', function () {
         wp_enqueue_script('jquery-ui-tabs');
@@ -37,7 +46,6 @@ add_action('add_meta_boxes', function () {
 });
 
 add_action('save_post', 'hefo_save_post');
-
 
 function hefo_meta_boxes_callback($post) {
 
@@ -59,11 +67,11 @@ function hefo_meta_boxes_callback($post) {
     echo '</label> ';
 }
 
-
 function hefo_save_post($post_id) {
 
-    if (!isset($_POST['hefo'])) return;
-    
+    if (!isset($_POST['hefo']))
+        return;
+
     // First we need to check if the current user is authorised to do this action.
     if (isset($_POST['post_type']) && 'page' == $_POST['post_type']) {
         if (!current_user_can('edit_page', $post_id))

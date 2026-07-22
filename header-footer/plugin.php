@@ -1,36 +1,27 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 /*
   Plugin Name: Head, Footer and Post Injections
   Plugin URI: https://www.satollo.net/plugins/header-footer
   Description: Header and Footer lets to add html/javascript code to the head and footer and posts of your blog. Some examples are provided on the <a href="http://www.satollo.net/plugins/header-footer">official page</a>.
-  Version: 3.2.5
-  Requires PHP: 5.6
-  Requires at least: 4.6
+  Version: 3.3.6
+  Requires PHP: 7.0
+  Requires at least: 6.1
   Author: Stefano Lissa
   Author URI: https://www.satollo.net
   Disclaimer: Use at your own risk. No warranty expressed or implied is provided.
  */
 
-/*
-  Copyright 2008-2022 Stefano Lissa (stefano@satollo.net)
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+if (!defined('HEADER_FOOTER_ALLOW_PHP')) {
+    define('HEADER_FOOTER_ALLOW_PHP', true);
+}
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
-defined('ABSPATH') || exit;
+if (!defined('HEADER_FOOTER_MULTISITE_ALLOW_PHP')) {
+    define('HEADER_FOOTER_MULTISITE_ALLOW_PHP', false);
+}
 
 $hefo_options = get_option('hefo', []);
 
@@ -40,7 +31,7 @@ if (isset($_SERVER['HTTP_USER_AGENT']) && isset($hefo_options['mobile_user_agent
 }
 
 if (is_admin()) {
-    require_once dirname(__FILE__) . '/admin/admin.php';
+    require_once __DIR__ . '/admin/admin.php';
 }
 
 if (isset($hefo_options['disable_css_id'])) {
@@ -64,7 +55,11 @@ register_activation_hook(__FILE__, function () {
     if (!is_array($options)) {
         $options = [];
     }
-    $options = array_merge(['after' => '', 'before' => '', 'head' => '', 'body' => '', 'head_home' => '', 'footer' => ''], $options);
+    // Compatibility with "already" installed
+    if (!empty($options)) {
+        $options['enable_php'] = 1;
+    }
+    $options = array_merge(['enable_php' => 0, 'after' => '', 'before' => '', 'head' => '', 'body' => '', 'head_home' => '', 'footer' => ''], $options);
     for ($i = 1; $i <= 5; $i++) {
         $options['snippet_' . $i] = '';
         $options['generic_' . $i] = '';
@@ -86,16 +81,12 @@ add_action('template_redirect', 'hefo_template_redirect', 1);
 $hefo_body_block = '';
 $hefo_generic_block = array();
 
+// This is used only for the generaic replacements, probably no one is using...
 function hefo_template_redirect() {
     global $hefo_body_block, $hefo_generic_block, $hefo_options, $hefo_is_mobile;
 
-    if (function_exists('is_amp_endpoint') && is_amp_endpoint())
+    if (function_exists('is_amp_endpoint') && is_amp_endpoint()) {
         return;
-
-    if ($hefo_is_mobile && isset($hefo_options['mobile_body_enabled'])) {
-        $hefo_body_block = hefo_execute_option('mobile_body');
-    } else {
-        $hefo_body_block = hefo_execute_option('body');
     }
 
     for ($i = 1; $i <= 5; $i++) {
@@ -106,7 +97,9 @@ function hefo_template_redirect() {
         }
     }
 
-    ob_start('hefo_callback');
+    if ($hefo_generic_block) {
+        ob_start('hefo_callback');
+    }
 }
 
 function hefo_callback($buffer) {
@@ -116,17 +109,27 @@ function hefo_callback($buffer) {
         if (isset($hefo_options['generic_tag_' . $i]))
             hefo_insert_before($buffer, $hefo_generic_block[$i], $hefo_options['generic_tag_' . $i]);
     }
-    $x = strpos($buffer, '<body');
-    if ($x === false) {
-        return $buffer;
-    }
-    $x = strpos($buffer, '>', $x);
-    if ($x === false) {
-        return $buffer;
-    }
-    $x++;
-    return substr($buffer, 0, $x) . "\n" . $hefo_body_block . substr($buffer, $x);
+   
+    return $buffer;
 }
+
+add_action('wp_body_open', function () {
+    global $hefo_body_block, $hefo_options, $hefo_is_mobile;
+    
+    // Amp pages have their own wp_body_open, I don't know if this hook is called on AMP context, but...
+    if (function_exists('is_amp_endpoint') && is_amp_endpoint()) {
+        return;
+    }
+    
+    if ($hefo_is_mobile && isset($hefo_options['mobile_body_enabled'])) {
+        $hefo_body_block = hefo_execute_option('mobile_body');
+    } else {
+        $hefo_body_block = hefo_execute_option('body');
+    }
+    echo $hefo_body_block;
+});
+
+
 
 add_action('wp_head', 'hefo_wp_head_pre', 1);
 
@@ -146,11 +149,11 @@ function hefo_wp_head_pre() {
     }
 
     if (isset($hefo_options['disable_wp_shortlink_wp_head'])) {
-        remove_action('wp_head', 'wp_shortlink_wp_head', 10, 0);
+        remove_action('wp_head', 'wp_shortlink_wp_head', 10);
     }
 
     if (isset($hefo_options['disable_wp_shortlink_wp_head'])) {
-        remove_action('wp_head', 'wp_shortlink_wp_head', 10, 0);
+        remove_action('wp_head', 'wp_shortlink_wp_head', 10);
     }
 }
 
@@ -165,9 +168,8 @@ function hefo_wp_head_post() {
 }
 
 add_action('amp_post_template_head', function () {
-    echo hefo_execute_option('amp_head', true);
+    hefo_execute_option('amp_head', true);
 }, 100);
-
 
 add_action('amp_post_template_css', function () {
     hefo_execute_option('amp_css', true);
@@ -184,7 +186,7 @@ add_action('amp_post_template_footer', function () {
 add_action('wp_footer', 'hefo_wp_footer');
 
 function hefo_wp_footer() {
-    global $hefo_is_mobile;
+    global $hefo_is_mobile, $hefo_options;
 
     if ($hefo_is_mobile && isset($hefo_options['mobile_footer_enabled'])) {
         hefo_execute_option('mobile_footer', true);
@@ -211,10 +213,20 @@ function hefo_the_content($content) {
     if (!is_singular()) {
         return $content;
     }
+
     $type = '';
 
+    // Being an experienced code, I should write this thing much better... :-)
     if (is_page() && !isset($hefo_options['page_use_post'])) {
         $type = 'page_';
+    } else if ($post->post_type !== 'post') {
+        if (isset($hefo_options[$post->post_type . '_mode'])) {
+            if ($hefo_options[$post->post_type . '_mode'] === 'enabled') {
+                $type = $post->post_type . '_';
+            } else if ($hefo_options[$post->post_type . '_mode'] === 'disabled') {
+                return $content;
+            }
+        }
     }
 
     if (!get_post_meta($post->ID, 'hefo_before', true)) {
@@ -247,7 +259,7 @@ function hefo_the_content($content) {
         if (empty($skip)) {
             $skip = 0;
         } else if (substr($skip, -1) == '%') {
-            $skip = (intval($skip) * strlen($content) / 100);
+            $skip = intval(round((intval($skip) * strlen($content) / 100)));
         }
 
         if ($hefo_options['inner_pos_' . $i] == 'after') {
@@ -334,9 +346,17 @@ function hefo_replace($buffer) {
 }
 
 function hefo_execute($buffer) {
-    global $post;
+    global $hefo_options, $post;
 
-    if (apply_filters('hefo_php_exec', true)) {
+    if (!HEADER_FOOTER_ALLOW_PHP) {
+        return $buffer;
+    }
+
+    if (is_multisite() && !HEADER_FOOTER_MULTISITE_ALLOW_PHP) {
+        return $buffer;
+    }
+
+    if (apply_filters('hefo_php_exec', !empty($hefo_options['enable_php']))) {
         ob_start();
         eval('?>' . $buffer);
         $buffer = ob_get_clean();
@@ -350,6 +370,7 @@ function hefo_execute_option($key, $echo = false) {
         return '';
     $buffer = hefo_replace($hefo_options[$key]);
     if ($echo)
+    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         echo hefo_execute($buffer);
     else
         return hefo_execute($buffer);
