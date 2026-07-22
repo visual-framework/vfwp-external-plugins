@@ -78,7 +78,7 @@ class CodePage
 	 * Convert Microsoft Code Page Identifier to Code Page Name which iconv
 	 * and mbstring understands.
 	 *
-	 * @param int $codePage Microsoft Code Page Indentifier
+	 * @param int $codePage Microsoft Code Page Identifier
 	 *
 	 * @return string Code Page Name
 	 */
@@ -107,6 +107,7 @@ class CodePage
 		throw new PhpSpreadsheetException('Unknown codepage: ' . $codePage);
 	}
 
+	/** @return array<int, array<int, string>|string> */
 	public static function getEncodings(): array
 	{
 		return self::$pageArray;

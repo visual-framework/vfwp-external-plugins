@@ -43,10 +43,12 @@ class TablePress_Import_View extends TablePress_View {
 
 		parent::setup( $action, $data );
 
+		TablePress::enqueue_script( 'common', array( 'jquery-core', 'postbox' ) );
+
 		$this->add_text_box( 'no-javascript', array( $this, 'textbox_no_javascript' ), 'header' );
 
-		$this->admin_page->enqueue_style( 'import' );
-		$this->admin_page->enqueue_script( 'import' );
+		TablePress::enqueue_style( 'import' );
+		TablePress::enqueue_script( 'import' );
 
 		$this->process_action_messages( array(
 			'error_import' => __( 'Error: The import failed.', 'tablepress' ),
@@ -96,7 +98,7 @@ class TablePress_Import_View extends TablePress_View {
 				'tables'                 => $data['tables'],
 				'importSource'           => $data['import_source'],
 				'importType'             => $data['import_type'],
-				'importUrl'              => esc_url( $data['import_url'] ),
+				'importUrl'              => $data['import_url'],
 				'importServer'           => $data['import_server'],
 				'importFormField'        => $data['import_form-field'],
 				'importExistingTable'    => $data['import_existing_table'],
@@ -140,7 +142,10 @@ class TablePress_Import_View extends TablePress_View {
 			<p style="font-size:14px;">
 				<span class="dashicons dashicons-info-outline"></span>
 				<strong><?php _e( 'Pro Tip:', 'tablepress' ); ?></strong>
-				<?php printf( __( 'You can automate the import of tables from URLs or server files with the <a href="%1$s">“%2$s” premium feature</a>!', 'tablepress' ), 'https://tablepress.org/modules/automatic-periodic-table-import/?utm_source=plugin&utm_medium=textlink&utm_content=import-screen', __( 'Automatic Periodic Table Import', 'tablepress' ) ); ?>
+				<?php
+					/* translators: %1$s: URL to TablePress website, %2$s: Module name */
+					printf( __( 'You can automate the import of tables from URLs or server files with the <a href="%1$s">“%2$s” premium feature</a>!', 'tablepress' ), 'https://tablepress.org/modules/automatic-periodic-table-import/?utm_source=plugin&utm_medium=textlink&utm_content=import-screen', __( 'Automatic Periodic Table Import', 'tablepress' ) );
+				?>
 			</p>
 			<?php
 		endif;
@@ -155,7 +160,7 @@ class TablePress_Import_View extends TablePress_View {
 		$content  = '<h3>' . __( 'TablePress feature: Drag and Drop Import with Format Detection', 'tablepress' ) . '</h3>';
 		$content .= '<p>' . __( 'Did you know?', 'tablepress' ) . ' ' . __( 'To import tables, you can simply drag and drop your spreadsheet files into this area and TablePress will automatically detect the file format!', 'tablepress' ) . '</p>';
 
-		$this->admin_page->print_wp_pointer_js(
+		$this->print_wp_pointer_js(
 			'tp20_import_drag_drop_detect_format',
 			'#tables-import-file-upload-dropzone span',
 			array(

@@ -125,7 +125,7 @@ class XmlScanner
 			throw new Reader\Exception('UTF-7 encoding not permitted');
 		}
 		if (substr($xml, 0, Reader\Csv::UTF8_BOM_LEN) === Reader\Csv::UTF8_BOM) {
-			$xml = substr($xml, Reader\Csv::UTF8_BOM_LEN);
+			$xml = (string) substr($xml, Reader\Csv::UTF8_BOM_LEN);
 		}
 
 		return $xml;
@@ -133,7 +133,7 @@ class XmlScanner
 
 	private function findCharSet(string $xml): string
 	{
-		if (substr($xml, 0, 4) === "\x4c\x6f\xa7\x94") {
+		if (str_starts_with($xml, "\x4c\x6f\xa7\x94")) {
 			throw new Reader\Exception('EBCDIC encoding not permitted');
 		}
 		$encoding = Reader\Csv::guessEncodingBom('', $xml);
@@ -173,6 +173,7 @@ class XmlScanner
 		if ($this->callback !== null) {
 			$xml = call_user_func($this->callback, $xml);
 		}
+		/** @var string $xml */
 
 		return $xml;
 	}

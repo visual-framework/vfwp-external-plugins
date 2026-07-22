@@ -6,7 +6,6 @@ use TablePress\PhpOffice\PhpSpreadsheet\Cell\AddressRange;
 use TablePress\PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use TablePress\PhpOffice\PhpSpreadsheet\Exception as PhpSpreadsheetException;
 use TablePress\PhpOffice\PhpSpreadsheet\Reader\Xls;
-use TablePress\PhpOffice\PhpSpreadsheet\Writer\Xls\Worksheet as XlsWorksheet;
 
 class DataValidationHelper extends Xls
 {
@@ -114,22 +113,22 @@ class DataValidationHelper extends Xls
 
 		// offset: 4; size: var; title of the prompt box
 		$offset = 4;
-		$string = self::readUnicodeStringLong(substr($recordData, $offset));
+		$string = self::readUnicodeStringLong((string) substr($recordData, $offset));
 		$promptTitle = $string['value'] !== chr(0) ? $string['value'] : '';
 		$offset += $string['size'];
 
 		// offset: var; size: var; title of the error box
-		$string = self::readUnicodeStringLong(substr($recordData, $offset));
+		$string = self::readUnicodeStringLong((string) substr($recordData, $offset));
 		$errorTitle = $string['value'] !== chr(0) ? $string['value'] : '';
 		$offset += $string['size'];
 
 		// offset: var; size: var; text of the prompt box
-		$string = self::readUnicodeStringLong(substr($recordData, $offset));
+		$string = self::readUnicodeStringLong((string) substr($recordData, $offset));
 		$prompt = $string['value'] !== chr(0) ? $string['value'] : '';
 		$offset += $string['size'];
 
 		// offset: var; size: var; text of the error box
-		$string = self::readUnicodeStringLong(substr($recordData, $offset));
+		$string = self::readUnicodeStringLong((string) substr($recordData, $offset));
 		$error = $string['value'] !== chr(0) ? $string['value'] : '';
 		$offset += $string['size'];
 
@@ -141,7 +140,7 @@ class DataValidationHelper extends Xls
 		$offset += 2;
 
 		// offset: var; size: $sz1; formula data for first condition (without size field)
-		$formula1 = substr($recordData, $offset, $sz1);
+		$formula1 = (string) substr($recordData, $offset, $sz1);
 		$formula1 = pack('v', $sz1) . $formula1; // prepend the length
 
 		try {
@@ -164,7 +163,7 @@ class DataValidationHelper extends Xls
 		$offset += 2;
 
 		// offset: var; size: $sz2; formula data for second condition (without size field)
-		$formula2 = substr($recordData, $offset, $sz2);
+		$formula2 = (string) substr($recordData, $offset, $sz2);
 		$formula2 = pack('v', $sz2) . $formula2; // prepend the length
 
 		try {
@@ -175,12 +174,13 @@ class DataValidationHelper extends Xls
 		$offset += $sz2;
 
 		// offset: var; size: var; cell range address list with
-		$cellRangeAddressList = Biff8::readBIFF8CellRangeAddressList(substr($recordData, $offset));
+		$cellRangeAddressList = Biff8::readBIFF8CellRangeAddressList((string) substr($recordData, $offset));
+		/** @var string[] */
 		$cellRangeAddresses = $cellRangeAddressList['cellRangeAddresses'];
 		$maxRow = (string) AddressRange::MAX_ROW;
 		$maxCol = AddressRange::MAX_COLUMN;
-		$maxXlsRow = (string) XlsWorksheet::MAX_XLS_ROW;
-		$maxXlsColumnString = (string) XlsWorksheet::MAX_XLS_COLUMN_STRING;
+		$maxXlsRow = (string) AddressRange::MAX_ROW_XLS;
+		$maxXlsColumnString = AddressRange::MAX_COLUMN_XLS;
 
 		foreach ($cellRangeAddresses as $cellRange) {
 			$cellRange = preg_replace(

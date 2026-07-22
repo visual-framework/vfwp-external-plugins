@@ -7,9 +7,9 @@ class FunctionArray extends CalculationBase
 	/**
 	 * Array of functions usable on Spreadsheet.
 	 *
-	 * @var array<string, array<string, mixed>>
+	 * @var array<string, array{category: string, functionCall: string|string[], argumentCount: string, passCellReference?: bool, passByReference?: bool[], custom?: bool}>
 	 */
-	protected static array $phpSpreadsheetFunctions = [
+	protected static array $phpSpreadsheetFunctions = [ // @phpstan-ignore-line
 		'ABS' => [
 			'category' => Category::CATEGORY_MATH_AND_TRIG,
 			'functionCall' => [MathTrig\Absolute::class, 'evaluate'],
@@ -149,7 +149,7 @@ class FunctionArray extends CalculationBase
 		],
 		'BAHTTEXT' => [
 			'category' => Category::CATEGORY_TEXT_AND_DATA,
-			'functionCall' => [Functions::class, 'DUMMY'],
+			'functionCall' => [TextData\Thai::class, 'getBahtText'],
 			'argumentCount' => '1',
 		],
 		'BASE' => [
@@ -277,10 +277,22 @@ class FunctionArray extends CalculationBase
 			'functionCall' => [MathTrig\Ceiling::class, 'math'],
 			'argumentCount' => '1-3',
 		],
+		// pseudo-function to help with Ods
+		'CEILING.ODS' => [
+			'category' => Category::CATEGORY_MATH_AND_TRIG,
+			'functionCall' => [MathTrig\Ceiling::class, 'mathOds'],
+			'argumentCount' => '1-3',
+		],
 		'CEILING.PRECISE' => [
 			'category' => Category::CATEGORY_MATH_AND_TRIG,
 			'functionCall' => [MathTrig\Ceiling::class, 'precise'],
 			'argumentCount' => '1,2',
+		],
+		// pseudo-function implemented in Ods
+		'CEILING.XCL' => [
+			'category' => Category::CATEGORY_MATH_AND_TRIG,
+			'functionCall' => [MathTrig\Ceiling::class, 'ceiling'],
+			'argumentCount' => '2',
 		],
 		'CELL' => [
 			'category' => Category::CATEGORY_INFORMATION,
@@ -393,6 +405,7 @@ class FunctionArray extends CalculationBase
 			'category' => Category::CATEGORY_TEXT_AND_DATA,
 			'functionCall' => [TextData\Concatenate::class, 'actualCONCATENATE'],
 			'argumentCount' => '1+',
+			'passCellReference' => true,
 		],
 		'CONFIDENCE' => [
 			'category' => Category::CATEGORY_STATISTICAL,
@@ -907,17 +920,29 @@ class FunctionArray extends CalculationBase
 		'FLOOR' => [
 			'category' => Category::CATEGORY_MATH_AND_TRIG,
 			'functionCall' => [MathTrig\Floor::class, 'floor'],
-			'argumentCount' => '1-2', // Excel requries 2, Ods/Gnumeric 1-2
+			'argumentCount' => '1-2', // Excel requires 2, Ods/Gnumeric 1-2
 		],
 		'FLOOR.MATH' => [
 			'category' => Category::CATEGORY_MATH_AND_TRIG,
 			'functionCall' => [MathTrig\Floor::class, 'math'],
 			'argumentCount' => '1-3',
 		],
+		// pseudo-function to help with Ods
+		'FLOOR.ODS' => [
+			'category' => Category::CATEGORY_MATH_AND_TRIG,
+			'functionCall' => [MathTrig\Floor::class, 'mathOds'],
+			'argumentCount' => '1-3',
+		],
 		'FLOOR.PRECISE' => [
 			'category' => Category::CATEGORY_MATH_AND_TRIG,
 			'functionCall' => [MathTrig\Floor::class, 'precise'],
 			'argumentCount' => '1-2',
+		],
+		// pseudo-function implemented in Ods
+		'FLOOR.XCL' => [
+			'category' => Category::CATEGORY_MATH_AND_TRIG,
+			'functionCall' => [MathTrig\Floor::class, 'floor'],
+			'argumentCount' => '2',
 		],
 		'FORECAST' => [
 			'category' => Category::CATEGORY_STATISTICAL,
@@ -1082,8 +1107,8 @@ class FunctionArray extends CalculationBase
 			'argumentCount' => '1',
 		],
 		'HSTACK' => [
-			'category' => Category::CATEGORY_MATH_AND_TRIG,
-			'functionCall' => [Functions::class, 'DUMMY'],
+			'category' => Category::CATEGORY_LOOKUP_AND_REFERENCE,
+			'functionCall' => [LookupRef\Hstack::class, 'hstack'],
 			'argumentCount' => '1+',
 		],
 		'HYPERLINK' => [
@@ -1260,8 +1285,9 @@ class FunctionArray extends CalculationBase
 		],
 		'INFO' => [
 			'category' => Category::CATEGORY_INFORMATION,
-			'functionCall' => [Functions::class, 'DUMMY'],
+			'functionCall' => [Information\Info::class, 'getInfo'],
 			'argumentCount' => '1',
+			'passCellReference' => true,
 		],
 		'INT' => [
 			'category' => Category::CATEGORY_MATH_AND_TRIG,
@@ -2311,17 +2337,17 @@ class FunctionArray extends CalculationBase
 		],
 		'T.DIST' => [
 			'category' => Category::CATEGORY_STATISTICAL,
-			'functionCall' => [Functions::class, 'DUMMY'],
+			'functionCall' => [Statistical\Distributions\StudentT::class, 'tDotDist'],
 			'argumentCount' => '3',
 		],
 		'T.DIST.2T' => [
 			'category' => Category::CATEGORY_STATISTICAL,
-			'functionCall' => [Functions::class, 'DUMMY'],
+			'functionCall' => [Statistical\Distributions\StudentT::class, 'tDotDistDot2T'],
 			'argumentCount' => '2',
 		],
 		'T.DIST.RT' => [
 			'category' => Category::CATEGORY_STATISTICAL,
-			'functionCall' => [Functions::class, 'DUMMY'],
+			'functionCall' => [Statistical\Distributions\StudentT::class, 'tDotDistDotRT'],
 			'argumentCount' => '2',
 		],
 		'TEXT' => [
@@ -2401,12 +2427,12 @@ class FunctionArray extends CalculationBase
 		],
 		'T.INV' => [
 			'category' => Category::CATEGORY_STATISTICAL,
-			'functionCall' => [Statistical\Distributions\StudentT::class, 'inverse'],
+			'functionCall' => [Statistical\Distributions\StudentT::class, 'tDotInv'],
 			'argumentCount' => '2',
 		],
 		'T.INV.2T' => [
 			'category' => Category::CATEGORY_STATISTICAL,
-			'functionCall' => [Functions::class, 'DUMMY'],
+			'functionCall' => [Statistical\Distributions\StudentT::class, 'inverse'],
 			'argumentCount' => '2',
 		],
 		'TODAY' => [
@@ -2415,13 +2441,13 @@ class FunctionArray extends CalculationBase
 			'argumentCount' => '0',
 		],
 		'TOCOL' => [
-			'category' => Category::CATEGORY_MATH_AND_TRIG,
-			'functionCall' => [Functions::class, 'DUMMY'],
+			'category' => Category::CATEGORY_LOOKUP_AND_REFERENCE,
+			'functionCall' => [LookupRef\TorowTocol::class, 'tocol'],
 			'argumentCount' => '1-3',
 		],
 		'TOROW' => [
-			'category' => Category::CATEGORY_MATH_AND_TRIG,
-			'functionCall' => [Functions::class, 'DUMMY'],
+			'category' => Category::CATEGORY_LOOKUP_AND_REFERENCE,
+			'functionCall' => [LookupRef\TorowTocol::class, 'torow'],
 			'argumentCount' => '1-3',
 		],
 		'TRANSPOSE' => [
@@ -2471,12 +2497,12 @@ class FunctionArray extends CalculationBase
 		],
 		'UNICHAR' => [
 			'category' => Category::CATEGORY_TEXT_AND_DATA,
-			'functionCall' => [TextData\CharacterConvert::class, 'character'],
+			'functionCall' => [TextData\CharacterConvert::class, 'characterUnicode'],
 			'argumentCount' => '1',
 		],
 		'UNICODE' => [
 			'category' => Category::CATEGORY_TEXT_AND_DATA,
-			'functionCall' => [TextData\CharacterConvert::class, 'code'],
+			'functionCall' => [TextData\CharacterConvert::class, 'codeUnicode'],
 			'argumentCount' => '1',
 		],
 		'UNIQUE' => [
@@ -2545,14 +2571,15 @@ class FunctionArray extends CalculationBase
 			'argumentCount' => '3,4',
 		],
 		'VSTACK' => [
-			'category' => Category::CATEGORY_MATH_AND_TRIG,
-			'functionCall' => [Functions::class, 'DUMMY'],
+			'category' => Category::CATEGORY_LOOKUP_AND_REFERENCE,
+			'functionCall' => [LookupRef\Vstack::class, 'vstack'],
 			'argumentCount' => '1+',
 		],
 		'WEBSERVICE' => [
 			'category' => Category::CATEGORY_WEB,
 			'functionCall' => [Web\Service::class, 'webService'],
 			'argumentCount' => '1',
+			'passCellReference' => true,
 		],
 		'WEEKDAY' => [
 			'category' => Category::CATEGORY_DATE_AND_TIME,
@@ -2601,7 +2628,7 @@ class FunctionArray extends CalculationBase
 		],
 		'XLOOKUP' => [
 			'category' => Category::CATEGORY_LOOKUP_AND_REFERENCE,
-			'functionCall' => [Functions::class, 'DUMMY'],
+			'functionCall' => [LookupRef\XLookup::class, 'lookup'],
 			'argumentCount' => '3-6',
 		],
 		'XNPV' => [

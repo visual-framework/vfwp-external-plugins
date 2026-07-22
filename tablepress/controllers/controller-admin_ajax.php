@@ -161,8 +161,6 @@ class TablePress_Admin_AJAX_Controller extends TablePress_Controller {
 				$message = 'success_save_error_id_change';
 				$error_details = 'table_id_could_not_be_changed: capability_check_failed';
 			}
-
-			// @phpstan-ignore doWhile.alwaysFalse
 		} while ( false ); // Do-while-loop through this exactly once, to be able to "break;" early.
 
 		// Generate the response.
@@ -260,8 +258,6 @@ class TablePress_Admin_AJAX_Controller extends TablePress_Controller {
 
 			// At this point, the table data is valid and sanitized and can be rendered.
 			$success = true;
-
-			// @phpstan-ignore doWhile.alwaysFalse
 		} while ( false ); // Do-while-loop through this exactly once, to be able to "break;" early.
 
 		if ( $success ) {
@@ -291,14 +287,16 @@ class TablePress_Admin_AJAX_Controller extends TablePress_Controller {
 				. __( 'The Table Features for Site Visitors, like sorting, filtering, and pagination, are also not available in this preview!', 'tablepress' ) . '<br>';
 			// Show the instructions string depending on whether the Block Editor is used on the site or not.
 			if ( 'block' === TablePress::site_used_editor() ) {
+				/* translators: %1$s: Block name */
 				$body_html .= sprintf( __( 'To insert a table into a post or page, add a “%1$s” block in the block editor and select the desired table.', 'tablepress' ), __( 'TablePress table', 'tablepress' ) );
 			} elseif ( 'elementor' === TablePress::site_used_editor() ) {
+				/* translators: %1$s: Widget name */
 				$body_html .= sprintf( __( 'To insert a table into a post or page, add a “%1$s” widget in the Elementor editor and select the desired table.', 'tablepress' ), __( 'TablePress table', 'tablepress' ) );
 			} else {
 				$body_html .= __( 'To insert a table into a post or page, paste its Shortcode at the desired place in the editor.', 'tablepress' ) . ' '
 					. __( 'Each table has a unique ID that needs to be adjusted in that Shortcode.', 'tablepress' );
 			}
-			$body_html .= '</p>' . $_render->get_output( 'html' ) . '</div>';
+			$body_html .= '</p><div class="preview">' . $_render->get_output( 'html' ) . '</div></div>';
 		} else {
 			$head_html = '';
 			$body_html = __( 'The preview could not be loaded.', 'tablepress' );

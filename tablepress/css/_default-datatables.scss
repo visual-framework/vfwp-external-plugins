@@ -89,6 +89,7 @@ div.dt-scroll-body {
 				position: absolute;
 				display: block;
 				bottom: 50%;
+				content: unicode("25b2");
 				content: unicode("25b2") / "";
 			}
 		}
@@ -99,6 +100,7 @@ div.dt-scroll-body {
 				position: absolute;
 				display: block;
 				top: 50%;
+				content: unicode("25bc");
 				content: unicode("25bc") / "";
 			}
 		}
@@ -107,23 +109,18 @@ div.dt-scroll-body {
 		.dt-orderable-desc,
 		.dt-ordering-asc,
 		.dt-ordering-desc {
-			position: relative;
-			padding-#{$align-side-opposite}: 24px;
-
 			.dt-column-order {
-				position: absolute;
-				#{$align-side-opposite}: 6px;
-				top: 0;
-				bottom: 0;
+				position: relative;
 				width: 12px;
+				height: 24px;
 				color: var(--head-sort-arrow-color);
+				line-height: 12px;
+				font-size: 14px;
+				font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif !important;
 
 				&:before,
 				&:after {
 					opacity: 0.2;
-					line-height: 12px;
-					font-size: 12px;
-					font-family: sans-serif !important;
 				}
 			}
 		}
@@ -150,6 +147,27 @@ div.dt-scroll-body {
 			opacity: 0.8;
 		}
 	}
+
+	thead,
+	tfoot {
+		> tr > * {
+			.dt-column-header,
+			.dt-column-footer {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				gap: 4px;
+
+				.dt-column-title {
+					flex-grow: 1;
+
+					&:empty {
+						display: none;
+					}
+				}
+			}
+		}
+	}
 }
 
 /* Automatic data type alignment. */
@@ -159,6 +177,11 @@ div.dt-scroll-body {
 	/* .dt-right is used for custom dates. */
 	.dt-right {
 		text-align: $align-side-opposite;
+
+		.dt-column-header,
+		.dt-column-footer {
+			flex-direction: row-reverse;
+		}
 	}
 }
 
@@ -168,13 +191,9 @@ div.dt-scroll-body {
 	clear: both;
 	margin-bottom: 1rem;
 
-	.tablepress {
+	table.tablepress {
 		margin-bottom: 0;
 
-		/* Empty footers should be hidden for improved accessibility. */
-		tfoot:empty {
-			display: none;
-		}
 	}
 
 	.dt-layout-row {

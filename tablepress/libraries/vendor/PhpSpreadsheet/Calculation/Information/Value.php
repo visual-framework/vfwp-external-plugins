@@ -7,6 +7,7 @@ use TablePress\PhpOffice\PhpSpreadsheet\Calculation\Calculation;
 use TablePress\PhpOffice\PhpSpreadsheet\Calculation\Functions;
 use TablePress\PhpOffice\PhpSpreadsheet\Cell\Cell;
 use TablePress\PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use TablePress\PhpOffice\PhpSpreadsheet\Exception as SpreadsheetException;
 use TablePress\PhpOffice\PhpSpreadsheet\NamedRange;
 use TablePress\PhpOffice\PhpSpreadsheet\Shared\StringHelper;
 use TablePress\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -21,7 +22,7 @@ class Value
 	 * @param mixed $value Value to check
 	 *                      Or can be an array of values
 	 *
-	 * @return array|bool If an array of numbers is passed as an argument, then the returned result will also be an array
+	 * @return array<mixed>|bool If an array of numbers is passed as an argument, then the returned result will also be an array
 	 *            with the same dimensions
 	 */
 	public static function isBlank($value = null)
@@ -51,8 +52,10 @@ class Value
 			if (!empty($worksheet) && $cell->getWorksheet()->getParentOrThrow()->getSheetByName($worksheet) === null) {
 				return false;
 			}
-			[$column, $row] = Coordinate::indexesFromString($cellValue ?? '');
-			if ($column > 16384 || $row > 1048576) {
+
+			try {
+				[$column, $row] = Coordinate::indexesFromString($cellValue ?? '');
+			} catch (SpreadsheetException $exception) {
 				return false;
 			}
 
@@ -70,7 +73,7 @@ class Value
 	 * @param mixed $value Value to check
 	 *                      Or can be an array of values
 	 *
-	 * @return array|bool|string If an array of numbers is passed as an argument, then the returned result will also be an array
+	 * @return array<mixed>|bool|string If an array of numbers is passed as an argument, then the returned result will also be an array
 	 *            with the same dimensions
 	 */
 	public static function isEven($value = null)
@@ -95,7 +98,7 @@ class Value
 	 * @param mixed $value Value to check
 	 *                      Or can be an array of values
 	 *
-	 * @return array|bool|string If an array of numbers is passed as an argument, then the returned result will also be an array
+	 * @return array<mixed>|bool|string If an array of numbers is passed as an argument, then the returned result will also be an array
 	 *            with the same dimensions
 	 */
 	public static function isOdd($value = null)
@@ -120,7 +123,7 @@ class Value
 	 * @param mixed $value Value to check
 	 *                      Or can be an array of values
 	 *
-	 * @return array|bool If an array of numbers is passed as an argument, then the returned result will also be an array
+	 * @return array<mixed>|bool If an array of numbers is passed as an argument, then the returned result will also be an array
 	 *            with the same dimensions
 	 */
 	public static function isNumber($value = null)
@@ -142,7 +145,7 @@ class Value
 	 * @param mixed $value Value to check
 	 *                      Or can be an array of values
 	 *
-	 * @return array|bool If an array of numbers is passed as an argument, then the returned result will also be an array
+	 * @return array<mixed>|bool If an array of numbers is passed as an argument, then the returned result will also be an array
 	 *            with the same dimensions
 	 */
 	public static function isLogical($value = null)
@@ -160,7 +163,7 @@ class Value
 	 * @param mixed $value Value to check
 	 *                      Or can be an array of values
 	 *
-	 * @return array|bool If an array of numbers is passed as an argument, then the returned result will also be an array
+	 * @return array<mixed>|bool If an array of numbers is passed as an argument, then the returned result will also be an array
 	 *            with the same dimensions
 	 */
 	public static function isText($value = null)
@@ -178,7 +181,7 @@ class Value
 	 * @param mixed $value Value to check
 	 *                      Or can be an array of values
 	 *
-	 * @return array|bool If an array of numbers is passed as an argument, then the returned result will also be an array
+	 * @return array<mixed>|bool If an array of numbers is passed as an argument, then the returned result will also be an array
 	 *            with the same dimensions
 	 */
 	public static function isNonText($value = null)
@@ -191,13 +194,14 @@ class Value
 	}
 
 	/**
-				 * ISFORMULA.
-				 *
-				 * @param mixed $cellReference The cell to check
-				 * @param ?Cell $cell The current cell (containing this formula)
-				 * @return mixed[]|bool|string
-				 */
-				public static function isFormula($cellReference = '', ?Cell $cell = null)
+	 * ISFORMULA.
+	 *
+	 * @param mixed $cellReference The cell to check
+	 * @param ?Cell $cell The current cell (containing this formula)
+	 *
+	 * @return array<mixed>|bool|string
+	 */
+	public static function isFormula($cellReference = '', ?Cell $cell = null)
 	{
 		if ($cell === null) {
 			return ExcelError::REF();
@@ -225,8 +229,15 @@ class Value
 		$worksheet = (!empty($worksheetName))
 			? $cell->getWorksheet()->getParentOrThrow()->getSheetByName($worksheetName)
 			: $cell->getWorksheet();
+		if ($worksheet === null) {
+			return ExcelError::REF();
+		}
 
-		return ($worksheet !== null) ? $worksheet->getCell($fullCellReference)->isFormula() : ExcelError::REF();
+		try {
+			return $worksheet->getCell($fullCellReference)->isFormula();
+		} catch (SpreadsheetException $exception) {
+			return true;
+		}
 	}
 
 	/**
@@ -256,7 +267,7 @@ class Value
 		if (is_bool($value)) {
 			return (int) $value;
 		}
-		if (is_string($value) && substr($value, 0, 1) === '#') {
+		if (is_string($value) && str_starts_with($value, '#')) {
 			return $value;
 		}
 
